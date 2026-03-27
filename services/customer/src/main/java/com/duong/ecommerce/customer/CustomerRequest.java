@@ -8,13 +8,15 @@ public record CustomerRequest(
 
         @NotNull(message = "Customer firstname is required")
         String firstname,
+
         @NotNull(message = "Customer lastname is required")
         String lastname,
+
         @NotNull(message = "Customer email is required")
         @Email(message = "Customer email is not a valid email address")
         String email,
-        @NotNull(message = "Customer address is required")
 
+        @NotNull(message = "Customer address is required")
         Address address
 ) {
 }

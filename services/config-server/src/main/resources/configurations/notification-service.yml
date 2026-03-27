@@ -3,12 +3,7 @@ server:
 spring:
   data:
     mongodb:
-      username: root
-      password: 12345
-      host: localhost
-      port: 27017
-      database: notification
-      authentication-database: admin
+      uri: mongodb://root:12345@localhost:27017/notification?authSource=admin
   kafka:
     consumer:
       bootstrap-servers: localhost:9092

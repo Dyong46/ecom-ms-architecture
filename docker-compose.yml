@@ -40,6 +40,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=12345
+    networks:
+      - microservices-net
 
   mongo-express:
     container_name: ms_mongo_express
@@ -53,6 +55,8 @@ services:
       - ME_CONFIG_MONGODB_SERVER=mongodb
       - ME_CONFIG_BASICAUTH_USERNAME=dev
       - ME_CONFIG_BASICAUTH_PASSWORD=dev
+    networks:
+      - microservices-net
 
   mail-dev:
     container_name: ms_mail_dev
