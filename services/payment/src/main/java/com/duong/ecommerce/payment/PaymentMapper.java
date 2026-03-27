@@ -14,4 +14,15 @@ public class PaymentMapper {
                 .amount(request.amount())
                 .build();
     }
+
+    public PaymentResponse fromPayment(Payment payment) {
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getOrderId(),
+                payment.getAmount(),
+                payment.getPaymentMethod(),
+                payment.getCreateDate(),
+                payment.getLastModifiedDate()
+        );
+    }
 }
