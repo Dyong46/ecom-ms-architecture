@@ -4,8 +4,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/order
-    username: alibou
-    password: alibou
+    username: root
+    password: 12345
   jpa:
     hibernate:
       ddl-auto: create
@@ -17,7 +17,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.type.mapping: orderConfirmation:com.alibou.ecommerce.kafka.OrderConfirmation
+        spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.kafka.OrderConfirmation
 
 application:
   config:
