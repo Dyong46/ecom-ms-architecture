@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class OrderService {
     private final OrderProducer orderProducer;
     private final PaymentClient paymentClient;
 
+    @Transactional
     public Integer createOrder(@Valid OrderRequest request) {
         // check the customer --> OpenFeign
         var customer = this.customerClient.findCustomerById(request.customerId())

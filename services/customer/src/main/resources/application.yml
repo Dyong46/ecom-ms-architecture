@@ -1,5 +1,6 @@
 spring:
   config:
+    # optional mean that if config false, use default config
     import: optional:configserver:http://localhost:8888
   application:
     name: customer-service

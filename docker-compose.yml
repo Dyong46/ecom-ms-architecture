@@ -80,8 +80,8 @@ services:
       - microservices-net
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
     container_name: ms_kafka
+    image: confluentinc/cp-kafka:7.5.0
     ports:
       - "9092:9092"
     depends_on:
@@ -96,15 +96,26 @@ services:
     networks:
       - microservices-net
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin
     ports:
-      - "8082:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      - "9411:9411"
     networks:
       - microservices-net
+
+  keycloak:
+    container_name: kaycloak-ms
+    image: quay.io/keycloak/keycloak:24.0.2
+    ports:
+      - "9098:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: 12345
+    networks:
+      - microservices-net
+    command:
+      - "start-dev"
 
 networks:
   microservices-net:

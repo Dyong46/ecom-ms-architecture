@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ public class ProductService {
         return repository.save(product).getId();
     }
 
+    @Transactional(rollbackFor = ProductPurchaseException.class)
     public List<ProductPurchaseResponse> purchaseProducts(List<ProductPurchaseRequest> request) {
         var productIds = request
                 .stream()

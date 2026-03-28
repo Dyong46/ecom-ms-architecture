@@ -62,7 +62,7 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info(String.format("INFO - Email successfully sent to %s with template %s,", destinationEmail, templateName));
         } catch (MessagingException e) {
-            log.warn("WARNING - Cannot send email to {}", destinationEmail);
+            log.warn("WARNING - Cannot send payment email to {}", destinationEmail);
         }
     }
 
@@ -102,7 +102,7 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info(String.format("INFO - Email successfully sent to %s with template %s,", destinationEmail, templateName));
         } catch (MessagingException e) {
-            log.warn("WARNING - Cannot send email to {}", destinationEmail);
+            log.warn("WARNING - Cannot send order confirmation email to {}", destinationEmail);
         }
     }
 }
