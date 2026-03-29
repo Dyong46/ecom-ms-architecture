@@ -1,5 +1,6 @@
 server:
   port: 8060
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -11,7 +12,6 @@ spring:
       ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
   kafka:
     producer:
       bootstrap-servers: localhost:9092
@@ -19,6 +19,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.type.mapping: paymentConfirmation:com.duong.ecommerce.notification.PaymentNotificationRequest
+
 application:
   config:
     product-url: http://localhost:8222/api/v1/products
