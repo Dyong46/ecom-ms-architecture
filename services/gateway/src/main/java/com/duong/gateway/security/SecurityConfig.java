@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity serverHttpSecurity) {
         serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/aureka/**")
+                        .pathMatchers("/auruka/**")
                         .permitAll()
                         .anyExchange()
                         .authenticated()
