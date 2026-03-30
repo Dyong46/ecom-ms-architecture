@@ -163,3 +163,19 @@ Hướng mở rộng đề xuất:
 - Backend engineer muốn thực hành system design qua bài toán e-commerce.
 - Sinh viên/người tự học cần một dự án end-to-end để phân tích kiến trúc.
 
+## 12) Check list to to feature
+Nhóm Latency
+- Redis - Tăng tốc độ truy vấn, giảm thiểu việc gọi tới db với những query giống nhau
+- Elasticsearch - 
+
+Nhóm Scalability
+- Sharding (partitioning) - Chia dữ liệu thành nhiều phần, mỗi DB giữ 1 phần, xử lỷ data lớn, tăng tốc độ query khi phân theo region, ... , chia theo region, id, ...
+- Load Balencing
+
+Nhóm Availability- Reliability
+- Backup & Restore, postgresql, mongodb - Đảm bảo có thể khôi phục dữ liệu khi bị mất
+- Replication postgresql, mongodb - High Availability Đảm bảo việc database luôn available khi có 1 database bị sập, tăng tốc độ đọc bằng cách chia primary - write và slave(replica) - read.
+
+- Bổ sung spring-cloud-starter-loadbalancer trong gateway service
+
+
