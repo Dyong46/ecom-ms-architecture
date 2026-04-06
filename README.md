@@ -174,8 +174,27 @@ Nhóm Scalability
 
 Nhóm Availability- Reliability
 - Backup & Restore, postgresql, mongodb - Đảm bảo có thể khôi phục dữ liệu khi bị mất
-- Replication postgresql, mongodb - High Availability Đảm bảo việc database luôn available khi có 1 database bị sập, tăng tốc độ đọc bằng cách chia primary - write và slave(replica) - read.
+- [x] **Replication postgresql** - High Availability cluster với Patroni + etcd + HAProxy + PgBouncer. Xem [`pg-replication/README.md`](pg-replication/README.md) để biết chi tiết kiến trúc, hướng dẫn setup, và failover testing.
+- Replication mongodb - High Availability Đảm bảo việc database luôn available khi có 1 database bị sập, tăng tốc độ đọc bằng cách chia primary - write và slave(replica) - read.
 
 - Bổ sung spring-cloud-starter-loadbalancer trong gateway service
+
+## 13) PostgreSQL Replication Architecture
+
+Hệ thống replication PostgreSQL được triển khai tại thư mục [`pg-replication/`](pg-replication/):
+
+- **1 Primary** (write) + **2 Replicas** (read) quản lý bởi **Patroni**
+- **etcd** làm Distributed Configuration Store cho leader election
+- **HAProxy** phân tách read/write traffic và load-balance reads
+- **PgBouncer** cho connection pooling
+- Automatic failover không cần can thiệp thủ công
+- Application không cần thay đổi connection string sau failover
+
+```
+App writes  →  PgBouncer (:6432)  →  HAProxy (:5000)  →  Primary
+App reads   →  HAProxy (:5001)    →  Replica 1 / Replica 2 (round-robin)
+```
+
+Xem [`pg-replication/README.md`](pg-replication/README.md) để biết hướng dẫn đầy đủ.
 
 

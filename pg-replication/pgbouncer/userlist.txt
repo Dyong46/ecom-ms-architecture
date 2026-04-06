@@ -1,0 +1,8 @@
+# PgBouncer user list – format: "username" "md5<hash>"
+# Hash = md5(password + username)
+# Generate: python3 -c "import hashlib; print('md5'+hashlib.md5(b'<password><username>').hexdigest())"
+#
+# WARNING: The hash below uses the default dev password 'postgres'.
+# Regenerate this hash when you change POSTGRES_PASSWORD in .env.
+# For production use Docker secrets or an auth_query instead of this file.
+"postgres" "md53175bce1d3201d16594cebf9d7eb3f9d"
