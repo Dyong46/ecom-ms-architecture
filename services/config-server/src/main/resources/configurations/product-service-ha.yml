@@ -1,0 +1,56 @@
+# Spring profile: ha
+# Activate with: SPRING_PROFILES_ACTIVE=ha (or add to bootstrap.yml)
+# This profile configures product-service to connect via the HA stack.
+#
+# Option A (recommended): Spring Boot → PgBouncer (:6432) → HAProxy → Patroni primary
+# Option B (simpler):     Spring Boot → HAProxy writer (:5000) → Patroni primary
+#
+# When running locally (service as JVM process, infra in Docker):
+#   use localhost:6432 or localhost:5000
+# When running fully containerized (service also in Docker on microservices-net):
+#   use ha_pgbouncer:6432 or ha_haproxy:5000
+
+server:
+  port: 8050
+
+spring:
+  datasource:
+    # ── Option A: via PgBouncer (recommended for microservices) ──────────────
+    # prepareThreshold=0 disables server-side prepared statements,
+    # which are not supported in PgBouncer transaction mode.
+    url: jdbc:postgresql://localhost:6432/product?prepareThreshold=0
+    # ── Option B: via HAProxy directly (uncomment to use instead) ────────────
+    # url: jdbc:postgresql://localhost:5000/product
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:12345}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # Keep pool small; PgBouncer multiplexes connections to DB
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      # Detect dead connections quickly during/after Patroni failover
+      connection-timeout: 30000
+      validation-timeout: 5000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      # Do not fail at startup if DB is not yet ready (patroni bootstrap takes time)
+      initialization-fail-timeout: -1
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    baseline-description: "init"
+    baseline-version: 0
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
