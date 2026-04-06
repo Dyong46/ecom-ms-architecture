@@ -27,3 +27,7 @@
 ._*
 .Spotlight-V100
 .Trashes
+
+# Environment files with secrets (use .env.example for templates)
+.env
+pg-replication/.env

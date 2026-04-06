@@ -1,0 +1,166 @@
+services:
+
+  # ─────────────────────────────────────────────
+  # Distributed Configuration Store (DCS)
+  # Used by Patroni for leader election & cluster state
+  # ─────────────────────────────────────────────
+  etcd1:
+    image: bitnami/etcd:3.5
+    container_name: pg_etcd1
+    hostname: etcd1
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_NAME=etcd1
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd1:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd1:2379
+      - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380
+      - ETCD_INITIAL_CLUSTER_TOKEN=patroni-cluster
+      - ETCD_INITIAL_CLUSTER_STATE=new
+    volumes:
+      - etcd1_data:/bitnami/etcd
+    networks:
+      - pg-net
+    healthcheck:
+      test: ["CMD", "etcdctl", "--endpoints=http://127.0.0.1:2379", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # PostgreSQL nodes managed by Patroni
+  # pg1 bootstraps as primary; pg2/pg3 join as replicas
+  # ─────────────────────────────────────────────
+  pg1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pg_patroni1
+    hostname: pg1
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - REPLICATION_PASSWORD=${REPLICATION_PASSWORD:-replicator}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    volumes:
+      - pg1_data:/data/patroni
+      - ./patroni/patroni1.yml:/etc/patroni/patroni.yml:ro
+      - ./patroni/init_db.sh:/etc/patroni/init_db.sh:ro
+    ports:
+      - "5432:5432"   # PostgreSQL
+      - "8008:8008"   # Patroni REST API
+    depends_on:
+      etcd1:
+        condition: service_healthy
+    networks:
+      - pg-net
+    restart: unless-stopped
+
+  pg2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pg_patroni2
+    hostname: pg2
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - REPLICATION_PASSWORD=${REPLICATION_PASSWORD:-replicator}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    volumes:
+      - pg2_data:/data/patroni
+      - ./patroni/patroni2.yml:/etc/patroni/patroni.yml:ro
+    ports:
+      - "5433:5432"   # PostgreSQL
+      - "8009:8008"   # Patroni REST API
+    depends_on:
+      etcd1:
+        condition: service_healthy
+    networks:
+      - pg-net
+    restart: unless-stopped
+
+  pg3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pg_patroni3
+    hostname: pg3
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - REPLICATION_PASSWORD=${REPLICATION_PASSWORD:-replicator}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    volumes:
+      - pg3_data:/data/patroni
+      - ./patroni/patroni3.yml:/etc/patroni/patroni.yml:ro
+    ports:
+      - "5434:5432"   # PostgreSQL
+      - "8010:8008"   # Patroni REST API
+    depends_on:
+      etcd1:
+        condition: service_healthy
+    networks:
+      - pg-net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # HAProxy – Read/Write Splitting & Load Balancing
+  # Port 5000 → writes (primary only)
+  # Port 5001 → reads (replicas, round-robin)
+  # Port 7000 → HAProxy stats dashboard
+  # ─────────────────────────────────────────────
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: pg_haproxy
+    hostname: haproxy
+    ports:
+      - "5000:5000"   # Write endpoint (primary)
+      - "5001:5001"   # Read endpoint (replicas)
+      - "7000:7000"   # HAProxy stats
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - pg1
+      - pg2
+      - pg3
+    networks:
+      - pg-net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # PgBouncer – Connection Pooling (optional)
+  # Sits in front of HAProxy write port
+  # Port 6432 → pooled connections to primary
+  # ─────────────────────────────────────────────
+  pgbouncer:
+    image: edoburu/pgbouncer:1.22.0
+    container_name: pg_pgbouncer
+    hostname: pgbouncer
+    ports:
+      - "6432:5432"   # Pooled write endpoint
+    environment:
+      - DB_HOST=haproxy
+      - DB_PORT=5000
+      - DB_USER=postgres
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONN=200
+      - DEFAULT_POOL_SIZE=25
+      - AUTH_TYPE=md5
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - haproxy
+    networks:
+      - pg-net
+    restart: unless-stopped
+
+networks:
+  pg-net:
+    driver: bridge
+
+volumes:
+  etcd1_data:
+  pg1_data:
+  pg2_data:
+  pg3_data:

@@ -1,0 +1,80 @@
+scope: postgres-cluster
+namespace: /service/
+name: pg1
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: pg1:8008
+
+etcd3:
+  hosts: etcd1:2379
+
+bootstrap:
+  # Settings pushed to all cluster members via DCS on first bootstrap
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_connections: 200
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_log_hints: "on"
+        archive_mode: "off"
+
+  # Run once after successful cluster initialization
+  post_init: /etc/patroni/init_db.sh
+
+  # initdb options applied when this node first bootstraps the cluster
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+  # pg_hba.conf entries written during bootstrap
+  pg_hba:
+    - local all all trust
+    - host all all 127.0.0.1/32 trust
+    - host all all 0.0.0.0/0 md5
+    - host replication replicator 0.0.0.0/0 md5
+
+  # Users created during bootstrap
+  users:
+    admin:
+      password: ${ADMIN_PASSWORD}
+      options:
+        - createrole
+        - createdb
+    replicator:
+      password: ${REPLICATION_PASSWORD}
+      options:
+        - replication
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: pg1:5432
+  data_dir: /data/patroni
+  bin_dir: /usr/lib/postgresql/16/bin
+  pgpass: /tmp/pgpass0
+
+  authentication:
+    replication:
+      username: replicator
+      password: ${REPLICATION_PASSWORD}
+    superuser:
+      username: postgres
+      password: ${POSTGRES_PASSWORD}
+
+  parameters:
+    unix_socket_directories: '/tmp'
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false
