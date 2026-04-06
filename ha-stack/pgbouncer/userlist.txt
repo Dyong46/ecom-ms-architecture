@@ -1,0 +1,14 @@
+# PgBouncer user authentication file
+# Format: "username" "password"
+#
+# Plain-text passwords work with auth_type = md5 (development only).
+# For production, replace with MD5 hashes using the format: "username" "md5<hash>"
+# where <hash> = md5(password || username).
+#
+# Generate the MD5 hash:
+#   echo -n "12345root" | md5sum
+#   → prepend "md5" to the result, e.g. "root" "md5<result>"
+#
+# Development credentials (override via PGBOUNCER_AUTH_FILE or Docker secrets in production):
+"root" "12345"
+"postgres" "postgres"

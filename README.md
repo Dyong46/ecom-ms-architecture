@@ -174,8 +174,273 @@ Nhóm Scalability
 
 Nhóm Availability- Reliability
 - Backup & Restore, postgresql, mongodb - Đảm bảo có thể khôi phục dữ liệu khi bị mất
-- Replication postgresql, mongodb - High Availability Đảm bảo việc database luôn available khi có 1 database bị sập, tăng tốc độ đọc bằng cách chia primary - write và slave(replica) - read.
+- [x] Replication postgresql - High Availability (Patroni + etcd + HAProxy + PgBouncer) → xem mục 13
+- Replication mongodb - High Availability Đảm bảo việc database luôn available khi có 1 database bị sập, tăng tốc độ đọc bằng cách chia primary - write và slave(replica) - read.
 
 - Bổ sung spring-cloud-starter-loadbalancer trong gateway service
+
+---
+
+## 13) PostgreSQL High Availability Stack (Patroni + etcd + HAProxy + PgBouncer)
+
+### 13.1 Tổng quan topology
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Spring Boot Services                      │
+│         (product-service, order-service, payment-service)    │
+└───────────────────────┬──────────────────────────────────────┘
+                        │ JDBC
+                        ▼
+              ┌─────────────────┐
+              │   PgBouncer     │  :6432  (Phương án A — khuyến nghị)
+              │  pool_mode=     │
+              │  transaction    │
+              └────────┬────────┘
+                       │   hoặc kết nối trực tiếp (Phương án B)
+                       ▼
+              ┌─────────────────┐
+              │    HAProxy      │  :5000 writer / :5001 reader
+              │  (health-check  │  :7000 stats UI
+              │  Patroni API)   │
+              └────────┬────────┘
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+    ┌──────────┐ ┌──────────┐ ┌──────────┐
+    │ pg-node1 │ │ pg-node2 │ │ pg-node3 │
+    │ (primary)│ │(replica) │ │(replica) │
+    │  Patroni │ │  Patroni │ │  Patroni │
+    └────┬─────┘ └────┬─────┘ └────┬─────┘
+         └────────────┼────────────┘
+                      ▼
+            ┌──────────────────┐
+            │   etcd cluster   │  (3 nodes — bầu chọn primary)
+            └──────────────────┘
+```
+
+**Luồng kết nối:**
+- **Patroni** quản lý PostgreSQL, dùng **etcd** để bầu chọn leader (primary) tự động.
+- **HAProxy** health-check từng node qua Patroni REST API (`:8008/master` và `:8008/replica`) và chỉ route tới đúng vai trò.
+- **PgBouncer** giảm số connection thực tế vào DB bằng transaction pooling.
+
+---
+
+### 13.2 Ports và service names
+
+| Thành phần | Container name | Port (host) | Mô tả |
+|------------|---------------|-------------|-------|
+| HAProxy writer | `ha_haproxy` | `5000` | PostgreSQL primary (đọc/ghi) |
+| HAProxy reader | `ha_haproxy` | `5001` | PostgreSQL replicas (chỉ đọc) |
+| HAProxy stats | `ha_haproxy` | `7000` | Dashboard: `http://localhost:7000/stats` |
+| PgBouncer | `ha_pgbouncer` | `6432` | Connection pool → primary |
+| pg-node1 | `ha_pg_node1` | `5441` | PostgreSQL node 1 (trực tiếp) |
+| pg-node2 | `ha_pg_node2` | `5442` | PostgreSQL node 2 (trực tiếp) |
+| pg-node3 | `ha_pg_node3` | `5443` | PostgreSQL node 3 (trực tiếp) |
+| Patroni API node1 | `ha_pg_node1` | `8008` | `GET /master`, `/replica`, `/health` |
+| Patroni API node2 | `ha_pg_node2` | `8009` | Patroni REST API node 2 |
+| Patroni API node3 | `ha_pg_node3` | `8010` | Patroni REST API node 3 |
+
+> **Khi Spring Boot chạy local** (JVM process), dùng `localhost:PORT`.  
+> **Khi Spring Boot chạy trong Docker** (trên cùng network `microservices-net`), dùng container name: `ha_pgbouncer:6432` hoặc `ha_haproxy:5000`.
+
+---
+
+### 13.3 Khởi động HA Stack
+
+```bash
+# Bước 1: Tạo Docker network dùng chung (nếu chưa có)
+docker network create microservices-net 2>/dev/null || true
+
+# Bước 2: Khởi động hạ tầng cơ bản (Kafka, MongoDB, MailDev, Keycloak, Zipkin)
+docker compose up -d
+
+# Bước 3: Build và khởi động HA stack
+docker compose -f docker-compose.ha.yml up -d --build
+
+# Kiểm tra Patroni cluster (chờ ~30 giây để cluster khởi tạo)
+docker exec ha_pg_node1 patronictl -c /etc/patroni/patroni.yml list
+
+# Kết quả mong đợi:
+# + Cluster: postgres-ha (xxxxxxxx) +---------+----+-----------+
+# | Member   | Host         | Role    | State   | TL | Lag in MB |
+# +----------+--------------+---------+---------+----+-----------+
+# | pg-node1 | ha_pg_node1:5432 | Leader  | running |  1 |           |
+# | pg-node2 | ha_pg_node2:5432 | Replica | running |  1 |         0 |
+# | pg-node3 | ha_pg_node3:5432 | Replica | running |  1 |         0 |
+# +----------+--------------+---------+---------+----+-----------+
+
+# Kiểm tra HAProxy stats
+curl http://localhost:7000/stats
+```
+
+---
+
+### 13.4 Kết nối Spring Boot vào PostgreSQL HA
+
+#### Câu hỏi: Spring Boot nên connect vào đâu?
+
+Có **2 phương án**:
+
+| | Phương án A | Phương án B |
+|--|-------------|-------------|
+| **Đường đi** | Spring Boot → **PgBouncer** (:6432) → HAProxy → Primary | Spring Boot → **HAProxy** (:5000) → Primary |
+| **Khuyến nghị** | ✅ Cho microservices | Khi không cần pooling |
+
+---
+
+#### Phương án A — Spring Boot → PgBouncer (:6432) **(Khuyến nghị)**
+
+```yaml
+# application.yml — Phương án A: qua PgBouncer
+spring:
+  datasource:
+    # prepareThreshold=0: tắt server-side prepared statements
+    # (bắt buộc khi PgBouncer dùng transaction mode)
+    url: jdbc:postgresql://localhost:6432/product?prepareThreshold=0
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:12345}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      keepalive-time: 30000        # Gửi keepalive để phát hiện connection chết
+      max-lifetime: 1800000        # Đóng connection sau 30 phút (tránh stale)
+      initialization-fail-timeout: -1   # Không fail khi start nếu DB chưa ready
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+```
+
+**Ưu điểm:**
+- ✅ **Connection pooling hiệu quả**: PgBouncer gộp nhiều connection từ HikariCP thành ít connection thực vào PostgreSQL. Khi scale nhiều instance microservice, tổng connection DB không tăng tuyến tính.
+- ✅ **Transaction mode**: Connection chỉ bị giữ trong thời gian transaction active, không chiếm connection khi idle → throughput cao hơn.
+- ✅ **Phù hợp microservices**: Mỗi service có HikariCP pool riêng; PgBouncer là tầng gộp chung cuối cùng.
+- ✅ **Reconnect sau failover**: PgBouncer tự reconnect vào backend mới sau Patroni failover; app chỉ thấy một khoảng ngắn connection error.
+
+**Nhược điểm:**
+- ⚠️ **Phải tắt server-side prepared statements**: Thêm `prepareThreshold=0` vào JDBC URL. JPA/Hibernate vẫn chạy bình thường (dùng client-side caching thay thế).
+- ⚠️ **Không dùng được session-level features**: Temporary tables, advisory locks, `SET search_path` trên session, `LISTEN/NOTIFY` không hoạt động trong transaction mode.
+- ⚠️ **Thêm một thành phần**: Phải monitor thêm PgBouncer.
+
+---
+
+#### Phương án B — Spring Boot → HAProxy (:5000)
+
+```yaml
+# application.yml — Phương án B: qua HAProxy trực tiếp
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5000/product
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:12345}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      initialization-fail-timeout: -1
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+```
+
+**Ưu điểm:**
+- ✅ **Đơn giản hơn**: Ít thành phần, không cần quản lý PgBouncer.
+- ✅ **Hỗ trợ đầy đủ PostgreSQL features**: Prepared statements, session variables, advisory locks, `LISTEN/NOTIFY` đều dùng được.
+- ✅ **HikariCP kiểm soát pool trực tiếp**: Không có lớp trung gian.
+
+**Nhược điểm:**
+- ⚠️ **Không có connection pooling ở tầng hạ tầng**: Mỗi HikariCP connection = 1 real connection vào PostgreSQL. Khi scale nhiều service instances, số connection DB tăng nhanh, có thể vượt `max_connections`.
+- ⚠️ **Connection drop khi failover**: Khi HAProxy chuyển backend (sau Patroni failover), connection TCP cũ bị đóng. HikariCP phải detect và tạo connection mới. Cần cấu hình `keepalive-time` và `connection-test-query` để phát hiện nhanh.
+
+---
+
+#### So sánh tổng hợp
+
+| Tiêu chí | A — qua PgBouncer | B — qua HAProxy |
+|----------|-------------------|-----------------|
+| Connection pooling | ✅ Có (transaction mode) | ❌ Không |
+| Server-side prepared statements | ⚠️ Phải tắt (`prepareThreshold=0`) | ✅ Hỗ trợ đầy đủ |
+| Session-level features | ⚠️ Không dùng được | ✅ Đầy đủ |
+| Failover behavior | ✅ PgBouncer reconnect tự động | ⚠️ HikariCP cần detect & retry |
+| Phù hợp scale nhiều instances | ✅ Tốt | ⚠️ Cần cẩn thận với `max_connections` |
+| Độ phức tạp hạ tầng | Cao hơn | Thấp hơn |
+| Phù hợp khi nào | Microservices, nhiều instance | Dev/test hoặc ít instance |
+
+> **Kết luận**: Với kiến trúc microservices, **Phương án A (qua PgBouncer)** thường được khuyến nghị vì khả năng pooling khi scale. Nhớ thêm `?prepareThreshold=0` vào JDBC URL.
+
+---
+
+#### Kích hoạt Spring profile `ha` qua Config Server
+
+Các file cấu hình HA được đặt trong:
+- `services/config-server/src/main/resources/configurations/product-service-ha.yml`
+- `services/config-server/src/main/resources/configurations/order-service-ha.yml`
+- `services/config-server/src/main/resources/configurations/payment-service-ha.yml`
+
+Kích hoạt bằng cách set environment variable trước khi chạy service:
+
+```bash
+# Chạy product-service với profile ha (kết nối qua PgBouncer)
+SPRING_PROFILES_ACTIVE=ha ./mvnw spring-boot:run -pl services/product
+```
+
+---
+
+### 13.5 Failover và reconnect
+
+Khi Patroni failover xảy ra (ví dụ primary node crash):
+1. Patroni dùng etcd để bầu chọn replica mới làm primary (~10–30 giây).
+2. HAProxy phát hiện qua health-check Patroni REST API (check interval 3s) và chuyển traffic sang node mới.
+3. Connection TCP cũ đang active bị đóng.
+4. **HikariCP** detect connection chết (qua `keepalive-time` hoặc khi transaction thất bại) và tạo connection mới.
+5. App sẽ thấy một số request bị lỗi trong khoảng failover (~10–30 giây) — đây là hành vi expected với PostgreSQL HA.
+
+**Khuyến nghị thêm cho production:**
+- Implement retry logic ở application layer (Spring Retry hoặc Resilience4j).
+- Set `connectionTimeout` đủ lớn (30 giây) để HikariCP có thể retry khi backend chưa sẵn sàng.
+- Monitor qua HAProxy stats (`http://localhost:7000/stats`) để theo dõi trạng thái backend.
+
+---
+
+### 13.6 Health check endpoints Patroni
+
+HAProxy dùng các endpoints này để kiểm tra vai trò của từng node:
+
+| Endpoint | HTTP 200 khi nào | HTTP 503 khi nào |
+|----------|-----------------|-----------------|
+| `GET :8008/master` | Node là primary | Node là replica hoặc không healthy |
+| `GET :8008/replica` | Node là replica | Node là primary hoặc không healthy |
+| `GET :8008/health` | Node healthy (bất kỳ vai trò) | Node không healthy |
+| `GET :8008/patroni` | Luôn trả về (JSON chi tiết) | — |
+
+Kiểm tra thủ công:
+```bash
+# Xem node nào là primary
+curl -s http://localhost:8008/master && echo " → pg-node1 is PRIMARY"
+curl -s http://localhost:8009/master && echo " → pg-node2 is PRIMARY"
+curl -s http://localhost:8010/master && echo " → pg-node3 is PRIMARY"
+
+# Xem trạng thái cluster
+docker exec ha_pg_node1 patronictl -c /etc/patroni/patroni.yml list
+```
 
 

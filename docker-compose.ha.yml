@@ -1,0 +1,222 @@
+# PostgreSQL High Availability Stack
+# Topology: Patroni (3 nodes) + etcd (3 nodes) + HAProxy + PgBouncer
+#
+# Usage:
+#   # Ensure the shared network exists first
+#   docker network create microservices-net 2>/dev/null || true
+#
+#   # Start main infrastructure
+#   docker compose up -d
+#
+#   # Start HA stack
+#   docker compose -f docker-compose.ha.yml up -d --build
+#
+# Endpoints after startup:
+#   HAProxy writer  → localhost:5000  (routes to Patroni primary)
+#   HAProxy reader  → localhost:5001  (routes to Patroni replicas)
+#   HAProxy stats   → http://localhost:7000/stats
+#   PgBouncer       → localhost:6432  (pool → HAProxy writer)
+#   pg-node1 direct → localhost:5441
+#   pg-node2 direct → localhost:5442
+#   pg-node3 direct → localhost:5443
+#   Patroni API     → localhost:8008 / 8009 / 8010
+
+services:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # etcd cluster (3 nodes) — Patroni uses etcd for distributed consensus
+  # ──────────────────────────────────────────────────────────────────────────
+  ha_etcd1:
+    image: bitnami/etcd:3
+    container_name: ha_etcd1
+    environment:
+      ETCD_NAME: etcd1
+      ETCD_DATA_DIR: /etcd-data
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://ha_etcd1:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://ha_etcd1:2380
+      ETCD_INITIAL_CLUSTER: etcd1=http://ha_etcd1:2380,etcd2=http://ha_etcd2:2380,etcd3=http://ha_etcd3:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: postgres-ha-token
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    volumes:
+      - ha_etcd1_data:/etcd-data
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  ha_etcd2:
+    image: bitnami/etcd:3
+    container_name: ha_etcd2
+    environment:
+      ETCD_NAME: etcd2
+      ETCD_DATA_DIR: /etcd-data
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://ha_etcd2:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://ha_etcd2:2380
+      ETCD_INITIAL_CLUSTER: etcd1=http://ha_etcd1:2380,etcd2=http://ha_etcd2:2380,etcd3=http://ha_etcd3:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: postgres-ha-token
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    volumes:
+      - ha_etcd2_data:/etcd-data
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  ha_etcd3:
+    image: bitnami/etcd:3
+    container_name: ha_etcd3
+    environment:
+      ETCD_NAME: etcd3
+      ETCD_DATA_DIR: /etcd-data
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://ha_etcd3:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://ha_etcd3:2380
+      ETCD_INITIAL_CLUSTER: etcd1=http://ha_etcd1:2380,etcd2=http://ha_etcd2:2380,etcd3=http://ha_etcd3:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: postgres-ha-token
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    volumes:
+      - ha_etcd3_data:/etcd-data
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Patroni nodes (3 PostgreSQL nodes managed by Patroni)
+  # Node 1 becomes primary on first boot; nodes 2 & 3 join as replicas.
+  # ──────────────────────────────────────────────────────────────────────────
+  ha_pg_node1:
+    build:
+      context: ./ha-stack/patroni
+      dockerfile: Dockerfile
+    container_name: ha_pg_node1
+    hostname: ha_pg_node1
+    environment:
+      NODE_NAME: pg-node1
+      NODE_HOST: ha_pg_node1
+      PATRONI_SUPERUSER_PASSWORD: ${PATRONI_SUPERUSER_PASSWORD:-postgres}
+      PATRONI_REPLICATION_PASSWORD: ${PATRONI_REPLICATION_PASSWORD:-replicator}
+      PATRONI_ROOT_PASSWORD: ${PATRONI_ROOT_PASSWORD:-12345}
+    volumes:
+      - ./ha-stack/patroni/patroni.yml:/etc/patroni/patroni.yml:ro
+      - ha_pg_node1_data:/data/patroni
+    ports:
+      - "5441:5432"   # Direct PostgreSQL access (for debugging)
+      - "8008:8008"   # Patroni REST API
+    depends_on:
+      - ha_etcd1
+      - ha_etcd2
+      - ha_etcd3
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  ha_pg_node2:
+    build:
+      context: ./ha-stack/patroni
+      dockerfile: Dockerfile
+    container_name: ha_pg_node2
+    hostname: ha_pg_node2
+    environment:
+      NODE_NAME: pg-node2
+      NODE_HOST: ha_pg_node2
+      PATRONI_SUPERUSER_PASSWORD: ${PATRONI_SUPERUSER_PASSWORD:-postgres}
+      PATRONI_REPLICATION_PASSWORD: ${PATRONI_REPLICATION_PASSWORD:-replicator}
+      PATRONI_ROOT_PASSWORD: ${PATRONI_ROOT_PASSWORD:-12345}
+    volumes:
+      - ./ha-stack/patroni/patroni.yml:/etc/patroni/patroni.yml:ro
+      - ha_pg_node2_data:/data/patroni
+    ports:
+      - "5442:5432"   # Direct PostgreSQL access (for debugging)
+      - "8009:8008"   # Patroni REST API
+    depends_on:
+      - ha_etcd1
+      - ha_etcd2
+      - ha_etcd3
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  ha_pg_node3:
+    build:
+      context: ./ha-stack/patroni
+      dockerfile: Dockerfile
+    container_name: ha_pg_node3
+    hostname: ha_pg_node3
+    environment:
+      NODE_NAME: pg-node3
+      NODE_HOST: ha_pg_node3
+      PATRONI_SUPERUSER_PASSWORD: ${PATRONI_SUPERUSER_PASSWORD:-postgres}
+      PATRONI_REPLICATION_PASSWORD: ${PATRONI_REPLICATION_PASSWORD:-replicator}
+      PATRONI_ROOT_PASSWORD: ${PATRONI_ROOT_PASSWORD:-12345}
+    volumes:
+      - ./ha-stack/patroni/patroni.yml:/etc/patroni/patroni.yml:ro
+      - ha_pg_node3_data:/data/patroni
+    ports:
+      - "5443:5432"   # Direct PostgreSQL access (for debugging)
+      - "8010:8008"   # Patroni REST API
+    depends_on:
+      - ha_etcd1
+      - ha_etcd2
+      - ha_etcd3
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # HAProxy — load balancer with health checks via Patroni REST API
+  # Port 5000: writer  (only routes to the current Patroni primary)
+  # Port 5001: reader  (routes to replicas; falls back to primary)
+  # Port 7000: stats   (http://localhost:7000/stats)
+  # ──────────────────────────────────────────────────────────────────────────
+  ha_haproxy:
+    image: haproxy:2.8-alpine
+    container_name: ha_haproxy
+    volumes:
+      - ./ha-stack/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "5000:5000"   # PostgreSQL writer (primary)
+      - "5001:5001"   # PostgreSQL reader (replicas)
+      - "7000:7000"   # HAProxy stats dashboard
+    depends_on:
+      - ha_pg_node1
+      - ha_pg_node2
+      - ha_pg_node3
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # PgBouncer — connection pooler (transaction mode) in front of HAProxy
+  # Port 6432: pooled connections → HAProxy writer → Patroni primary
+  # ──────────────────────────────────────────────────────────────────────────
+  ha_pgbouncer:
+    image: edoburu/pgbouncer:1.21.0
+    container_name: ha_pgbouncer
+    volumes:
+      - ./ha-stack/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./ha-stack/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    ports:
+      - "6432:6432"   # PgBouncer (pooled) endpoint
+    depends_on:
+      - ha_haproxy
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+networks:
+  microservices-net:
+    external: true
+
+volumes:
+  ha_etcd1_data:
+  ha_etcd2_data:
+  ha_etcd3_data:
+  ha_pg_node1_data:
+  ha_pg_node2_data:
+  ha_pg_node3_data:

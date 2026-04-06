@@ -1,0 +1,59 @@
+# Spring profile: ha
+# Activate with: SPRING_PROFILES_ACTIVE=ha (or add to bootstrap.yml)
+# This profile configures order-service to connect via the HA stack.
+#
+# Option A (recommended): Spring Boot → PgBouncer (:6432) → HAProxy → Patroni primary
+# Option B (simpler):     Spring Boot → HAProxy writer (:5000) → Patroni primary
+#
+# When running locally (service as JVM process, infra in Docker):
+#   use localhost:6432 or localhost:5000
+# When running fully containerized (service also in Docker on microservices-net):
+#   use ha_pgbouncer:6432 or ha_haproxy:5000
+
+server:
+  port: 8070
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    # ── Option A: via PgBouncer (recommended for microservices) ──────────────
+    # prepareThreshold=0 disables server-side prepared statements,
+    # which are not supported in PgBouncer transaction mode.
+    url: jdbc:postgresql://localhost:6432/order?prepareThreshold=0
+    # ── Option B: via HAProxy directly (uncomment to use instead) ────────────
+    # url: jdbc:postgresql://localhost:5000/order
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:12345}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      initialization-fail-timeout: -1
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.kafka.OrderConfirmation
+
+application:
+  config:
+    customer-url: http://localhost:8090/api/v1/customers
+    payment-url: http://localhost:8060/api/v1/payments
+    product-url: http://localhost:8050/api/v1/products
