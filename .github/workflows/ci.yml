@@ -9,24 +9,24 @@ permissions:
 
 jobs:
   test:
-    name: Test ${{ matrix.service }}
+    name: Test ${{ matrix.module }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - config-server
-          - discovery
-          - gateway
-          - customer
-          - product
-          - order
-          - payment
-          - notification
+        module:
+          - services/config-server
+          - services/discovery
+          - cloud/api-gateway
+          - services/customer
+          - services/product
+          - services/order
+          - services/payment
+          - services/notification
 
     defaults:
       run:
-        working-directory: services/${{ matrix.service }}
+        working-directory: ${{ matrix.module }}
 
     steps:
       - name: Checkout
@@ -38,7 +38,14 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: maven
-          cache-dependency-path: services/${{ matrix.service }}/pom.xml
+          cache-dependency-path: |
+            pom.xml
+            services/pom.xml
+            cloud/pom.xml
+            support/pom.xml
+            support/common-module/pom.xml
+            support/web-module/pom.xml
+            ${{ matrix.module }}/pom.xml
 
       - name: Run tests
-        run: ./mvnw --batch-mode verify
+        run: ./mvnw -f ../../pom.xml -pl ${{ matrix.module }} -am --batch-mode verify

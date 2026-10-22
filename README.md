@@ -26,7 +26,7 @@ Các service giao tiếp theo 2 hướng:
 - Áp dụng pattern phổ biến trong hệ phân tán:
 	- Centralized Configuration (`config-server`)
 	- Service Discovery (`discovery` - Eureka)
-	- API Gateway (`gateway`)
+	- API Gateway (`api-gateway`)
 	- Event-Driven Communication (Kafka)
 - Làm nền tảng học tập/phỏng vấn/thực hành system design cho bài toán e-commerce.
 
@@ -36,7 +36,7 @@ Các thành phần chính:
 
 - `config-server`: Quản lý cấu hình tập trung cho toàn bộ services.
 - `discovery`: Eureka Server để đăng ký và tìm kiếm service.
-- `gateway`: Điểm vào duy nhất từ client, định tuyến request vào service nội bộ.
+- `api-gateway`: Điểm vào duy nhất từ client, định tuyến request vào service nội bộ.
 - `customer`: Quản lý thông tin khách hàng (MongoDB).
 - `product`: Quản lý catalog sản phẩm, tồn kho (PostgreSQL + Flyway).
 - `order`: Xử lý tạo đơn, điều phối luồng nghiệp vụ đặt hàng.
@@ -128,9 +128,101 @@ Thứ tự khuyến nghị:
 2. Chạy `config-server`.
 3. Chạy `discovery`.
 4. Chạy lần lượt các business services (`customer`, `product`, `order`, `payment`, `notification`).
-5. Chạy `gateway` và bắt đầu gọi API từ phía client.
+5. Chạy `api-gateway` và bắt đầu gọi API từ phía client.
 
 > Gợi ý: Có thể dùng Maven Wrapper (`./mvnw spring-boot:run`) trong từng service.
+
+### Build và test với parent Maven chung
+
+Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
+cho toàn bộ hệ thống và các thư viện support. `cloud/pom.xml` quản lý `api-gateway`;
+`services/pom.xml` quản lý `config-server`, `discovery` và 5 business service;
+`support/pom.xml` quản lý `common-module` và `web-module`. Các dependency riêng và cấu hình
+đóng gói vẫn nằm trong POM của từng module.
+
+Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
+
+```bash
+./services/order/mvnw -f pom.xml --batch-mode verify
+```
+
+Chỉ build và test một service cùng các module cần thiết:
+
+```bash
+./services/order/mvnw -f pom.xml -pl services/product -am --batch-mode verify
+```
+
+Nếu chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong một service phụ thuộc
+web-module, trước tiên install các thư viện support và parent vào Maven local:
+
+```bash
+./services/order/mvnw -f pom.xml -pl support/web-module -am --batch-mode install
+```
+
+### Pagination cho API danh sách
+
+`GET /api/v1/customers`, `/api/v1/products`, `/api/v1/orders` và
+`/api/v1/payments` đều phân trang ở database, sắp xếp theo `id` tăng dần:
+
+```http
+GET /api/v1/products?page=1&size=20
+```
+
+- `page`: bắt đầu từ `1`, mặc định `1`; `page=0` bị từ chối.
+- `size`: từ `1` đến `100`, mặc định `20`.
+- Tham số không hợp lệ trả `400 application/problem+json`, có lỗi theo field.
+- Trang vượt quá dữ liệu trả `200` với `content: []`.
+
+Response danh sách đổi từ mảng trực tiếp sang object có metadata:
+
+```json
+{
+  "content": [],
+  "page_info": {
+    "number": 1,
+    "size": 20,
+    "number_of_elements": 0,
+    "total_elements": 0,
+    "total_pages": 0,
+    "is_first": true,
+    "is_last": true
+  },
+  "request_id": null
+}
+```
+
+Client đọc danh sách qua `content` và tăng `page` để lấy trang tiếp theo cho đến
+khi `page_info.is_last` là `true`. PaginationRequest và PageResponse được dùng chung
+từ web-module; Spring Data vẫn nhận page index bắt đầu từ 0 sau khi chuyển đổi.
+Các API lấy một bản ghi hoặc mua sản phẩm không đổi contract.
+
+### Error response: Problem Details
+
+Các API customer, product, order, payment và lỗi do gateway phát sinh dùng
+`application/problem+json` với `type`, `title`, `status`, `detail`, `instance`.
+Sử dụng `ProblemDetail` của Spring (RFC 7807, được thay thế bởi RFC 9457).
+Client cần đọc `detail` thay vì coi response lỗi là chuỗi; validation giữ thêm
+map `errors` theo tên field:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Request validation failed",
+  "instance": "/api/v1/products/purchase",
+  "errors": {
+    "products[0].quantity": "Quantity is mandatory"
+  }
+}
+```
+
+- Validation/JSON không hợp lệ và lỗi nghiệp vụ: `400`.
+- Thiếu/sai Bearer token tại gateway: `401`, giữ header `WWW-Authenticate`.
+- Không có quyền: `403`; không tìm thấy resource: `404`.
+- HTTP method không hỗ trợ: `405`, giữ header `Allow`.
+- Gateway không tìm được service instance: `503`.
+- Lỗi bất ngờ: `500`, không trả stack trace hoặc chi tiết exception nội bộ.
 
 ## 10) Giá trị học thuật về System Design
 
@@ -157,6 +249,9 @@ Hướng mở rộng đề xuất:
 - Bổ sung observability (OpenTelemetry, Prometheus, Grafana).
 - Chuẩn hoá CI/CD và chiến lược deploy đa môi trường.
 
+Tài liệu thiết kế authentication/authorization dự kiến phát triển sau:
+[Authentication and Authorization Design Note](docs/authentication-authorization-design.md).
+
 ## 12) Đối tượng phù hợp
 
 - Người mới bắt đầu với Spring Microservices.
@@ -181,7 +276,7 @@ Hướng mở rộng đề xuất:
 ### Những phần project đã làm được
 
 - [x] **Microservice architecture**: tách domain thành `customer`, `product`, `order`,
-  `payment`, `notification`; có `config-server`, Eureka `discovery` và API `gateway`.
+  `payment`, `notification`; có `config-server`, Eureka `discovery` và `api-gateway`.
 - [x] **Giao tiếp đồng bộ và bất đồng bộ**: order dùng OpenFeign/REST cho các dependency
   cần phản hồi ngay; order/payment publish event và notification consume bằng Kafka.
 - [x] **Java/Spring backend**: Java 17, Spring Boot 3, Spring Cloud, validation, JPA,

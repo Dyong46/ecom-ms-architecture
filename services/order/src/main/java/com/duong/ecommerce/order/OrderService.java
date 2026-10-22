@@ -1,5 +1,8 @@
 package com.duong.ecommerce.order;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.duong.ecommerce.customer.CustomerClient;
 import com.duong.ecommerce.exception.BusinessException;
 import com.duong.ecommerce.kafka.OrderConfirmation;
@@ -19,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -96,11 +98,8 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public List<OrderResponse> findAll() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::fromOrder)
-                .collect(Collectors.toList());
+    public Page<OrderResponse> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::fromOrder);
     }
 
     public OrderResponse findById(Integer orderId) {

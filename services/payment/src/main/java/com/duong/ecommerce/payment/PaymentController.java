@@ -1,11 +1,12 @@
 package com.duong.ecommerce.payment;
+import com.duong.module.web.payload.response.PageResponse;
+import com.duong.module.web.payload.filter.PaginationRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -22,7 +23,9 @@ public class PaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PaymentResponse>> getPayment() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<PageResponse<PaymentResponse>> getPayment(
+            @Valid @ModelAttribute PaginationRequest pagination
+    ) {
+        return ResponseEntity.ok(PageResponse.build(service.findAll(pagination.toPageable())));
     }
 }

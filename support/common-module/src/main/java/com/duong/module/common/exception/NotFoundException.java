@@ -1,0 +1,15 @@
+package com.duong.module.common.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class NotFoundException extends BaseApiException {
+
+	private static final long serialVersionUID = 7602029865918452721L;
+
+	public NotFoundException(String msg) {
+		super(msg);
+	}
+
+}

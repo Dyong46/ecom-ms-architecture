@@ -1,0 +1,66 @@
+server:
+  port: 8222
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: public-product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/public/v1/products/**
+            - Method=GET
+          filters:
+            - RewritePath=/api/public/v1/products(?<segment>/?.*), /api/v1/products$\{segment}
+
+        - id: payment-callback-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/callbacks/payments/**
+            - Method=POST
+          filters:
+            - RewritePath=/api/callbacks/payments(?<segment>/?.*), /api/v1/payments/callbacks$\{segment}
+
+        - id: customer-service
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/api/v1/customers/**
+
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/orders/**
+
+        - id: order-lines-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/order-lines/**
+
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/v1/products/**
+
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/v1/payments/**
+
+gateway:
+  security:
+    public-paths:
+      - /actuator/health
+      - /actuator/health/**
+      - /actuator/info
+    public-get-paths:
+      - /api/public/**
+    callback:
+      enabled: true
+      path-pattern: /api/callbacks/**
+      allowed-cidrs:
+        - 127.0.0.1/32
+        - "::1/128"
+      trusted-proxies: 0
