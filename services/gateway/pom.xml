@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.duong</groupId>
 		<artifactId>ecom-ms-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<groupId>com.duong</groupId>
