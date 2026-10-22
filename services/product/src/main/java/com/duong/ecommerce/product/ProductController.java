@@ -1,6 +1,6 @@
 package com.duong.ecommerce.product;
-import com.duong.ecommerce.pagination.PageResponse;
-import com.duong.ecommerce.pagination.PaginationRequest;
+import com.duong.module.web.payload.response.PageResponse;
+import com.duong.module.web.payload.filter.PaginationRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class ProductController {
     public ResponseEntity<PageResponse<ProductResponse>> findAll(
             @Valid @ModelAttribute PaginationRequest pagination
     ) {
-        return ResponseEntity.ok(PageResponse.from(service.findAll(pagination.toPageable())));
+        return ResponseEntity.ok(PageResponse.build(service.findAll(pagination.toPageable())));
     }
 
 }

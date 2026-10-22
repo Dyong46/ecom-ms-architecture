@@ -136,7 +136,7 @@ Thứ tự khuyến nghị:
 
 Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
 cho cả 8 service và các thư viện support. `services/pom.xml` quản lý 8 service;
-`support/pom.xml` quản lý `common-module`. Các dependency riêng và cấu hình đóng
+`support/pom.xml` quản lý `common-module` và `web-module`. Các dependency riêng và cấu hình đóng
 gói vẫn nằm trong POM của từng module.
 
 Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
@@ -151,9 +151,12 @@ Chỉ build và test một service cùng các module cần thiết:
 ./services/order/mvnw -f pom.xml -pl services/product -am --batch-mode verify
 ```
 
-Vẫn có thể chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong từng service;
-parent trung gian được đọc qua `../pom.xml`, rồi kế thừa root parent;
-không cần cài parent trước.
+Nếu chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong một service phụ thuộc
+web-module, trước tiên install các thư viện support và parent vào Maven local:
+
+```bash
+./services/order/mvnw -f pom.xml -pl support/web-module -am --batch-mode install
+```
 
 ### Pagination cho API danh sách
 
@@ -161,10 +164,10 @@ không cần cài parent trước.
 `/api/v1/payments` đều phân trang ở database, sắp xếp theo `id` tăng dần:
 
 ```http
-GET /api/v1/products?page=0&size=20
+GET /api/v1/products?page=1&size=20
 ```
 
-- `page`: bắt đầu từ `0`, mặc định `0`.
+- `page`: bắt đầu từ `1`, mặc định `1`; `page=0` bị từ chối.
 - `size`: từ `1` đến `100`, mặc định `20`.
 - Tham số không hợp lệ trả `400 application/problem+json`, có lỗi theo field.
 - Trang vượt quá dữ liệu trả `200` với `content: []`.
@@ -174,17 +177,23 @@ Response danh sách đổi từ mảng trực tiếp sang object có metadata:
 ```json
 {
   "content": [],
-  "page": 0,
-  "size": 20,
-  "totalElements": 0,
-  "totalPages": 0,
-  "first": true,
-  "last": true
+  "page_info": {
+    "number": 1,
+    "size": 20,
+    "number_of_elements": 0,
+    "total_elements": 0,
+    "total_pages": 0,
+    "is_first": true,
+    "is_last": true
+  },
+  "request_id": null
 }
 ```
 
 Client đọc danh sách qua `content` và tăng `page` để lấy trang tiếp theo cho đến
-khi `last` là `true`. Các API lấy một bản ghi hoặc mua sản phẩm không đổi contract.
+khi `page_info.is_last` là `true`. PaginationRequest và PageResponse được dùng chung
+từ web-module; Spring Data vẫn nhận page index bắt đầu từ 0 sau khi chuyển đổi.
+Các API lấy một bản ghi hoặc mua sản phẩm không đổi contract.
 
 ### Error response: Problem Details
 

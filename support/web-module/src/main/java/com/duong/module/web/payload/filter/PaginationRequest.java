@@ -1,4 +1,4 @@
-package com.duong.ecommerce.pagination;
+package com.duong.module.web.payload.filter;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,14 +11,14 @@ import org.springframework.data.domain.Sort;
 @Getter
 @Setter
 public class PaginationRequest {
-    @Min(value = 0, message = "Page must be at least 0")
-    private int page = 0;
+    @Min(value = 1, message = "Page must be at least 1")
+    private int page = 1;
 
     @Min(value = 1, message = "Size must be at least 1")
     @Max(value = 100, message = "Size must not exceed 100")
     private int size = 20;
 
     public Pageable toPageable() {
-        return PageRequest.of(page, size, Sort.by("id").ascending());
+        return PageRequest.of(page - 1, size, Sort.by("id").ascending());
     }
 }

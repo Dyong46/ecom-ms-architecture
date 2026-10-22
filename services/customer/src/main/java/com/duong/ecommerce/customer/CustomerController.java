@@ -1,7 +1,7 @@
 
 package com.duong.ecommerce.customer;
-import com.duong.ecommerce.pagination.PageResponse;
-import com.duong.ecommerce.pagination.PaginationRequest;
+import com.duong.module.web.payload.response.PageResponse;
+import com.duong.module.web.payload.filter.PaginationRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ public class CustomerController {
     public ResponseEntity<PageResponse<CustomerResponse>> findAll(
             @Valid @ModelAttribute PaginationRequest pagination
     ) {
-        return ResponseEntity.ok(PageResponse.from(service.findAllCustomers(pagination.toPageable())));
+        return ResponseEntity.ok(PageResponse.build(service.findAllCustomers(pagination.toPageable())));
     }
 
     @GetMapping("/exits/{customer-id}")

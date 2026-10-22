@@ -41,7 +41,10 @@ jobs:
           cache-dependency-path: |
             pom.xml
             services/pom.xml
+            support/pom.xml
+            support/common-module/pom.xml
+            support/web-module/pom.xml
             services/${{ matrix.service }}/pom.xml
 
       - name: Run tests
-        run: ./mvnw --batch-mode verify
+        run: ./mvnw -f ../../pom.xml -pl services/${{ matrix.service }} -am --batch-mode verify

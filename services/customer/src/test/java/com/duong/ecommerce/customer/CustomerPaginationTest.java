@@ -48,12 +48,12 @@ class CustomerPaginationTest {
         mvc.perform(get("/api/v1/customers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty())
-                .andExpect(jsonPath("$.page").value(0))
-                .andExpect(jsonPath("$.size").value(20))
-                .andExpect(jsonPath("$.totalElements").value(0))
-                .andExpect(jsonPath("$.totalPages").value(0))
-                .andExpect(jsonPath("$.first").value(true))
-                .andExpect(jsonPath("$.last").value(true));
+                .andExpect(jsonPath("$.page_info.number").value(1))
+                .andExpect(jsonPath("$.page_info.size").value(20))
+                .andExpect(jsonPath("$.page_info.total_elements").value(0))
+                .andExpect(jsonPath("$.page_info.total_pages").value(0))
+                .andExpect(jsonPath("$.page_info.is_first").value(true))
+                .andExpect(jsonPath("$.page_info.is_last").value(true));
 
         verify(service).findAllCustomers(pageable);
     }
@@ -64,15 +64,15 @@ class CustomerPaginationTest {
         when(service.findAllCustomers(pageable)).thenReturn(new PageImpl<>(
                 List.of(new CustomerResponse("customer-1", "Ada", "Lovelace", "ada@example.com", null)), pageable, 45));
 
-        mvc.perform(get("/api/v1/customers").param("page", "1").param("size", "10"))
+        mvc.perform(get("/api/v1/customers").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.page").value(1))
-                .andExpect(jsonPath("$.size").value(10))
-                .andExpect(jsonPath("$.totalElements").value(45))
-                .andExpect(jsonPath("$.totalPages").value(5))
-                .andExpect(jsonPath("$.first").value(false))
-                .andExpect(jsonPath("$.last").value(false));
+                .andExpect(jsonPath("$.page_info.number").value(2))
+                .andExpect(jsonPath("$.page_info.size").value(10))
+                .andExpect(jsonPath("$.page_info.total_elements").value(45))
+                .andExpect(jsonPath("$.page_info.total_pages").value(5))
+                .andExpect(jsonPath("$.page_info.is_first").value(false))
+                .andExpect(jsonPath("$.page_info.is_last").value(false));
     }
 
     @Test
@@ -80,15 +80,15 @@ class CustomerPaginationTest {
         var pageable = PageRequest.of(10, 20, Sort.by("id").ascending());
         when(service.findAllCustomers(pageable)).thenReturn(new PageImpl<>(List.of(), pageable, 45));
 
-        mvc.perform(get("/api/v1/customers").param("page", "10"))
+        mvc.perform(get("/api/v1/customers").param("page", "11"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isEmpty())
-                .andExpect(jsonPath("$.totalElements").value(45))
-                .andExpect(jsonPath("$.last").value(true));
+                .andExpect(jsonPath("$.page_info.total_elements").value(45))
+                .andExpect(jsonPath("$.page_info.is_last").value(true));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"page=-1", "size=0", "size=101", "page=abc", "size=abc"})
+    @ValueSource(strings = {"page=0", "page=-1", "size=0", "size=101", "page=abc", "size=abc"})
     void invalidParametersReturnProblemBeforeService(String query) throws Exception {
         var param = query.split("=");
         mvc.perform(get("/api/v1/customers").param(param[0], param[1]))

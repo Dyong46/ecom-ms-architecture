@@ -25,6 +25,7 @@
 
     <properties>
         <java.version>17</java.version>
+        <support.version>1.0.0</support.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <modelmapper.version>3.2.0</modelmapper.version>
         <guava.version>33.4.8-jre</guava.version>
@@ -38,6 +39,16 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>common-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>web-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.modelmapper</groupId>
                 <artifactId>modelmapper</artifactId>
