@@ -132,6 +132,27 @@ Thứ tự khuyến nghị:
 
 > Gợi ý: Có thể dùng Maven Wrapper (`./mvnw spring-boot:run`) trong từng service.
 
+### Build và test với parent Maven chung
+
+Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
+cho cả 8 service. Các dependency riêng và cấu hình đóng gói vẫn nằm trong POM
+của từng service.
+
+Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
+
+```bash
+./services/order/mvnw -f pom.xml --batch-mode verify
+```
+
+Chỉ build và test một service cùng các module cần thiết:
+
+```bash
+./services/order/mvnw -f pom.xml -pl services/product -am --batch-mode verify
+```
+
+Vẫn có thể chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong từng service;
+parent được đọc trực tiếp qua `../../pom.xml`, không cần cài parent trước.
+
 ## 10) Giá trị học thuật về System Design
 
 Dự án phù hợp để học và thảo luận các chủ đề:
