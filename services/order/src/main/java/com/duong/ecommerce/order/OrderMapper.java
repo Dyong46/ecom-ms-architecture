@@ -3,15 +3,17 @@ package com.duong.ecommerce.order;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 public class OrderMapper {
 
-    public Order toOrder(@Valid OrderRequest request) {
+    public Order toOrder(@Valid OrderRequest request, BigDecimal totalAmount) {
         return Order.builder()
                 .id(request.id())
                 .customerId(request.customerId())
                 .reference(request.reference())
-                .totalAmount(request.amount())
+                .totalAmount(totalAmount)
                 .paymentMethod(request.paymentMethod())
                 .build();
     }

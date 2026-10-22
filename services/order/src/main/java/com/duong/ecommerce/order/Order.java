@@ -5,6 +5,7 @@ import com.duong.ecommerce.orderline.OrderLine;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -43,7 +44,7 @@ public class Order {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createAt;
 
-    @CreatedDate
+    @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModifiedDate;
 }

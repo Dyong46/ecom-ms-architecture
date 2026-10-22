@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/order-line")
+@RequestMapping("/api/v1/order-lines")
 @RequiredArgsConstructor
 public class OrderLineController {
 

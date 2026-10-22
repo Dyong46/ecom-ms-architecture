@@ -9,9 +9,11 @@ spring:
     password: 12345
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
   kafka:
     producer:
       bootstrap-servers: localhost:9092

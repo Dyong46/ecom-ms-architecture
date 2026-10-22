@@ -19,7 +19,7 @@ spring:
             - Path=/api/v1/orders/**
 
         - id: order-lines-service
-          uri: lb://ORDER-LINES-SERVICE
+          uri: lb://ORDER-SERVICE
           predicates:
             - Path=/api/v1/order-lines/**
 

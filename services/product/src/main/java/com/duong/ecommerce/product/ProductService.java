@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,14 +27,30 @@ public class ProductService {
 
     @Transactional(rollbackFor = ProductPurchaseException.class)
     public List<ProductPurchaseResponse> purchaseProducts(List<ProductPurchaseRequest> request) {
+        if (request == null || request.isEmpty()) {
+            throw new ProductPurchaseException("At least one product is required");
+        }
+        if (request.stream().anyMatch(item -> item == null || item.productId() == null
+                || !Double.isFinite(item.quantity()) || item.quantity() <= 0)) {
+            throw new ProductPurchaseException("Product and a positive quantity are required");
+        }
+
         var productIds = request
                 .stream()
                 .map(ProductPurchaseRequest::productId)
                 .toList();
+        if (new HashSet<>(productIds).size() != productIds.size()) {
+            throw new ProductPurchaseException("Duplicate products are not allowed in one purchase request");
+        }
 
         var storedProducts = repository.findAllByIdInOrderById(productIds);
         if (productIds.size() != storedProducts.size()) {
             throw new ProductPurchaseException("One or more products does not exits");
+        }
+        for (var product : storedProducts) {
+            if (product.getPrice() == null) {
+                throw new ProductPurchaseException("Missing price for product with ID:: " + product.getId());
+            }
         }
         var storedRequest = request
                 .stream()
