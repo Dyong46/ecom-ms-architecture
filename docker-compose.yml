@@ -2,13 +2,14 @@ services:
 
   postgres:
     container_name: ms_pg_sql
-    image: postgres
+    image: postgres:16.4
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: 12345
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
     ports:
       - "5432:5432"
     networks:
@@ -17,7 +18,7 @@ services:
 
   mongodb:
     container_name: ms_mongo_db
-    image: mongo
+    image: mongo:24.04
     ports:
       - "27017:27017"
     volumes:

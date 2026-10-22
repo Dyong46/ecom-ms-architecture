@@ -10,12 +10,14 @@ import com.duong.ecommerce.payment.PaymentClient;
 import com.duong.ecommerce.payment.PaymentRequest;
 import com.duong.ecommerce.product.ProductClient;
 import com.duong.ecommerce.product.PurchaseRequest;
+import com.duong.ecommerce.product.PurchaseResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +41,9 @@ public class OrderService {
 
         // purchase the products --> product-ms (RestTemplate)
         var purchaseProduct = this.productClient.purchaseResponses(request.products());
+        var totalAmount = calculateTotalAmount(purchaseProduct);
 
-        var order = this.repository.save(mapper.toOrder(request));
+        var order = this.repository.save(mapper.toOrder(request, totalAmount));
 
         // persist order
         for (PurchaseRequest purchaseRequest: request.products()) {
@@ -55,7 +58,7 @@ public class OrderService {
         }
         // start payment process
         var paymentRequest = new PaymentRequest(
-                request.amount(),
+                totalAmount,
                 request.paymentMethod(),
                 order.getId(),
                 order.getReference(),
@@ -68,7 +71,7 @@ public class OrderService {
         orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
                         request.reference(),
-                        request.amount(),
+                        totalAmount,
                         request.paymentMethod(),
                         customer,
                         purchaseProduct
@@ -76,6 +79,21 @@ public class OrderService {
         );
 
         return order.getId();
+    }
+
+    private BigDecimal calculateTotalAmount(List<PurchaseResponse> purchasedProducts) {
+        if (purchasedProducts == null || purchasedProducts.isEmpty()) {
+            throw new BusinessException("Cannot create order:: Product service returned no purchased products");
+        }
+
+        return purchasedProducts.stream()
+                .map(product -> {
+                    if (product.price() == null || product.quantity() <= 0) {
+                        throw new BusinessException("Cannot create order:: Product service returned invalid pricing data");
+                    }
+                    return product.price().multiply(BigDecimal.valueOf(product.quantity()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public List<OrderResponse> findAll() {

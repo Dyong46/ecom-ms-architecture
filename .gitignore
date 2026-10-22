@@ -22,6 +22,8 @@
 # IntelliJ IDEA
 .idea/
 
+.env
+
 # macOS hidden/system files
 .DS_Store
 ._*

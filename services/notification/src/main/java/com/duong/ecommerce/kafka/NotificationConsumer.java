@@ -27,7 +27,7 @@ public class NotificationConsumer {
         log.info(String.format("Consuming the massage from payment-topic Topic:: %s", paymentConfirmation));
         repository.save(
                 Notification.builder()
-                        .type(NotificationType.PAYMENT_CONFIRMATION)
+                        .type(NotificationType.ORDER_CONFIRMATION)
                         .notificationDate(LocalDateTime.now())
                         .paymentConfirmation(paymentConfirmation)
                         .build()
