@@ -135,8 +135,9 @@ Thứ tự khuyến nghị:
 ### Build và test với parent Maven chung
 
 Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
-cho cả 8 service. Các dependency riêng và cấu hình đóng gói vẫn nằm trong POM
-của từng service.
+cho cả 8 service và các thư viện support. `services/pom.xml` quản lý 8 service;
+`support/pom.xml` quản lý `common-module`. Các dependency riêng và cấu hình đóng
+gói vẫn nằm trong POM của từng module.
 
 Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
 
@@ -151,7 +152,8 @@ Chỉ build và test một service cùng các module cần thiết:
 ```
 
 Vẫn có thể chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong từng service;
-parent được đọc trực tiếp qua `../../pom.xml`, không cần cài parent trước.
+parent trung gian được đọc qua `../pom.xml`, rồi kế thừa root parent;
+không cần cài parent trước.
 
 ### Pagination cho API danh sách
 

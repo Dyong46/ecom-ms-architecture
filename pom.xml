@@ -16,16 +16,11 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>E-commerce Microservices Parent</name>
+    <description>E-commerce Microservices</description>
 
     <modules>
-        <module>services/config-server</module>
-        <module>services/discovery</module>
-        <module>services/gateway</module>
-        <module>services/customer</module>
-        <module>services/product</module>
-        <module>services/order</module>
-        <module>services/payment</module>
-        <module>services/notification</module>
+        <module>services</module>
+        <module>support</module>
     </modules>
 
     <properties>

@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.duong</groupId>
-		<artifactId>ecom-ms-parent</artifactId>
+		<artifactId>services</artifactId>
 		<version>1.0.0</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.duong</groupId>
 	<artifactId>discovery</artifactId>
