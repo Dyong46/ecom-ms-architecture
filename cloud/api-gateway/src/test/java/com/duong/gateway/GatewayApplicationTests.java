@@ -12,26 +12,30 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import static org.mockito.Mockito.when;
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 
 @Import(GatewayApplicationTests.TestRoutes.class)
 @SpringBootTest(properties = {
 		"spring.config.import=optional:file:./config-not-required-for-tests.yml",
 		"spring.cloud.config.enabled=false",
-		"eureka.client.enabled=false"
+		"eureka.client.enabled=false",
+		"gateway.security.public-get-paths=/api/public/**",
+		"gateway.security.callback.path-pattern=/api/callbacks/**",
+		"gateway.security.callback.allowed-cidrs=10.0.0.0/8",
+		"gateway.security.callback.trusted-proxies=1"
 })
 class GatewayApplicationTests {
 
 	@Autowired
 	private ApplicationContext context;
-
-	@MockBean
-	private ReactiveJwtDecoder reactiveJwtDecoder;
 
 	@Test
 	void contextLoads() {
@@ -52,7 +56,6 @@ class GatewayApplicationTests {
 
 	@Test
 	void invalidTokenReturnsProblemAndBearerChallenge() {
-		when(reactiveJwtDecoder.decode("invalid")).thenReturn(Mono.error(new BadJwtException("secret detail")));
 		client().get().uri("/api/v1/products").headers(h -> h.setBearerAuth("invalid")).exchange()
 				.expectStatus().isUnauthorized()
 				.expectHeader().valueEquals("WWW-Authenticate", "Bearer error=\"invalid_token\"")
@@ -62,9 +65,40 @@ class GatewayApplicationTests {
 	}
 
 	@Test
+	void publicGetDoesNotRequireToken() {
+		client().get().uri("/api/public/test").exchange()
+				.expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("public");
+	}
+
+	@Test
+	void nonGetRequestToPublicPrefixStillRequiresToken() {
+		client().post().uri("/api/public/test").exchange()
+				.expectStatus().isUnauthorized();
+	}
+
+	@Test
+	void callbackFromAllowedForwardedAddressDoesNotRequireToken() {
+		client().post().uri("/api/callbacks/test")
+				.header("X-Forwarded-For", "10.20.30.40")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("callback");
+	}
+
+	@Test
+	void callbackFromAddressOutsideAllowlistIsForbidden() {
+		client().post().uri("/api/callbacks/test")
+				.header("X-Forwarded-For", "203.0.113.10")
+				.exchange()
+				.expectStatus().isForbidden()
+				.expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
+				.expectBody()
+				.jsonPath("$.status").isEqualTo(403);
+	}
+
+	@Test
 	void unknownRouteReturnsNotFoundProblem() {
-		var jwt = Jwt.withTokenValue("valid").header("alg", "RS256").subject("customer").build();
-		when(reactiveJwtDecoder.decode("valid")).thenReturn(Mono.just(jwt));
 		client().get().uri("/unknown-route").headers(h -> h.setBearerAuth("valid")).exchange()
 				.expectStatus().isNotFound()
 				.expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
@@ -78,8 +112,6 @@ class GatewayApplicationTests {
 
 	@Test
 	void unavailableServiceReturns503Problem() {
-		var jwt = Jwt.withTokenValue("valid").header("alg", "RS256").subject("customer").build();
-		when(reactiveJwtDecoder.decode("valid")).thenReturn(Mono.just(jwt));
 		client().get().uri("/test-unavailable").headers(h -> h.setBearerAuth("valid")).exchange()
 				.expectStatus().isEqualTo(503)
 				.expectHeader().contentType(MediaType.APPLICATION_PROBLEM_JSON)
@@ -94,6 +126,26 @@ class GatewayApplicationTests {
 		RouteLocator testRoutes(RouteLocatorBuilder builder) {
 			return builder.routes().route("unavailable", route -> route.path("/test-unavailable")
 					.uri("lb://NONEXISTENT-SERVICE")).build();
+		}
+
+		@Bean
+		RouterFunction<ServerResponse> testEndpoints() {
+			return route(GET("/api/public/test"), request -> ServerResponse.ok().bodyValue("public"))
+					.andRoute(POST("/api/public/test"), request -> ServerResponse.ok().bodyValue("protected"))
+					.andRoute(POST("/api/callbacks/test"), request -> ServerResponse.ok().bodyValue("callback"));
+		}
+
+		@Bean
+		ReactiveJwtDecoder testJwtDecoder() {
+			return token -> {
+				if (!"valid".equals(token)) {
+					return Mono.error(new BadJwtException("secret detail"));
+				}
+				return Mono.just(Jwt.withTokenValue(token)
+						.header("alg", "RS256")
+						.subject("customer")
+						.build());
+			};
 		}
 	}
 

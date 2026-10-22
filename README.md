@@ -26,7 +26,7 @@ Các service giao tiếp theo 2 hướng:
 - Áp dụng pattern phổ biến trong hệ phân tán:
 	- Centralized Configuration (`config-server`)
 	- Service Discovery (`discovery` - Eureka)
-	- API Gateway (`gateway`)
+	- API Gateway (`api-gateway`)
 	- Event-Driven Communication (Kafka)
 - Làm nền tảng học tập/phỏng vấn/thực hành system design cho bài toán e-commerce.
 
@@ -36,7 +36,7 @@ Các thành phần chính:
 
 - `config-server`: Quản lý cấu hình tập trung cho toàn bộ services.
 - `discovery`: Eureka Server để đăng ký và tìm kiếm service.
-- `gateway`: Điểm vào duy nhất từ client, định tuyến request vào service nội bộ.
+- `api-gateway`: Điểm vào duy nhất từ client, định tuyến request vào service nội bộ.
 - `customer`: Quản lý thông tin khách hàng (MongoDB).
 - `product`: Quản lý catalog sản phẩm, tồn kho (PostgreSQL + Flyway).
 - `order`: Xử lý tạo đơn, điều phối luồng nghiệp vụ đặt hàng.
@@ -128,16 +128,17 @@ Thứ tự khuyến nghị:
 2. Chạy `config-server`.
 3. Chạy `discovery`.
 4. Chạy lần lượt các business services (`customer`, `product`, `order`, `payment`, `notification`).
-5. Chạy `gateway` và bắt đầu gọi API từ phía client.
+5. Chạy `api-gateway` và bắt đầu gọi API từ phía client.
 
 > Gợi ý: Có thể dùng Maven Wrapper (`./mvnw spring-boot:run`) trong từng service.
 
 ### Build và test với parent Maven chung
 
 Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
-cho cả 8 service và các thư viện support. `services/pom.xml` quản lý 8 service;
-`support/pom.xml` quản lý `common-module` và `web-module`. Các dependency riêng và cấu hình đóng
-gói vẫn nằm trong POM của từng module.
+cho toàn bộ hệ thống và các thư viện support. `cloud/pom.xml` quản lý `api-gateway`;
+`services/pom.xml` quản lý `config-server`, `discovery` và 5 business service;
+`support/pom.xml` quản lý `common-module` và `web-module`. Các dependency riêng và cấu hình
+đóng gói vẫn nằm trong POM của từng module.
 
 Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
 
@@ -248,6 +249,9 @@ Hướng mở rộng đề xuất:
 - Bổ sung observability (OpenTelemetry, Prometheus, Grafana).
 - Chuẩn hoá CI/CD và chiến lược deploy đa môi trường.
 
+Tài liệu thiết kế authentication/authorization dự kiến phát triển sau:
+[Authentication and Authorization Design Note](docs/authentication-authorization-design.md).
+
 ## 12) Đối tượng phù hợp
 
 - Người mới bắt đầu với Spring Microservices.
@@ -272,7 +276,7 @@ Hướng mở rộng đề xuất:
 ### Những phần project đã làm được
 
 - [x] **Microservice architecture**: tách domain thành `customer`, `product`, `order`,
-  `payment`, `notification`; có `config-server`, Eureka `discovery` và API `gateway`.
+  `payment`, `notification`; có `config-server`, Eureka `discovery` và `api-gateway`.
 - [x] **Giao tiếp đồng bộ và bất đồng bộ**: order dùng OpenFeign/REST cho các dependency
   cần phản hồi ngay; order/payment publish event và notification consume bằng Kafka.
 - [x] **Java/Spring backend**: Java 17, Spring Boot 3, Spring Cloud, validation, JPA,

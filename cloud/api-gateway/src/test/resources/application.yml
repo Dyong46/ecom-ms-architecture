@@ -1,6 +1,6 @@
 spring:
   application:
-    name: gateway-service-test
+    name: api-gateway-test
   cloud:
     config:
       enabled: false

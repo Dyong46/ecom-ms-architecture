@@ -1,7 +1,10 @@
 package com.duong.gateway.security;
 
+import com.duong.gateway.config.GatewaySecurityProperties;
 import com.duong.gateway.handler.ProblemDetailsHandler;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.context.annotation.Bean;
@@ -13,18 +16,24 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
 @EnableWebFluxSecurity
+@EnableConfigurationProperties(GatewaySecurityProperties.class)
 public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(
-            ServerHttpSecurity serverHttpSecurity, ProblemDetailsHandler problems) {
+            ServerHttpSecurity serverHttpSecurity,
+            ProblemDetailsHandler problems,
+            GatewaySecurityProperties properties) {
         serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/actuator/health", "/actuator/info")
-                        .permitAll()
-                        .anyExchange()
-                        .authenticated()
-                )
+                .authorizeExchange(exchange -> {
+                    exchange.pathMatchers(properties.getPublicPaths().toArray(String[]::new)).permitAll();
+                    exchange.pathMatchers(HttpMethod.GET,
+                            properties.getPublicGetPaths().toArray(String[]::new)).permitAll();
+                    if (properties.getCallback().isEnabled()) {
+                        exchange.pathMatchers(properties.getCallback().getPathPattern()).permitAll();
+                    }
+                    exchange.anyExchange().authenticated();
+                })
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((exchange, ex) -> {
                             exchange.getResponse().getHeaders().set(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
