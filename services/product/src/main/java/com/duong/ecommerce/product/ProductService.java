@@ -1,5 +1,8 @@
 package com.duong.ecommerce.product;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.duong.ecommerce.exception.ProductPurchaseException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -11,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,10 +79,7 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with the ID:: " + productId));
     }
 
-    public List<ProductResponse> findAll() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::toProductResponse)
-                .collect(Collectors.toList());
+    public Page<ProductResponse> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toProductResponse);
     }
 }

@@ -153,6 +153,65 @@ Chỉ build và test một service cùng các module cần thiết:
 Vẫn có thể chạy `./mvnw test` hoặc `./mvnw spring-boot:run` bên trong từng service;
 parent được đọc trực tiếp qua `../../pom.xml`, không cần cài parent trước.
 
+### Pagination cho API danh sách
+
+`GET /api/v1/customers`, `/api/v1/products`, `/api/v1/orders` và
+`/api/v1/payments` đều phân trang ở database, sắp xếp theo `id` tăng dần:
+
+```http
+GET /api/v1/products?page=0&size=20
+```
+
+- `page`: bắt đầu từ `0`, mặc định `0`.
+- `size`: từ `1` đến `100`, mặc định `20`.
+- Tham số không hợp lệ trả `400 application/problem+json`, có lỗi theo field.
+- Trang vượt quá dữ liệu trả `200` với `content: []`.
+
+Response danh sách đổi từ mảng trực tiếp sang object có metadata:
+
+```json
+{
+  "content": [],
+  "page": 0,
+  "size": 20,
+  "totalElements": 0,
+  "totalPages": 0,
+  "first": true,
+  "last": true
+}
+```
+
+Client đọc danh sách qua `content` và tăng `page` để lấy trang tiếp theo cho đến
+khi `last` là `true`. Các API lấy một bản ghi hoặc mua sản phẩm không đổi contract.
+
+### Error response: Problem Details
+
+Các API customer, product, order, payment và lỗi do gateway phát sinh dùng
+`application/problem+json` với `type`, `title`, `status`, `detail`, `instance`.
+Sử dụng `ProblemDetail` của Spring (RFC 7807, được thay thế bởi RFC 9457).
+Client cần đọc `detail` thay vì coi response lỗi là chuỗi; validation giữ thêm
+map `errors` theo tên field:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Request validation failed",
+  "instance": "/api/v1/products/purchase",
+  "errors": {
+    "products[0].quantity": "Quantity is mandatory"
+  }
+}
+```
+
+- Validation/JSON không hợp lệ và lỗi nghiệp vụ: `400`.
+- Thiếu/sai Bearer token tại gateway: `401`, giữ header `WWW-Authenticate`.
+- Không có quyền: `403`; không tìm thấy resource: `404`.
+- HTTP method không hỗ trợ: `405`, giữ header `Allow`.
+- Gateway không tìm được service instance: `503`.
+- Lỗi bất ngờ: `500`, không trả stack trace hoặc chi tiết exception nội bộ.
+
 ## 10) Giá trị học thuật về System Design
 
 Dự án phù hợp để học và thảo luận các chủ đề:

@@ -1,11 +1,12 @@
 
 package com.duong.ecommerce.customer;
+import com.duong.ecommerce.pagination.PageResponse;
+import com.duong.ecommerce.pagination.PaginationRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -30,8 +31,10 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerResponse>> findAll() {
-        return ResponseEntity.ok(service.findAllCustomers());
+    public ResponseEntity<PageResponse<CustomerResponse>> findAll(
+            @Valid @ModelAttribute PaginationRequest pagination
+    ) {
+        return ResponseEntity.ok(PageResponse.from(service.findAllCustomers(pagination.toPageable())));
     }
 
     @GetMapping("/exits/{customer-id}")

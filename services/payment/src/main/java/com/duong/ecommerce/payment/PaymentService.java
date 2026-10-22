@@ -1,13 +1,14 @@
 package com.duong.ecommerce.payment;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.duong.ecommerce.notification.NotificationProducer;
 import com.duong.ecommerce.notification.PaymentNotificationRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +35,7 @@ public class PaymentService {
         return payment.getId();
     }
 
-    public List<PaymentResponse> findAll() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::fromPayment)
-                .collect(Collectors.toList());
+    public Page<PaymentResponse> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::fromPayment);
     }
 }

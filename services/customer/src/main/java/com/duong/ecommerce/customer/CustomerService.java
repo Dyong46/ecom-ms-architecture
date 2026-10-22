@@ -1,12 +1,13 @@
 package com.duong.ecommerce.customer;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.duong.ecommerce.exception.CustomerNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -49,11 +50,8 @@ public class CustomerService {
          }
     }
 
-    public List<CustomerResponse> findAllCustomers() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::fromCustomer)
-                .collect(Collectors.toList());
+    public Page<CustomerResponse> findAllCustomers(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::fromCustomer);
     }
 
     public Boolean exitsById(String customerId) {
