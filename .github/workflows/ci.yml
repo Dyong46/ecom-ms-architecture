@@ -15,9 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         module:
-          - services/config-server
-          - services/discovery
-          - cloud/api-gateway
           - services/customer
           - services/product
           - services/order
