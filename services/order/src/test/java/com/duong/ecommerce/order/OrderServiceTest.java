@@ -13,6 +13,8 @@ import com.duong.ecommerce.product.PurchaseRequest;
 import com.duong.ecommerce.product.PurchaseResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,8 +88,9 @@ class OrderServiceTest {
         assertThat(eventCaptor.getValue().totalAmount()).isEqualByComparingTo("25.00");
     }
 
-    @Test
-    void rejectsInvalidPricingReturnedByProductService() {
+    @ParameterizedTest
+    @MethodSource("invalidPricingResponses")
+    void rejectsInvalidPricingReturnedByProductService(PurchaseResponse response) {
         var request = new OrderRequest(
                 null,
                 "ORDER-002",
@@ -98,11 +102,21 @@ class OrderServiceTest {
                 new CustomerResponse("customer-1", "Ada", "Lovelace", "ada@example.com")
         ));
         when(productClient.purchaseResponses(request.products())).thenReturn(List.of(
-                new PurchaseResponse(1, "Keyboard", "", null, 1)
+                response
         ));
 
         assertThatThrownBy(() -> service.createOrder(request))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("msg", "Cannot create order:: Product service returned invalid pricing data");
+        verifyNoInteractions(repository, orderLineService, paymentClient, orderProducer);
+    }
+
+    private static List<PurchaseResponse> invalidPricingResponses() {
+        return List.of(
+                new PurchaseResponse(1, "Keyboard", "", null, 1),
+                new PurchaseResponse(1, "Keyboard", "", new BigDecimal("-0.01"), 1),
+                new PurchaseResponse(1, "Keyboard", "", BigDecimal.TEN, 0),
+                new PurchaseResponse(1, "Keyboard", "", BigDecimal.TEN, -1)
+        );
     }
 }

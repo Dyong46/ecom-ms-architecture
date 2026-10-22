@@ -30,7 +30,8 @@ public class ProductService {
         if (request == null || request.isEmpty()) {
             throw new ProductPurchaseException("At least one product is required");
         }
-        if (request.stream().anyMatch(item -> item == null || item.productId() == null || item.quantity() <= 0)) {
+        if (request.stream().anyMatch(item -> item == null || item.productId() == null
+                || !Double.isFinite(item.quantity()) || item.quantity() <= 0)) {
             throw new ProductPurchaseException("Product and a positive quantity are required");
         }
 
@@ -45,6 +46,11 @@ public class ProductService {
         var storedProducts = repository.findAllByIdInOrderById(productIds);
         if (productIds.size() != storedProducts.size()) {
             throw new ProductPurchaseException("One or more products does not exits");
+        }
+        for (var product : storedProducts) {
+            if (product.getPrice() == null) {
+                throw new ProductPurchaseException("Missing price for product with ID:: " + product.getId());
+            }
         }
         var storedRequest = request
                 .stream()

@@ -9,16 +9,37 @@ services:
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
-      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
     ports:
       - "5432:5432"
     networks:
       - microservices-net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  postgres-init:
+    image: postgres:16.4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: root
+      PGPASSWORD: 12345
+      PGDATABASE: postgres
+    volumes:
+      - ./docker/postgres/init-databases.sql:/scripts/init-databases.sql:ro
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/scripts/init-databases.sql"]
+    networks:
+      - microservices-net
+    restart: "no"
 
   mongodb:
     container_name: ms_mongo_db
-    image: mongo:24.04
+    image: mongo:8.0.9
     ports:
       - "27017:27017"
     volumes:

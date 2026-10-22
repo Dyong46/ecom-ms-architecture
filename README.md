@@ -193,9 +193,9 @@ Hướng mở rộng đề xuất:
 - [~] **Một phần fault tolerance ở tầng database**: PostgreSQL HA local với Patroni,
   etcd, HAProxy, PgBouncer, read/write split và hướng dẫn failover tại
   [`pg-replication/README.md`](pg-replication/README.md).
-- [~] **Load balancing nền tảng**: Eureka và route `lb://...` trong gateway; gateway
-  cũng đã khai báo dependency LoadBalancer nhưng dependency đang bị comment, xem issue
-  bên dưới.
+- [~] **Load balancing nền tảng**: Eureka và route `lb://...` trong gateway; dependency
+  `spring-cloud-starter-loadbalancer` đã được bật. Cần smoke test các route `lb://`
+  và cập nhật hướng dẫn chạy, xem backlog bên dưới.
 - [~] **Security và observability nền tảng**: gateway có OAuth2 resource server/JWT,
   các service có Actuator/Micrometer tracing, Zipkin được khai báo trong Docker Compose.
 - [~] **Asynchronous programming**: `@Async` cho email và Kafka listener đã có; tuy
@@ -252,9 +252,9 @@ Hướng mở rộng đề xuất:
 Các mục dưới đây là **chưa triển khai/đang làm theo nghĩa backlog**, không phải cam kết
 đã hoàn thành:
 
-- [ ] **P0 - Sửa gateway load balancing**: bỏ comment dependency
-  `spring-cloud-starter-loadbalancer`, chạy smoke test các route `lb://` và cập nhật
-  hướng dẫn chạy.
+- [ ] **P0 - Kiểm chứng gateway load balancing**: dependency
+  `spring-cloud-starter-loadbalancer` đã được bật; chạy smoke test các route `lb://`
+  và cập nhật hướng dẫn chạy.
 - [ ] **P0 - Reliability cho event và REST**: thêm timeout, retry có giới hạn,
   circuit breaker, idempotency key, DLQ và replay procedure.
 - [ ] **P0 - Test thực chất**: thêm unit test business rule, integration test bằng

@@ -88,7 +88,7 @@ public class OrderService {
 
         return purchasedProducts.stream()
                 .map(product -> {
-                    if (product.price() == null || product.quantity() <= 0) {
+                    if (product.price() == null || product.price().signum() < 0 || product.quantity() <= 0) {
                         throw new BusinessException("Cannot create order:: Product service returned invalid pricing data");
                     }
                     return product.price().multiply(BigDecimal.valueOf(product.quantity()));

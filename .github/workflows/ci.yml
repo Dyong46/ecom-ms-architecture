@@ -38,6 +38,7 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: maven
+          cache-dependency-path: services/${{ matrix.service }}/pom.xml
 
       - name: Run tests
         run: ./mvnw --batch-mode verify
