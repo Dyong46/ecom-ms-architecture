@@ -24,7 +24,7 @@ public class DateUtils {
 	public static final String yyyyMMdd = "yyyyMMdd";
 	public static final String MATH_TOURNAMENT_DATE_PATTERN = "MM/dd/yyyy";
 	public static final String SQL_DATE_PATTERN = "yyyy-MM-dd";
-	public static final String DD_MM_YYYY_SLASH = "dd/MM/YYYY";
+	public static final String DD_MM_YYYY_SLASH = "dd/MM/yyyy";
   public static final String NOTIFICATION_TIME_PATTERN = "HH:mm MM/dd/yyyy";
 
 	public static Timestamp parse(String source) throws ParseException {

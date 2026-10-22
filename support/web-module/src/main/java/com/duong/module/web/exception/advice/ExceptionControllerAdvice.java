@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import com.duong.module.web.dto.DebuggingDTO;
 import com.duong.module.web.exception.handler.resolver.ExceptionHandlerResolver;
 
 @Slf4j
@@ -32,8 +31,8 @@ public class ExceptionControllerAdvice extends AbstractErrorController {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Object> handleException(Exception e, HttpServletRequest request) {
 
-		log.error("Caught exception {} on request {} with debug info {}", e.getClass().getSimpleName(),
-				request.getRequestURI(), DebuggingDTO.build(e));
+		log.error("Caught exception {} on request {}", e.getClass().getSimpleName(),
+				request.getRequestURI(), e);
 
 		return exceptionHandlerResolver.resolveExceptionHandler(e).handleException(e, request);
 

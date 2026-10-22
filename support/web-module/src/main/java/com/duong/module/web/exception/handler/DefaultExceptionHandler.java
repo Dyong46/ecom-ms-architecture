@@ -23,12 +23,19 @@ public class DefaultExceptionHandler implements AbstractExceptionHandler<Excepti
         .errorCode(UNKNOWN)
         .buildDebugInfo(e);
 
-    return ResponseEntity.status(getStatus(request))
+    return ResponseEntity.status(getStatus(e, request))
         .body(BaseResponse.of(errorResponse));
 
   }
 
-  private HttpStatus getStatus(HttpServletRequest request) {
+  private HttpStatus getStatus(Exception exception, HttpServletRequest request) {
+
+    if (exception instanceof org.springframework.web.ErrorResponse errorResponse) {
+      HttpStatus status = HttpStatus.resolve(errorResponse.getStatusCode().value());
+      if (status != null) {
+        return status;
+      }
+    }
 
     Integer statusCode = (Integer) request.getAttribute("jakarta.servlet.error.status_code");
     if (statusCode == null) {

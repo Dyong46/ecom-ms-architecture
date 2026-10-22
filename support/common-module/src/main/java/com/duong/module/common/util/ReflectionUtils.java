@@ -37,7 +37,7 @@ public class ReflectionUtils {
 		List<Field> fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
 		fields.forEach(field -> field.setAccessible(true));
 		Class<?> parent = clazz.getSuperclass();
-		if (Objects.nonNull(parent)) {
+		if (Objects.nonNull(parent) && parent != Object.class) {
 			fields.addAll(getAllFields(parent));
 		}
 		return fields;
@@ -51,11 +51,11 @@ public class ReflectionUtils {
 		} else {
 			methods = new ArrayList<>(Arrays.asList(clazz.getDeclaredMethods()));
 			Class<?> parent = clazz.getSuperclass();
-			if (Objects.nonNull(parent)) {
+			if (Objects.nonNull(parent) && parent != Object.class) {
 				methods.addAll(getAllMethods(parent));
 			}
 		}
-		methods.forEach(method -> method.setAccessible(true));
+		methods.forEach(Method::trySetAccessible);
 		return methods;
 	}
 

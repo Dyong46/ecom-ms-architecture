@@ -20,6 +20,7 @@
 
     <modules>
         <module>services</module>
+        <module>cloud</module>
         <module>support</module>
     </modules>
 
@@ -30,7 +31,7 @@
         <modelmapper.version>3.2.0</modelmapper.version>
         <guava.version>33.4.8-jre</guava.version>
         <jjwt.version>0.12.5</jjwt.version>
-        <bouncycastle.version>1.78</bouncycastle.version>
+        <bouncycastle.version>1.85</bouncycastle.version>
         <commons-text.version>1.11.0</commons-text.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-validator.version>1.8.0</commons-validator.version>
