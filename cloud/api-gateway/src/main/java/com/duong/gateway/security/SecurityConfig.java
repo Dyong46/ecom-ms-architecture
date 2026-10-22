@@ -24,8 +24,7 @@ public class SecurityConfig {
             ServerHttpSecurity serverHttpSecurity,
             ProblemDetailsHandler problems,
             GatewaySecurityProperties properties) {
-        serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .authorizeExchange(exchange -> {
+        serverHttpSecurity.authorizeExchange(exchange -> {
                     exchange.pathMatchers(properties.getPublicPaths().toArray(String[]::new)).permitAll();
                     exchange.pathMatchers(HttpMethod.GET,
                             properties.getPublicGetPaths().toArray(String[]::new)).permitAll();
