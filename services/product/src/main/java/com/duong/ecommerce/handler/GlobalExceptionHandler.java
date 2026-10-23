@@ -21,6 +21,11 @@ import java.util.LinkedHashMap;
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(com.duong.module.common.exception.NotFoundException.class)
+    public ProblemDetail handleBaseNotFound(com.duong.module.common.exception.NotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Product not found");
+    }
+
     @ExceptionHandler(ProductPurchaseException.class)
     public ProblemDetail handle(ProductPurchaseException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());

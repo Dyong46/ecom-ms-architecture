@@ -137,7 +137,7 @@ Thứ tự khuyến nghị:
 Root `pom.xml` quản lý Java 17, Spring Boot 3.3.3 và Spring Cloud BOM 2023.0.3
 cho toàn bộ hệ thống và các thư viện support. `cloud/pom.xml` quản lý `api-gateway`;
 `services/pom.xml` quản lý `config-server`, `discovery` và 5 business service;
-`support/pom.xml` quản lý `common-module` và `web-module`. Các dependency riêng và cấu hình
+`support/pom.xml` quản lý `common-module`, `web-module` và `common-data-model`. Các dependency riêng và cấu hình
 đóng gói vẫn nằm trong POM của từng module.
 
 Từ thư mục gốc, dùng Maven Wrapper hiện có để build và test toàn bộ reactor:
