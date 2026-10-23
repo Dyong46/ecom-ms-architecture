@@ -7,7 +7,8 @@ import java.util.List;
 
 import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
-public interface ProductRepository extends JpaRepository<Product, Integer> {
+public interface ProductRepository extends JpaRepository<Product, Integer>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<Product> {
     @Lock(PESSIMISTIC_WRITE)
     List<Product> findAllByIdInOrderById(List<Integer> productIds);
 }

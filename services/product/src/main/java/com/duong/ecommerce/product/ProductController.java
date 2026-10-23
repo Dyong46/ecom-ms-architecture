@@ -16,6 +16,12 @@ public class ProductController {
 
     private final ProductService service;
 
+    @DeleteMapping("/{product-id}")
+    public ResponseEntity<Void> delete(@PathVariable("product-id") Integer productId) {
+        service.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     public ResponseEntity<Integer> create(
             @RequestBody @Valid ProductRequest request
@@ -31,17 +37,21 @@ public class ProductController {
     }
 
     @GetMapping("/{product-id}")
-    public ResponseEntity<ProductResponse> findById(
+    public ResponseEntity<Product> findById(
             @PathVariable("product-id") Integer productId
     ) {
         return ResponseEntity.ok(service.findById(productId));
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<ProductResponse>> findAll(
-            @Valid @ModelAttribute PaginationRequest pagination
+    public ResponseEntity<PageResponse<Product>> findAll(
+            @Valid @ModelAttribute PaginationRequest pagination,
+            @RequestParam(required = false) String name
     ) {
-        return ResponseEntity.ok(PageResponse.build(service.findAll(pagination.toPageable())));
+        return ResponseEntity.ok(PageResponse.build(name == null ? service.findAll(pagination.toPageable())
+                : service.filter(new ProductFilter(name), pagination.toPageable())));
     }
+
+    private record ProductFilter(String nameLk) { }
 
 }

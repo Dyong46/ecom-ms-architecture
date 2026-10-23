@@ -62,7 +62,7 @@ class ProductPaginationTest {
     void returnsRequestedPageAndMetadata() throws Exception {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
-                List.of(new ProductResponse(1, "Keyboard", "", 10, java.math.BigDecimal.TEN, 1, "Accessories", "")), pageable, 45));
+                List.of(Product.builder().id(1).name("Keyboard").build()), pageable, 45));
 
         mvc.perform(get("/api/v1/products").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -103,13 +103,11 @@ class ProductPaginationTest {
     void repositoryQueryIsPagedAndMappingPreservesTotals() {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         var entity = mock(Product.class);
-        var response = new ProductResponse(1, "Keyboard", "", 10, java.math.BigDecimal.TEN, 1, "Accessories", "");
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity), pageable, 45));
-        when(mapper.toProductResponse(entity)).thenReturn(response);
 
         var result = actualService.findAll(pageable);
 
-        assertThat(result.getContent()).containsExactly(response);
+        assertThat(result.getContent()).containsExactly(entity);
         assertThat(result.getTotalElements()).isEqualTo(45);
         assertThat(result.getPageable()).isEqualTo(pageable);
         verify(repository).findAll(pageable);

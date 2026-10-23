@@ -1,10 +1,11 @@
 package com.duong.ecommerce.product;
 
+import com.duong.module.data.model.service.BaseService;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.duong.ecommerce.exception.ProductPurchaseException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,29 @@ import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class ProductService implements BaseService<Product, Integer> {
 
     private final ProductRepository repository;
     private final ProductMapper mapper;
+
+    @Override
+    public ProductRepository getRepository() {
+        return repository;
+    }
+
+    @Override
+    public Class<Product> getEntityClass() {
+        return Product.class;
+    }
+
+    @Transactional
+    public void deleteProduct(Integer id) {
+        softDelete(id);
+    }
+
+    public Page<Product> filter(Object filter, Pageable pageable) {
+        return filter(com.duong.module.web.payload.filter.BaseEntityFilter.of(filter, pageable));
+    }
 
     public Integer createProduct(@Valid ProductRequest request) {
         var product = mapper.toProduct(request);
@@ -73,13 +93,4 @@ public class ProductService {
         return purchasedProducts;
     }
 
-    public ProductResponse findById(Integer productId) {
-        return repository.findById(productId)
-                .map(mapper::toProductResponse)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with the ID:: " + productId));
-    }
-
-    public Page<ProductResponse> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toProductResponse);
-    }
 }
