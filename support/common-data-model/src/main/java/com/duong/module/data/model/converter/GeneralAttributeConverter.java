@@ -20,7 +20,8 @@ public interface GeneralAttributeConverter<X extends Enum<X>, Y> extends Attribu
       return Arrays.stream(GenericUtils.<X>getTypeParameter(getClass()).getEnumConstants())
           .filter(x -> Objects.equals(map(x), dbData))
           .findFirst()
-          .orElse(null);
+          .orElseThrow(() -> new IllegalArgumentException(
+              "No enum mapping found for database value: " + dbData));
     } else {
       return null;
     }
