@@ -19,7 +19,7 @@ jobs:
           - support/web-module
           - support/common-data-model
           - cloud/config-server
-          - services/discovery
+          - cloud/discovery
           - services/customer
           - services/product
           - services/order
