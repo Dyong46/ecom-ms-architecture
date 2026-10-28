@@ -1,86 +1,186 @@
 # Feature Roadmap
 
 **Status:** Living document  
-**Purpose:** Describe capabilities the system should gain next without treating a
-technology name as the goal itself.
+**Purpose:** Define the order in which business and production capabilities are
+added. Technology is introduced only when there is a concrete problem for it to
+solve.
 
-## 1. Inventory ownership
+The phases are ordered by dependency, not by calendar date. A later phase may be
+explored earlier, but it should not hide correctness problems in an earlier phase.
 
-Establish `inventory-service` as the owner of stock, availability, reservations,
-reservation expiration, confirmation, and release. Product service remains the owner
-of catalog data and pricing.
+## Phase 1 — Business correctness and distributed consistency
 
-## 2. Reliable order workflow
+**Goal:** Make the checkout flow correct before optimizing or deploying it at scale.
 
-- Add an explicit Order state machine.
-- Add inventory reservation before payment.
-- Compensate inventory when payment fails.
-- Persist incomplete compensation so it can be retried after restart.
+### Capabilities
 
-## 3. Reliable event delivery
+- Establish `inventory-service` as the owner of stock and reservations.
+- Implement the Order state machine and validate every state transition.
+- Reserve inventory before payment, with expiration, confirmation, and release.
+- Compensate by releasing inventory and cancelling the order when payment fails.
+- Store unfinished compensation so recovery can continue after a restart.
+- Add Transactional Outbox for reliable event publication.
+- Add Consumer Inbox and idempotency for HTTP commands and Kafka events.
 
-- Store domain events with business state using Transactional Outbox.
-- Publish pending events to Kafka.
-- Deduplicate consumed events through an Inbox.
-- Version event contracts and test compatibility.
+### Main technologies
 
-## 4. Safe retries
+- PostgreSQL and Flyway for transactional state and constraints.
+- Kafka for asynchronous workflow events.
+- Testcontainers for database and integration tests.
 
-- Add idempotency keys for create-order and create-payment operations.
-- Classify business, transient, permanent, and unknown failures.
-- Ensure retry never creates a duplicate payment or stock update.
+### Completion evidence
 
-## 5. Service resilience
+- Concurrent orders cannot oversell stock.
+- Duplicate commands and events do not create duplicate payments or stock changes.
+- Failed checkout scenarios end in a known state and can be recovered.
+- State transitions, expiration, and compensation paths have integration tests.
 
-- Set an explicit timeout budget for outbound calls.
-- Add bounded retry with backoff and jitter where it is safe.
-- Add circuit breakers for external dependencies.
-- Add DLQ, replay procedures, and operator-visible recovery state.
+## Phase 2 — Event contracts and safe evolution
 
-## 6. Security hardening
+**Goal:** Allow producers and consumers to evolve without silently breaking Kafka
+event compatibility.
+
+### Capabilities
+
+- Define schemas for order, inventory, payment, and notification events.
+- Register and version event schemas.
+- Select and enforce a compatibility policy.
+- Validate event compatibility in CI.
+- Document semantic changes that schema validation cannot detect.
+
+### Main technology
+
+- Schema Registry with an agreed serialization format such as Avro, Protobuf, or
+  JSON Schema.
+
+### Completion evidence
+
+- An incompatible schema change fails before deployment.
+- Producers and consumers have integration tests against registered contracts.
+- Every event includes stable identifiers and a schema version or schema ID.
+
+## Phase 3 — Service resilience and failure recovery
+
+**Goal:** Prevent a slow or failing dependency from causing cascading failures.
+
+### Capabilities
+
+- Define an explicit timeout budget for every outbound call.
+- Retry only transient and idempotent operations, using bounded backoff and jitter.
+- Add circuit breakers per dependency.
+- Add bulkhead or concurrency limits where resource isolation is needed.
+- Add DLQ handling, replay procedures, and operator-visible recovery state.
+
+### Main technology
+
+- Resilience4j for timeout, retry, circuit breaker, bulkhead, and rate-limit policies.
+
+### Completion evidence
+
+- Dependency failure tests demonstrate timeout and circuit-breaker behavior.
+- Retry cannot duplicate a payment, reservation, or event effect.
+- DLQ messages can be diagnosed and replayed using a documented procedure.
+
+## Phase 4 — Observability and production operations
+
+**Goal:** Make a distributed business flow traceable, measurable, and actionable.
+
+### Capabilities
+
+- Propagate trace context through HTTP and Kafka.
+- Add structured logs containing `traceId`, `orderId`, and `eventId` where relevant.
+- Measure request latency, error rate, Kafka lag, outbox lag, payment failures, and
+  expired reservations.
+- Build dashboards and actionable alerts.
+- Define initial SLI/SLO and operational runbooks.
+
+### Main technologies
+
+- OpenTelemetry for standardized traces, metrics, and context propagation.
+- Prometheus for metric collection and time-series queries.
+- Grafana for dashboards and alert visualization.
+- A trace backend such as Zipkin, Jaeger, or Grafana Tempo.
+
+### Completion evidence
+
+- One checkout request can be traced across services and Kafka consumers.
+- Dashboards expose the health of the checkout flow, not only host resources.
+- Alerts link to a runbook and avoid high-cardinality metric labels.
+
+## Phase 5 — Security and data protection
+
+**Goal:** Protect service access, credentials, and persisted business data.
+
+### Capabilities
 
 - Complete service-level JWT validation and authorization.
 - Define machine identities for internal service calls.
-- Move local credentials to environment-specific secret management.
+- Move credentials to environment-specific secret management.
 - Add TLS, scope/role checks, and security integration tests.
-
-## 7. Observability and operations
-
-- Propagate traces through HTTP and Kafka.
-- Add structured logs with business correlation fields.
-- Add Prometheus metrics and Grafana dashboards.
-- Define SLI/SLO and actionable alerts.
-- Write runbooks for common service, database, and Kafka failures.
-
-## 8. Data protection
-
-- Automate PostgreSQL and MongoDB backups.
-- Verify restore procedures instead of only creating backups.
+- Automate PostgreSQL and MongoDB backups and verify restore procedures.
 - Measure recovery point and recovery time objectives.
-- Add replication and failover only with documented consistency trade-offs.
 
-## 9. Search and read performance
+### Completion evidence
 
-- Create repeatable read and search benchmarks.
-- Add Redis only for a defined cache, rate-limit, or coordination use case.
-- Document TTL, invalidation, persistence, replication, and failover behavior.
-- Add Elasticsearch only when product search requirements exceed database search.
+- Unauthorized service and user flows are rejected by integration tests.
+- Secrets are not stored in application configuration or repository history.
+- A restore drill proves that backup data is usable.
 
-## 10. Deployment and delivery
+## Phase 6 — Performance and evidence-based scaling
 
-- Package services consistently as containers.
-- Deploy and operate services with Kubernetes.
-- Add environment-specific configuration and secret delivery.
-- Add readiness/liveness probes, resource limits, and autoscaling policies.
+**Goal:** Measure system capacity and find bottlenecks before adding scaling
+technologies.
+
+### Capabilities
+
+- Model realistic browse, checkout, payment-failure, and traffic-spike scenarios.
+- Establish throughput, error-rate, and p95/p99 latency baselines.
+- Test concurrency invariants while the system is under load.
+- Compare measurements before and after every optimization.
+- Add caching, search indexing, partitioning, or sharding only for a measured need.
+
+### Main technology
+
+- k6 as the initial load-testing tool, or Gatling when JVM-based test code and its
+  DSL are preferred. Only one is required initially.
+
+### Conditional technologies
+
+- Redis for a defined cache, rate-limit, or coordination use case, with documented
+  TTL, invalidation, persistence, replication, and failover behavior.
+- Elasticsearch when product-search requirements exceed database search.
+
+### Completion evidence
+
+- Load-test scenarios are repeatable locally and in CI or a dedicated environment.
+- Capacity results include the test environment and workload assumptions.
+- Optimization decisions include before-and-after measurements.
+
+## Phase 7 — Deployment and delivery
+
+**Goal:** Deploy, configure, upgrade, and roll back the services consistently across
+environments.
+
+### Capabilities
+
+- Package every service as a versioned container image.
+- Add readiness/liveness probes and graceful shutdown.
+- Define resource requests, limits, and autoscaling policies from measured data.
+- Separate environment-specific configuration and secret delivery.
 - Add staging deployment, release verification, and rollback workflows.
 
-## 11. Evidence-based scaling
+### Main technologies
 
-- Establish throughput and latency baselines.
-- Find bottlenecks using application, database, and Kafka metrics.
-- Compare results before and after each optimization.
-- Consider partitioning or sharding only after simpler improvements are measured.
+- Kubernetes for workload orchestration, networking, health management, and scaling.
+- Helm for reusable, versioned Kubernetes deployment packages and environment values.
 
-Detailed implementation specifications are maintained in the
-[Distributed Systems Learning Path](../distributed-systems/README.md).
+### Completion evidence
 
+- Services can be installed into a clean cluster using documented commands.
+- A failed release can be rolled back without manually editing cluster resources.
+- Deployment manifests define probes and resource boundaries for every service.
+
+Detailed topic specifications are maintained in the
+[Distributed Systems Learning Path](../distributed-systems/README.md). Current
+repository evidence is tracked separately in
+[Implementation Status](implementation-status.md).

@@ -261,24 +261,25 @@ Xem checklist triển khai hiện tại tại
 
 ## Lộ trình phát triển
 
-Các capability tiếp theo được phát triển dần:
+Quá trình phát triển được chia thành các giai đoạn theo thứ tự phụ thuộc:
 
-- Thiết lập `inventory-service` làm nơi sở hữu stock và reservation.
-- Thêm Order state machine rõ ràng.
-- Thêm inventory reservation, expiration, confirmation và release.
-- Thêm Saga compensation khi payment thất bại.
-- Thêm Transactional Outbox và Consumer Inbox.
-- Thêm idempotency cho HTTP và event.
-- Thêm timeout, retry, circuit breaker, DLQ và quy trình replay.
-- Cải thiện authentication, authorization và secret management.
-- Thêm metric, distributed tracing, dashboard, alert và runbook vận hành.
-- Thêm quy trình backup và restore đã được kiểm chứng.
-- Thêm load test có thể lặp lại và capacity baseline.
-- Triển khai bằng Kubernetes.
-- Thêm quy trình delivery đa môi trường và rollback.
+1. **Tính đúng đắn của nghiệp vụ:** Order state machine, inventory reservation,
+   Saga compensation, Outbox, Inbox và idempotency.
+2. **Event contract:** Schema Registry, Kafka schema có version, compatibility policy
+   và kiểm tra contract trong CI.
+3. **Khả năng phục hồi:** timeout, bounded retry, circuit breaker và bulkhead bằng
+   Resilience4j; bổ sung DLQ và quy trình replay.
+4. **Observability:** OpenTelemetry xuyên suốt HTTP và Kafka, Prometheus metric,
+   Grafana dashboard và alert, SLI/SLO cùng runbook vận hành.
+5. **Bảo mật và bảo vệ dữ liệu:** authorization ở từng service, secret management,
+   TLS, backup và restore đã được kiểm chứng.
+6. **Hiệu năng và mở rộng:** kịch bản k6 hoặc Gatling có thể lặp lại, capacity
+   baseline; chỉ thêm Redis, search, partitioning hoặc sharding dựa trên số liệu.
+7. **Deployment và delivery:** Kubernetes, Helm, cấu hình theo môi trường, health
+   probe, autoscaling, release verification và rollback.
 
-Roadmap mô tả capability trước và chỉ lựa chọn công nghệ khi công nghệ đó giải quyết
-một yêu cầu rõ ràng hoặc đã được chứng minh bằng số liệu. Xem chi tiết tại
+Mỗi giai đoạn xác định capability và bằng chứng hoàn thành; chỉ cài thêm công nghệ
+không có nghĩa là giai đoạn đã hoàn tất. Xem chi tiết tại
 [`docs/roadmap/feature-roadmap.md`](docs/roadmap/feature-roadmap.md).
 
 ## Tài liệu

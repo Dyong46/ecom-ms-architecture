@@ -261,24 +261,25 @@ See the current implementation checklist in
 
 ## Development Roadmap
 
-The next capabilities are developed incrementally:
+Development is organized into dependency-ordered phases:
 
-- Establish `inventory-service` as the owner of stock and reservations.
-- Add an explicit Order state machine.
-- Add inventory reservation, expiration, confirmation, and release.
-- Add Saga compensation for payment failures.
-- Add Transactional Outbox and Consumer Inbox.
-- Add HTTP and event idempotency.
-- Add timeout, retry, circuit breaker, DLQ, and replay procedures.
-- Improve authentication, authorization, and secret management.
-- Add metrics, distributed tracing, dashboards, alerts, and operational runbooks.
-- Add verified backup and restore procedures.
-- Add repeatable load testing and capacity baselines.
-- Add Kubernetes-based deployment.
-- Add multi-environment delivery and rollback workflows.
+1. **Business correctness:** Order state machine, inventory reservation, Saga
+   compensation, Outbox, Inbox, and idempotency.
+2. **Event contracts:** Schema Registry, versioned Kafka schemas, compatibility
+   policies, and contract checks in CI.
+3. **Resilience:** Resilience4j timeout, bounded retry, circuit breaker, bulkhead,
+   DLQ, and replay procedures.
+4. **Observability:** OpenTelemetry across HTTP and Kafka, Prometheus metrics,
+   Grafana dashboards and alerts, SLI/SLO, and runbooks.
+5. **Security and data protection:** service authorization, secret management,
+   TLS, backup, and verified restore.
+6. **Performance and scaling:** repeatable k6 or Gatling scenarios, capacity
+   baselines, and measurement-driven Redis, search, partitioning, or sharding.
+7. **Deployment and delivery:** Kubernetes, Helm, environment configuration,
+   health probes, autoscaling, release verification, and rollback.
 
-The roadmap describes capabilities first and selects technology only when it solves
-a measured or clearly defined requirement. See
+Each phase defines capabilities and completion evidence; adding a technology alone
+does not complete a phase. See
 [`docs/roadmap/feature-roadmap.md`](docs/roadmap/feature-roadmap.md) for details.
 
 ## Documentation

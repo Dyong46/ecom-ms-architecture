@@ -41,8 +41,9 @@ operation still requires environment-specific validation.
 ## Reliability and operations
 
 - [ ] Explicit outbound timeout policies.
-- [ ] Bounded retry and circuit breakers.
+- [ ] Resilience4j bounded retry, circuit breakers, and dependency isolation.
 - [ ] DLQ and replay procedure.
+- [ ] OpenTelemetry context propagation across HTTP and Kafka.
 - [ ] Prometheus/Grafana dashboards and alerts.
 - [ ] Structured, correlated logs across services.
 - [ ] Verified backup and restore drills.
@@ -58,8 +59,9 @@ operation still requires environment-specific validation.
 
 ## Delivery and scale
 
-- [ ] Kubernetes deployment.
+- [ ] Versioned Kafka contracts managed through Schema Registry.
+- [ ] Repeatable k6 or Gatling scenarios and a capacity baseline.
+- [ ] Kubernetes deployment packaged with Helm.
 - [ ] Multi-environment CI/CD and rollback workflow.
-- [ ] Repeatable load-test scenarios and capacity baseline.
 - [ ] Data/cache/search changes supported by before-and-after benchmarks.
 
