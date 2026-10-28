@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/payment
-    username: root
-    password: 12345
+    username: payment_user
+    password: payment_password
   jpa:
     hibernate:
       ddl-auto: validate

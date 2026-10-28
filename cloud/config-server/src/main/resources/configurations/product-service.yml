@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/product
-    username: root
-    password: 12345
+    username: product_user
+    password: product_password
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

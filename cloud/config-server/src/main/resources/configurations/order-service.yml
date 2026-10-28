@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/order
-    username: root
-    password: 12345
+    username: order_user
+    password: order_password
   jpa:
     hibernate:
       ddl-auto: validate
