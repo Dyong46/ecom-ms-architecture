@@ -42,6 +42,11 @@
         <dependencies>
             <dependency>
                 <groupId>com.duong</groupId>
+                <artifactId>common-data-model</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
                 <artifactId>common-module</artifactId>
                 <version>${support.version}</version>
             </dependency>

@@ -17,6 +17,7 @@
   <modules>
     <module>common-module</module>
     <module>web-module</module>
+    <module>common-data-model</module>
   </modules>
 
 </project>

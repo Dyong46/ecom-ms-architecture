@@ -8,11 +8,13 @@ import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@lombok.experimental.SuperBuilder
 @Getter
 @Setter
 @Entity
-public class Product {
+@org.hibernate.annotations.SQLDelete(sql = "UPDATE product SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
+public class Product extends com.duong.module.data.model.entity.BaseEntity<Integer> {
 
     @Id
     @GeneratedValue
@@ -28,5 +30,6 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"products", "hibernateLazyInitializer", "handler"})
     private Category category;
 }
