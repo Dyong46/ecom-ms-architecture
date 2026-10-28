@@ -15,12 +15,17 @@ jobs:
       fail-fast: false
       matrix:
         module:
+          - support/common-module
+          - support/web-module
           - support/common-data-model
+          - services/config-server
+          - services/discovery
           - services/customer
           - services/product
           - services/order
           - services/payment
           - services/notification
+          - cloud/api-gateway
 
     defaults:
       run:
