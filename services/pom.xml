@@ -13,7 +13,6 @@
   <artifactId>services</artifactId>
   <packaging>pom</packaging>
   <modules>
-    <module>config-server</module>
     <module>discovery</module>
     <module>customer</module>
     <module>product</module>

@@ -18,7 +18,7 @@ jobs:
           - support/common-module
           - support/web-module
           - support/common-data-model
-          - services/config-server
+          - cloud/config-server
           - services/discovery
           - services/customer
           - services/product
