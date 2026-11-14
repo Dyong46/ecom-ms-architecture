@@ -12,6 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(properties = {
 		"spring.cloud.config.enabled=false",
+        "integration-config.ecom.oauth-base-url=http://localhost:9098",
+        "integration-config.ecom.oauth-realm=micro-services",
+        "integration-config.ecom.oauth-username=ecom-services",
+        "integration-config.ecom.oauth-password=test-only-secret",
 		"eureka.client.enabled=false",
 		"spring.datasource.url=jdbc:h2:mem:orders;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
 		"spring.datasource.driver-class-name=org.h2.Driver",

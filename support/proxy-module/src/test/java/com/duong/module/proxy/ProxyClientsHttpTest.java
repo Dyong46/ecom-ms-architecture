@@ -51,6 +51,7 @@ class ProxyClientsHttpTest {
     private volatile int productStatus;
     private volatile int customerStatus;
     private volatile int tokenStatus;
+    private volatile int paymentStatus;
     private volatile long customerDelay;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -61,6 +62,7 @@ class ProxyClientsHttpTest {
         productStatus = 200;
         customerStatus = 200;
         tokenStatus = 200;
+        paymentStatus = 200;
         customerDelay = 0;
         calls.clear();
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -93,7 +95,7 @@ class ProxyClientsHttpTest {
                     if (status == 503) { exchange.getResponseHeaders().set("Retry-After", "0"); }
                     if (status == 302) { exchange.getResponseHeaders().set("Location", "/unexpected-redirect"); }
                 }
-                case "/internal/payments" -> { status = 200; body = "42"; }
+                case "/internal/payments" -> { status = paymentStatus; body = status == 200 ? "42" : "{}"; }
                 default -> { status = 501; body = "Unexpected dependency request"; }
             }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
@@ -119,7 +121,11 @@ class ProxyClientsHttpTest {
     }
 
     private ApplicationContextRunner allClients() {
-        return context().withUserConfiguration(AllClients.class)
+        return context().withUserConfiguration(AllClients.class, SharedAuth.class)
+                .withPropertyValues("integration-config.ecom.oauth-base-url=" + base,
+                        "integration-config.ecom.oauth-realm=micro-services",
+                        "integration-config.ecom.oauth-username=ecom-test",
+                        "integration-config.ecom.oauth-password=dummy-secret")
                 .withPropertyValues("spring.application.name=order-service",
                         "application.config.customer-url=" + base + "/internal/customers",
                         "application.config.product-url=" + base + "/internal/products",
@@ -150,9 +156,9 @@ class ProxyClientsHttpTest {
     }
 
     @Test
-    void preservesInternalWireContractsWithoutAnyCredentials() {
+    void preservesWireContractsWithOAuthOnlyForPayment() {
         allClients().run(ctx -> {
-            assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class).doesNotHaveBean(EcomTokenService.class);
+            assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class).hasSingleBean(EcomTokenService.class);
             var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow();
             var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2)));
             assertThat(products).hasSize(1);
@@ -166,7 +172,8 @@ class ProxyClientsHttpTest {
                         assertThat(call.authorization()).isNull();
                         assertThat(mapper.readTree(call.body())).isEqualTo(mapper.readTree("[{\"productId\":1,\"quantity\":2.0}]"));
                     }
-                    case "/internal/customers/c1", "/internal/payments" -> assertThat(call.authorization()).isNull();
+                    case "/internal/customers/c1" -> assertThat(call.authorization()).isNull();
+                    case "/internal/payments" -> assertThat(call.authorization()).isEqualTo("Bearer service-token");
                     default -> { }
                 }
             }
@@ -206,7 +213,7 @@ class ProxyClientsHttpTest {
             String basic = "Basic " + Base64.getEncoder().encodeToString("ecom-test:dummy-secret".getBytes(StandardCharsets.UTF_8));
             assertThat(tokenCalls.get(0).authorization()).isEqualTo(basic);
             assertThat(tokenCalls.get(0).body()).isEqualTo("grant_type=client_credentials");
-            assertThat(calls.stream().filter(c -> c.path().startsWith("/internal/")))
+            assertThat(calls.stream().filter(c -> c.path().startsWith("/internal/") && !c.path().equals("/internal/payments")))
                     .allSatisfy(c -> assertThat(c.authorization()).isNull());
         });
     }
@@ -219,6 +226,35 @@ class ProxyClientsHttpTest {
                     .isInstanceOf(FeignException.Unauthorized.class);
             assertThat(calls).hasSize(1);
             assertThat(ctx.getBean(CustomerClient.class).findCustomerById("c1")).isPresent();
+        });
+    }
+
+    @Test
+    void paymentCallsReuseMachineTokenAndPayment401IsNotRetried() {
+        withSharedAuth().run(ctx -> {
+            var client = ctx.getBean(PaymentClient.class);
+            var customer = new CustomerResponse("c1", "Ada", "Lovelace", "ada@example.test");
+            var payment = new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", customer);
+            assertThat(client.requestOrderPayment(payment)).isEqualTo(42);
+            assertThat(client.requestOrderPayment(payment)).isEqualTo(42);
+            paymentStatus = 401;
+            assertThatThrownBy(() -> client.requestOrderPayment(payment)).isInstanceOf(FeignException.Unauthorized.class);
+            assertThat(calls.stream().filter(c -> c.path().endsWith("/token"))).hasSize(1);
+            assertThat(calls.stream().filter(c -> c.path().equals("/internal/payments")))
+                    .hasSize(3).allSatisfy(c -> assertThat(c.authorization()).isEqualTo("Bearer service-token"));
+        });
+    }
+
+    @Test
+    void tokenFailurePreventsPaymentRequestWithoutRetryOrAnonymousFallback() {
+        tokenStatus = 401;
+        withSharedAuth().run(ctx -> {
+            var customer = new CustomerResponse("c1", "Ada", "Lovelace", "ada@example.test");
+            assertThatThrownBy(() -> ctx.getBean(PaymentClient.class).requestOrderPayment(new PaymentRequest(
+                    BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", customer)))
+                    .isInstanceOf(FeignException.Unauthorized.class);
+            assertThat(calls).hasSize(1);
+            assertThat(calls.get(0).path()).endsWith("/token");
         });
     }
 
@@ -254,7 +290,7 @@ class ProxyClientsHttpTest {
     }
 
     @Test
-    void optingIntoEcomAuthRequiresSecretButInternalClientsDoNot() {
+    void optingIntoEcomAuthRequiresSecret() {
         withSharedAuth().withPropertyValues("integration-config.ecom.oauth-password=")
                 .run(ctx -> assertThat(ctx).hasFailed());
     }

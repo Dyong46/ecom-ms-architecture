@@ -10,18 +10,19 @@ It has no main class, database, repositories or application business logic.
 Bruno / frontend -- user token --> Gateway --> Order
                                              |-- CustomerClient --> /internal/customers/{id}
                                              |-- ProductClient  --> /internal/products/purchase
-                                             `-- PaymentClient  --> /internal/payments
+                                             `-- PaymentClient -- Bearer token --> /internal/payments
 
 An application needing an OAuth integration
   -- @EnableEcomAuth --> EcomTokenService --> EcomAuthClient --> Keycloak
                         (process-local cache)   (shared client ID + secret)
 ```
 
-Internal service calls use OpenFeign without user tokens or service credentials.
-The separate Ecom identity follows the reference project's MbbAuthProxy idea: it
-is available to integrations needing a machine token, not applied globally to
-internal HTTP clients. The same identity can be configured across consumers;
-each process caches its own token.
+Customer and Product calls use OpenFeign without user tokens or service credentials.
+Order opts into Ecom OAuth and PaymentClient attaches the cached machine token
+only to Payment requests. Payment validates JWT signature, expiry and issuer,
+and requires the signed `azp` claim to match `ecom-services` (configurable).
+The shared identity can be configured across consumers; each process caches its
+own token. This policy identifies the client, not individual users or service instances.
 
 ## Internal endpoints and boundaries
 
@@ -29,7 +30,7 @@ each process caches its own token.
 | --- | --- | --- |
 | CustomerClient | GET `/internal/customers/{customer-id}` | Private network |
 | ProductClient | POST `/internal/products/purchase` | Private network |
-| PaymentClient | POST `/internal/payments` | Private network |
+| PaymentClient | POST `/internal/payments` | JWT from `ecom-services` + private network |
 
 Internal controllers delegate to existing CustomerService, ProductService and
 PaymentService. They do not duplicate business logic. Product keeps the existing
@@ -61,6 +62,7 @@ Order registers only its three internal clients:
 @EnableProxyModule(clients = {
     CustomerClient.class, ProductClient.class, PaymentClient.class
 })
+@EnableEcomAuth
 public class OrderApplication {
     // Existing main method and application annotations.
 }
@@ -142,7 +144,8 @@ public class IntegrationApplication {
 }
 ```
 
-Order does not opt in: ordinary order creation needs only internal clients.
+Order now opts in: order creation requires Ecom credentials for PaymentClient.
+Customer-only and Product-only consumers do not need Ecom OAuth.
 An application can instead register `EcomAuthClient.class` explicitly with
 `@EnableProxyModule` if it needs direct token requests without the cache service.
 
@@ -174,7 +177,7 @@ grant_type=client_credentials
 
 `oauth-username` means client ID and `oauth-password` means client secret, not a
 human login/password. The interceptor is scoped to this client and never attached
-to Customer, Product or Payment calls. Token/credentials DTO toString methods
+to Customer or Product calls. Payment uses a separate Bearer interceptor. Token/credentials DTO toString methods
 redact secrets; do not log response bodies or authorization headers yourself.
 
 For cached access, inject `EcomTokenService` and call `getAccessToken()` only when
@@ -194,14 +197,17 @@ From the repository root:
 Reload Maven and rebuild in the IDE. Restart Config Server first to serve the
 updated common configuration; then restart Customer, Product, Payment, Order and
 Gateway. Keep ordinary Gateway user-token authentication configured as before.
-Shared Ecom credentials are unnecessary for this internal order flow.
+Order requires `ECOM_OAUTH_CLIENT_SECRET` in its runtime environment. Payment
+requires only the issuer/JWKS URL and allowed client ID, never the client secret.
+See the [setup guide](../../docs/ecom-oauth-setup.md#order--payment-qua-oauth2)
+for restart steps and receiver configuration.
 
 The internal contract is visible in the three Internal*Controller classes and
 HTTP fixture tests. Do not call a live purchase/payment endpoint just to check
 availability: these operations mutate data.
 
 Tests use isolated local HTTP stand-ins, MockMvc/WebTestClient and H2. They cover
-internal calls without credentials, wire payloads, token Basic/form encoding,
+Customer/Product calls without credentials, authenticated Payment calls, wire payloads, token Basic/form encoding,
 cache/expiry, auth interceptor isolation, failure/timeout/no-retry behavior,
 Product security/validation, Gateway path blocking and existing Order behavior.
 Real Keycloak credentials and production network isolation are not established

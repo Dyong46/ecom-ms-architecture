@@ -2,6 +2,12 @@ server:
   port: 8060
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${PAYMENT_OAUTH_ISSUER_URI:http://localhost:9098/realms/micro-services}
+          jwk-set-uri: ${PAYMENT_OAUTH_JWK_SET_URI:http://localhost:9098/realms/micro-services/protocol/openid-connect/certs}
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/payment
@@ -25,3 +31,8 @@ spring:
 application:
   config:
     product-url: http://localhost:8222/api/v1/products
+
+# Only this Keycloak client may call the protected internal payment endpoint.
+payment:
+  security:
+    allowed-client-id: ${ECOM_OAUTH_CLIENT_ID:ecom-services}

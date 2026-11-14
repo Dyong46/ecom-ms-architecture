@@ -10,7 +10,7 @@ spring:
       override-system-properties: false
 
 # Shared identity for Ecom OAuth integrations. Only opt-in EcomAuthClient consumers
-# require these credentials; internal service clients do not use them.
+# require these credentials. Order uses them for the protected Payment client.
 integration-config:
   ecom:
     oauth-base-url: ${ECOM_OAUTH_BASE_URL:http://localhost:9098}

@@ -7,10 +7,10 @@ Hướng dẫn dành cho thành viên mới cần dùng `EcomAuthClient` hoặc
 
 ## Khi nào cần cấu hình?
 
-Hiện tại Order gọi Customer, Product và Payment qua `/internal/**`, không gửi
-user token hoặc Ecom token. Order chưa bật `@EnableEcomAuth`, nên tạo order
-không yêu cầu secret này. Có thể khai báo biến môi trường trước ở Order để
-chuẩn bị; việc đó không tự kích hoạt lấy token.
+Hiện tại Order gọi Customer và Product qua `/internal/**` không gửi token.
+Riêng Order → Payment gọi `/internal/payments` bằng Bearer token lấy từ Keycloak.
+Order đã bật `@EnableEcomAuth` và **bắt buộc có client secret khi khởi động**.
+Payment kiểm tra JWT và chỉ chấp nhận client ID đã cấu hình.
 
 Chỉ bật Ecom OAuth ở service có integration thực sự cần machine token. Các
 service được phép dùng chung danh tính có thể nhận cùng credential; mỗi tiến
@@ -92,13 +92,13 @@ public class IntegrationApplication {
 
 Inject `EcomTokenService`, gọi `getAccessToken()` khi cần và gắn
 `Authorization: Bearer <access token>` vào request của integration tương ứng.
-Annotation không tự gắn token vào mọi Feign client. Không thêm vào Order chỉ
-để phục vụ các lời gọi internal hiện tại.
+Annotation không tự gắn token vào mọi Feign client. `PaymentClient` đã có
+interceptor riêng lấy token từ cache và gắn Bearer; Customer/Product không dùng nó.
 
 ## Chạy local bằng IntelliJ
 
 1. Vào **Run → Edit Configurations**, chọn application của service cần dùng OAuth.
-   Nếu chỉ muốn khai báo sẵn như buổi setup local, có thể chọn **OrderApplication**.
+   Với luồng Order → Payment, chọn **OrderApplication**.
 2. Chọn **Modify options → Environment variables** nếu ô này chưa hiển thị.
 3. Bấm nút mở bảng ở bên phải ô **Environment variables**.
 4. Thêm các biến ở trên; URL, realm và client ID có mặc định nên có thể chỉ cần
@@ -112,6 +112,48 @@ secret cùng project hoặc đưa secret vào ảnh chụp màn hình/log.
 
 Java chạy từ IntelliJ không tự đọc `.env` của Docker Compose. Mỗi thành viên phải
 tự cấu hình Run Configuration hoặc được cấp secret qua công cụ quản lý của team.
+
+## Order → Payment qua OAuth2
+
+```text
+Order → Keycloak: client_credentials (client ID + secret)
+Order → Payment /internal/payments: Authorization: Bearer <access token>
+Payment → kiểm tra chữ ký JWT, issuer, thời hạn và azp=ecom-services
+```
+
+- **OrderApplication**: khai báo `ECOM_OAUTH_CLIENT_SECRET` như hướng dẫn ở trên.
+  `PaymentClient` bắt buộc đăng ký cùng `@EnableEcomAuth` khi được ứng dụng sử dụng.
+- **PaymentApplication**: không cần client secret. Cấu hình Config Server trong
+  `payment-service.yml` có các giá trị mặc định sau:
+
+  ```dotenv
+  PAYMENT_OAUTH_ISSUER_URI=http://localhost:9098/realms/micro-services
+  PAYMENT_OAUTH_JWK_SET_URI=http://localhost:9098/realms/micro-services/protocol/openid-connect/certs
+  ECOM_OAUTH_CLIENT_ID=ecom-services
+  ```
+
+  Có thể khai báo đè các biến này trong Run Configuration của Payment khi đổi
+  môi trường. Issuer phải khớp claim `iss`; JWKS phải truy cập được từ Payment.
+- Keycloak: giữ client authentication và service accounts roles bật như phần trên.
+  Quy tắc hiện tại kiểm tra signed claim `azp`, chưa yêu cầu role/scope hoặc audience
+  riêng của Payment. Các consumer dùng chung client ID có cùng quyền gọi endpoint này;
+  không dùng cấu hình này để phân biệt từng service hoặc từng người dùng.
+- Không forward token Bruno/user từ Order sang Payment. Token user từ client khác
+  như `micro-services-api` không đáp ứng chính sách internal của Payment.
+- Token bị thiếu/không hợp lệ: Payment trả `401`; token hợp lệ thuộc client khác:
+  `403`. Token endpoint lỗi: Order dừng lời gọi Payment, không fallback anonymous
+  và không tự retry thanh toán. Token được cache đến gần lúc hết hạn.
+- Các API `/api/v1/payments` giữ hành vi cũ; rule mới áp dụng cho `/internal/payments`
+  và các đường dẫn con. Gateway vẫn chặn internal; service ports phải ở mạng riêng.
+
+Sau khi reload Maven/rebuild, restart **Config Server → Payment → Order**; Keycloak
+phải chạy khi thực hiện request. Nếu trước đó override `PAYMENT_SERVICE_URL`, bảo
+đảm URL vẫn kết thúc bằng `/internal/payments`.
+
+Dùng các HTTP/JWT fixture test trong repo để kiểm tra an toàn. Khi thử tạo order
+thật qua Gateway, dùng dữ liệu thử vì flow có thể thay đổi tồn kho, ghi order và
+payment. OAuth không cung cấp transaction phân tán hoặc tự bù tồn kho khi lỗi;
+không replay mù một request thất bại.
 
 ## Truyền cấu hình khi deploy
 
@@ -130,8 +172,7 @@ services:
       ECOM_OAUTH_CLIENT_SECRET: ${ECOM_OAUTH_CLIENT_SECRET:?Set client secret}
 ```
 
-Tên `order-service` chỉ minh họa cách truyền biến; áp dụng cho service thực sự
-bật OAuth. Pipeline hoặc server cung cấp giá trị thật từ kho secret. Với VPS
+`order-service` hiện là consumer OAuth của Payment. Pipeline hoặc server cung cấp giá trị thật từ kho secret. Với VPS
 đơn giản, có thể dùng file riêng ngoài repository, chỉ cho tài khoản deploy đọc:
 
 ```bash

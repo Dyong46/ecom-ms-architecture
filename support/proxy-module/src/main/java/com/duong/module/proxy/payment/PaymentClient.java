@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(
         name = "payment-service",
         url = "${application.config.payment-url}",
-        configuration = ProxyFeignConfiguration.class
+        configuration = {ProxyFeignConfiguration.class, PaymentOAuthConfiguration.class}
 )
 public interface PaymentClient {
 
