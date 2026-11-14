@@ -27,6 +27,10 @@
 		<url/>
 	</scm>
 	<dependencies>
+		<dependency>
+			<groupId>com.duong</groupId>
+			<artifactId>logging-module</artifactId>
+		</dependency>
 		<!-- HTTP is used for Actuator health and metrics; business events use Kafka. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

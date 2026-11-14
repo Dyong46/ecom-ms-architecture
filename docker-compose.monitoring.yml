@@ -3,6 +3,30 @@
 name: ecom-monitoring
 
 services:
+  loki:
+    image: grafana/loki:3.7.10
+    command: ["-config.file=/etc/loki/config.yml"]
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./docker/loki/config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:v1.22.0
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./logs:/var/log/ecommerce:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:v3.16.0
     command:
@@ -21,6 +45,8 @@ services:
 
   grafana:
     image: grafana/grafana:13.3.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:3000:3000"
     environment:
@@ -35,5 +61,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  loki-data:
+  alloy-data:
   prometheus-data:
   grafana-data:

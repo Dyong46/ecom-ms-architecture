@@ -36,10 +36,17 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-validator.version>1.8.0</commons-validator.version>
         <zxing.version>3.4.1</zxing.version>
+        <!-- 8.x uses Jackson 2, matching Spring Boot 3.3. -->
+        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>logging-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.duong</groupId>
                 <artifactId>common-data-model</artifactId>

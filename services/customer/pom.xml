@@ -29,6 +29,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.duong</groupId>
+			<artifactId>logging-module</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.duong</groupId>
 			<artifactId>web-module</artifactId>
 		</dependency>
 		<dependency>
