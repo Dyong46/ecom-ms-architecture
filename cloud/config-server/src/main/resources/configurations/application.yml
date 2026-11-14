@@ -9,6 +9,26 @@ spring:
     config:
       override-system-properties: false
 
+# Shared identity for Ecom OAuth integrations. Only opt-in EcomAuthClient consumers
+# require these credentials; internal service clients do not use them.
+integration-config:
+  ecom:
+    oauth-base-url: ${ECOM_OAUTH_BASE_URL:http://localhost:9098}
+    oauth-realm: ${ECOM_OAUTH_REALM:micro-services}
+    oauth-username: ${ECOM_OAUTH_CLIENT_ID:ecom-services}
+    oauth-password: ${ECOM_OAUTH_CLIENT_SECRET:}
+
+application:
+  config:
+    customer-url: ${CUSTOMER_SERVICE_URL:http://localhost:8090/internal/customers}
+    product-url: ${PRODUCT_SERVICE_URL:http://localhost:8050/internal/products}
+    payment-url: ${PAYMENT_SERVICE_URL:http://localhost:8060/internal/payments}
+
+proxy:
+  http:
+    connect-timeout: ${PROXY_CONNECT_TIMEOUT:2s}
+    read-timeout: ${PROXY_READ_TIMEOUT:5s}
+
 management:
   tracing:
     sampling:

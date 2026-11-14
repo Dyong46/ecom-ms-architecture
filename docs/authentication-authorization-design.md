@@ -4,6 +4,14 @@
 **Recorded:** 2026-10-22  
 **Scope:** API Gateway, business microservices, and reusable support modules
 
+**Current implementation note (2026-11-14):** Service-to-service calls now use
+private `/internal` endpoints without service tokens. Gateway rejects internal
+paths; deployment must keep business-service ports inside the private network.
+Shared Ecom client credentials are an opt-in integration for flows that need an
+OAuth token, separate from internal calls. See the
+[proxy module](../support/proxy-module/README.md) for the implemented configuration.
+The resource-server model below remains a future design proposal.
+
 ## 1. Context
 
 The system currently uses Spring Cloud Gateway as the external entry point and

@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.module.proxy.product.response;
 
 import java.math.BigDecimal;
 

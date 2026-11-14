@@ -3,17 +3,17 @@ package com.duong.ecommerce.order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.duong.ecommerce.customer.CustomerClient;
+import com.duong.module.proxy.customer.CustomerClient;
 import com.duong.ecommerce.exception.BusinessException;
 import com.duong.ecommerce.kafka.OrderConfirmation;
 import com.duong.ecommerce.kafka.OrderProducer;
 import com.duong.ecommerce.orderline.OrderLineRequest;
 import com.duong.ecommerce.orderline.OrderLineService;
-import com.duong.ecommerce.payment.PaymentClient;
-import com.duong.ecommerce.payment.PaymentRequest;
-import com.duong.ecommerce.product.ProductClient;
-import com.duong.ecommerce.product.PurchaseRequest;
-import com.duong.ecommerce.product.PurchaseResponse;
+import com.duong.module.proxy.payment.PaymentClient;
+import com.duong.module.proxy.payment.request.PaymentRequest;
+import com.duong.module.proxy.product.ProductClient;
+import com.duong.module.proxy.product.request.PurchaseRequest;
+import com.duong.module.proxy.product.response.PurchaseResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class OrderService {
         var customer = this.customerClient.findCustomerById(request.customerId())
                 .orElseThrow(() -> new BusinessException("Cannot create order:: No Customer exists with the provided ID"));
 
-        // purchase the products --> product-ms (RestTemplate)
+        // Purchase through Product's internal API using the shared Feign client.
         var purchaseProduct = this.productClient.purchaseResponses(request.products());
         var totalAmount = calculateTotalAmount(purchaseProduct);
 
@@ -61,7 +61,7 @@ public class OrderService {
         // start payment process
         var paymentRequest = new PaymentRequest(
                 totalAmount,
-                request.paymentMethod(),
+                com.duong.module.proxy.payment.enumtype.PaymentMethod.valueOf(request.paymentMethod().name()),
                 order.getId(),
                 order.getReference(),
                 customer

@@ -2,11 +2,14 @@ package com.duong.ecommerce;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.duong.module.proxy.annotation.EnableProxyModule;
+import com.duong.module.proxy.customer.CustomerClient;
+import com.duong.module.proxy.product.ProductClient;
+import com.duong.module.proxy.payment.PaymentClient;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
-@EnableFeignClients
+@EnableProxyModule(clients = {CustomerClient.class, ProductClient.class, PaymentClient.class})
 @EnableJpaAuditing
 public class OrderApplication {
 

@@ -1,7 +1,7 @@
-package com.duong.ecommerce.payment;
+package com.duong.module.proxy.payment.request;
 
-import com.duong.ecommerce.customer.CustomerResponse;
-import com.duong.ecommerce.order.PaymentMethod;
+import com.duong.module.proxy.customer.response.CustomerResponse;
+import com.duong.module.proxy.payment.enumtype.PaymentMethod;
 
 import java.math.BigDecimal;
 

@@ -1,8 +1,8 @@
 package com.duong.ecommerce.kafka;
 
-import com.duong.ecommerce.customer.CustomerResponse;
+import com.duong.module.proxy.customer.response.CustomerResponse;
 import com.duong.ecommerce.order.PaymentMethod;
-import com.duong.ecommerce.product.PurchaseResponse;
+import com.duong.module.proxy.product.response.PurchaseResponse;
 
 import java.math.BigDecimal;
 import java.util.List;

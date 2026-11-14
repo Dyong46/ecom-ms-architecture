@@ -1,4 +1,4 @@
-package com.duong.ecommerce.customer;
+package com.duong.module.proxy.customer.response;
 
 public record CustomerResponse(
         String id,

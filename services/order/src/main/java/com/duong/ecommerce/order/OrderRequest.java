@@ -1,6 +1,6 @@
 package com.duong.ecommerce.order;
 
-import com.duong.ecommerce.product.PurchaseRequest;
+import com.duong.module.proxy.product.request.PurchaseRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

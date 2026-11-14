@@ -1,16 +1,16 @@
 package com.duong.ecommerce.order;
 
-import com.duong.ecommerce.customer.CustomerClient;
-import com.duong.ecommerce.customer.CustomerResponse;
+import com.duong.module.proxy.customer.CustomerClient;
+import com.duong.module.proxy.customer.response.CustomerResponse;
 import com.duong.ecommerce.exception.BusinessException;
 import com.duong.ecommerce.kafka.OrderConfirmation;
 import com.duong.ecommerce.kafka.OrderProducer;
 import com.duong.ecommerce.orderline.OrderLineService;
-import com.duong.ecommerce.payment.PaymentClient;
-import com.duong.ecommerce.payment.PaymentRequest;
-import com.duong.ecommerce.product.ProductClient;
-import com.duong.ecommerce.product.PurchaseRequest;
-import com.duong.ecommerce.product.PurchaseResponse;
+import com.duong.module.proxy.payment.PaymentClient;
+import com.duong.module.proxy.payment.request.PaymentRequest;
+import com.duong.module.proxy.product.ProductClient;
+import com.duong.module.proxy.product.request.PurchaseRequest;
+import com.duong.module.proxy.product.response.PurchaseResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -82,6 +82,7 @@ class OrderServiceTest {
         var paymentCaptor = ArgumentCaptor.forClass(PaymentRequest.class);
         verify(paymentClient).requestOrderPayment(paymentCaptor.capture());
         assertThat(paymentCaptor.getValue().amount()).isEqualByComparingTo("25.00");
+        assertThat(paymentCaptor.getValue().paymentMethod().name()).isEqualTo(request.paymentMethod().name());
 
         var eventCaptor = ArgumentCaptor.forClass(OrderConfirmation.class);
         verify(orderProducer).sendOrderConfirmation(eventCaptor.capture());

@@ -18,10 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 		"spring.jpa.hibernate.ddl-auto=validate",
 		"spring.flyway.enabled=true",
 		"spring.kafka.admin.auto-create=false",
-		"spring.security.oauth2.client.registration.product-service.client-secret=test-secret",
-		"application.config.customer-url=http://localhost/customers",
-		"application.config.payment-url=http://localhost/payments",
-		"application.config.product-url=http://localhost/products"
+		"application.config.customer-url=http://localhost/internal/customers",
+		"application.config.payment-url=http://localhost/internal/payments",
+		"application.config.product-url=http://localhost/internal/products"
 })
 class OrderApplicationTests {
 	@Autowired

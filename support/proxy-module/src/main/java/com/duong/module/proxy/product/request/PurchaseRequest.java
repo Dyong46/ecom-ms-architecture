@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.module.proxy.product.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

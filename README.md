@@ -284,6 +284,8 @@ does not complete a phase. See
 
 ## Documentation
 
+- [Shared HTTP Clients (Proxy Module)](support/proxy-module/README.md)
+- [Keycloak Ecom Client and Service Secret Setup](docs/ecom-oauth-setup.md)
 - [Local Prometheus and Grafana Setup](docs/monitoring.md)
 - [Distributed Systems Learning Path](docs/distributed-systems/README.md)
 - [Topic Documentation Template](docs/distributed-systems/TOPIC_TEMPLATE.md)
