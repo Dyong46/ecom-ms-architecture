@@ -284,6 +284,7 @@ không có nghĩa là giai đoạn đã hoàn tất. Xem chi tiết tại
 
 ## Tài liệu
 
+- [Thiết lập Prometheus và Grafana local](docs/monitoring.md)
 - [Lộ trình học Distributed Systems](docs/distributed-systems/README.md)
 - [Mẫu tài liệu cho một topic](docs/distributed-systems/TOPIC_TEMPLATE.md)
 - [Quy ước API](docs/api-conventions.md)

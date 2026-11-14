@@ -284,6 +284,7 @@ does not complete a phase. See
 
 ## Documentation
 
+- [Local Prometheus and Grafana Setup](docs/monitoring.md)
 - [Distributed Systems Learning Path](docs/distributed-systems/README.md)
 - [Topic Documentation Template](docs/distributed-systems/TOPIC_TEMPLATE.md)
 - [API Conventions](docs/api-conventions.md)

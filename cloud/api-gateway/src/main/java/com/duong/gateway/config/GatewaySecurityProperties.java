@@ -13,7 +13,7 @@ public class GatewaySecurityProperties {
             "/actuator/health/**",
             "/actuator/info"
     ));
-    private List<String> publicGetPaths = new ArrayList<>(List.of("/api/public/**"));
+    private List<String> publicGetPaths = new ArrayList<>(List.of("/api/public/**", "/actuator/prometheus"));
     private Callback callback = new Callback();
 
     public List<String> getPublicPaths() {
