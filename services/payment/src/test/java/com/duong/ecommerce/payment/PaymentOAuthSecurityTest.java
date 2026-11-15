@@ -10,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = InternalPaymentController.class,
         properties = "spring.cloud.config.enabled=false")
-@Import({PaymentSecurityConfig.class, PaymentOAuthSecurityTest.Keys.class})
+@ContextConfiguration(classes = {InternalPaymentController.class, PaymentSecurityConfig.class, PaymentOAuthSecurityTest.Keys.class})
 class PaymentOAuthSecurityTest {
     private static final String ISSUER = "https://keycloak.example.test/realms/micro-services";
     private static final KeyPair KEY = generateKey();
@@ -38,7 +38,6 @@ class PaymentOAuthSecurityTest {
             """;
     @Autowired MockMvc mvc;
     @MockBean PaymentService service;
-    @MockBean org.springframework.data.jpa.mapping.JpaMetamodelMappingContext jpaMappingContext;
 
     @Test
     void requiresBearerTokenBeforeExecutingPayment() throws Exception {

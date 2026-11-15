@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>kafka-module</module>
     <module>caching-module</module>
     <module>proxy-module</module>
     <module>logging-module</module>

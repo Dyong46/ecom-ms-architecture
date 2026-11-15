@@ -4,6 +4,7 @@ import com.duong.module.caching.annotation.EnableCachingModule;
 import com.duong.module.caching.config.CacheJson;
 import com.duong.module.caching.config.CachingProperties;
 import com.duong.module.caching.core.*;
+import com.duong.module.caching.lua.RedisLuaExecutor;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -151,6 +152,53 @@ class RedisCacheIntegrationTest {
             assertThatThrownBy(() -> ctx.getBean(RedisJsonCache.class).get(SERVICE, "catalog", "bad", String.class))
                     .isInstanceOf(CacheSerializationException.class).hasNoCause()
                     .hasMessageNotContaining("private-cached-payload");
+        });
+    }
+
+    @Test
+    void luaReceivesAllKeysAndArgumentsAndUsesItsOwnNamespaceAndExpiry() {
+        context().run(ctx -> {
+            var executor = ctx.getBean(RedisLuaExecutor.class);
+            var script = RedisLuaExecutor.loadScript("redis/write-pair.lua", List.class);
+            String value = "O'Brien — dữ liệu\n'quoted'";
+            assertThat(executor.execute(script, GLOBAL, "pairs", "pair-1", List.of("left", "right"), value, "second", "5000"))
+                    .containsExactly(value, "second");
+            var redis = new StringRedisTemplate(ctx.getBean(RedisConnectionFactory.class));
+            var keys = ctx.getBean(CacheKeys.class);
+            String key = keys.luaKey(GLOBAL, "pairs", "pair-1", "left");
+            assertThat(redis.getExpire(key)).isPositive();
+            assertThat(redis.opsForValue().get(keys.luaKey(SERVICE, "pairs", "pair-1", "left"))).isNull();
+            assertThat(redis.opsForValue().get(keys.jsonKey(GLOBAL, "pairs", "left"))).isNull();
+            redis.delete(key);
+            // Reuse the script instance with different arguments.
+            assertThat(executor.execute(script, GLOBAL, "pairs", "pair-1", List.of("left", "right"), "again", "second", "150"))
+                    .containsExactly("again", "second");
+            await().atMost(Duration.ofSeconds(3)).untilAsserted(() -> assertThat(redis.opsForValue().get(key)).isNull());
+        });
+    }
+
+    @Test
+    void luaCheckAndUpdateHasOneWinnerUnderConcurrentRequests() {
+        context().run(ctx -> {
+            var executor = ctx.getBean(RedisLuaExecutor.class);
+            var script = RedisLuaExecutor.loadScript("redis/increment-if-below.lua", Long.class);
+            var workers = Executors.newFixedThreadPool(6);
+            try {
+                var jobs = new ArrayList<Callable<Long>>();
+                for (int i = 0; i < 20; i++) {
+                    jobs.add(() -> executor.execute(script, GLOBAL, "limits", "fixture", List.of("count"), "1", "5000"));
+                }
+                long winners = 0;
+                for (var result : workers.invokeAll(jobs)) {
+                    winners += result.get();
+                }
+                assertThat(winners).isEqualTo(1);
+                var redis = new StringRedisTemplate(ctx.getBean(RedisConnectionFactory.class));
+                var key = ctx.getBean(CacheKeys.class).luaKey(GLOBAL, "limits", "fixture", "count");
+                assertThat(redis.opsForValue().get(key)).isEqualTo("1");
+            } finally {
+                workers.shutdownNow();
+            }
         });
     }
 

@@ -15,6 +15,7 @@ như trước. Muốn chuyển OAuth sang Redis cần tích hợp riêng, không
 | `ecomRedisCacheManager` | Spring Cache, TTL mặc định/theo region, JSON, không cache null, statistics | Redis theo service và môi trường |
 | `ecomMemoryCacheManager` | Caffeine, TTL sau khi ghi, giới hạn số entry mỗi cache, statistics | Trong từng tiến trình |
 | `RedisJsonCache` | Đọc/ghi JSON theo kiểu, TTL trên mọi lần ghi, evict, atomic put-if-absent | Chọn `SERVICE` hoặc `GLOBAL` |
+| `RedisLuaExecutor` | Đọc script classpath, truyền KEYS/ARGV, namespace và nhóm key cùng hash slot | Chọn `SERVICE` hoặc `GLOBAL` |
 | `AccessTokenCache` | Cache machine token theo issuer/client/scope, kiểm tra hạn và trừ margin | Redis global trong cùng namespace/môi trường |
 
 Redis dùng Spring Data Redis/Lettuce do BOM Spring Boot quản lý, thay Redisson
@@ -190,6 +191,76 @@ tra nguyên tử việc entry chưa tồn tại. Nó không phải distributed l
 đủ làm idempotency thanh toán: entry có thể hết hạn, bị evict hoặc Redis restart.
 Không dùng nó làm bảo đảm chống thu tiền hai lần.
 
+## Chuẩn bị script Lua cho service
+
+`@EnableCachingModule` đăng ký thêm bean `RedisLuaExecutor`. Service cung cấp
+script khi nghiệp vụ cần dùng, rồi gọi executor. Script được load một lần thành
+Spring bean để tái sử dụng SHA cache của Spring Data Redis.
+
+Đặt script của service tại `src/main/resources/redis/increment-if-below.lua`.
+Đây là ví dụ giới hạn một counter trong Redis.
+
+```lua
+local limit = tonumber(ARGV[1])
+local ttl = tonumber(ARGV[2])
+if not limit or limit < 0 or not ttl or ttl < 1 then
+    return redis.error_reply('Invalid limit or TTL')
+end
+local current = tonumber(redis.call('GET', KEYS[1]) or '0')
+if current >= limit then
+    return 0
+end
+redis.call('PSETEX', KEYS[1], ttl, current + 1)
+return 1
+```
+
+Khai báo bean script trong cấu hình của service.
+
+```java
+@Bean
+RedisScript<Long> incrementIfBelow() {
+    return RedisLuaExecutor.loadScript("redis/increment-if-below.lua", Long.class);
+}
+```
+
+Inject script và `RedisLuaExecutor` qua constructor, rồi thực thi.
+
+```java
+Long accepted = luaExecutor.execute(
+        incrementIfBelow,
+        CacheScope.SERVICE,
+        "limits-v1",           // region
+        "checkout-1051",       // group của các key liên quan
+        List.of("counter"),    // logical keys, lần lượt thành KEYS[1], KEYS[2]...
+        "100", "60000");       // ARGV[1], ARGV[2] dưới dạng chuỗi
+```
+
+`group` được encode cùng namespace, environment, scope và region thành hash tag.
+Các key cùng group ở cùng hash slot để script nhiều key có thể hoạt động trên
+Redis Cluster. Chọn group theo tài nguyên nghiệp vụ thay vì gom toàn bộ dữ liệu
+vào một group. Các test hiện dùng Redis standalone và kiểm tra cấu trúc hash tag.
+
+Key của script dùng vùng `:lua:` riêng với key của RedisJsonCache và Spring Cache.
+Dữ liệu được trao đổi qua StringRedisTemplate. Các kiểu kết quả thông dụng là
+`Long`, `Boolean`, `String` hoặc `List`. Caller tự parse kết quả JSON thành DTO
+khi script trả chuỗi JSON. Script chỉ truy cập các key đã được truyền qua KEYS.
+
+Arguments được truyền qua ARGV, giữ nguyên ký tự Unicode, dấu nháy và newline.
+Dùng API này thay cho việc nối dữ liệu vào nội dung script. Lỗi thiếu resource,
+key rỗng hoặc tham số null được báo trước khi gọi Redis. Lỗi Redis/script được
+trả về caller để xử lý.
+
+Script ghi cache cần tự đặt TTL phù hợp, như PSETEX trong ví dụ. TTL mặc định của
+RedisJsonCache không áp dụng cho Lua. Script kiểm tra dữ liệu đầu vào trước khi
+ghi vì lỗi giữa script không rollback các lệnh đã ghi trước đó. Giữ script ngắn
+và cung cấp từ code/resource của service đã được kiểm soát.
+
+Thành phần này chuẩn bị khả năng thực thi script. Khi áp dụng vào tồn kho, token
+refresh hoặc giữ chỗ, service cần định nghĩa policy, recovery và đồng bộ dữ liệu
+với DB cho nghiệp vụ đó.
+
+Tham khảo [Spring Data Redis scripting](https://docs.spring.io/spring-data/redis/reference/redis/scripting.html).
+
 ## AccessTokenCache
 
 ```java
@@ -238,7 +309,7 @@ docker stop ecom-cache-test
 
 Tests dùng namespace ngẫu nhiên, không FLUSHDB. Chúng kiểm tra chia sẻ/isolation,
 TTL thực tế, JSON record/list/map/Unicode/dấu nháy, ghi NX đồng thời, Spring
-Cacheable/evict, expiry token và lỗi đọc dữ liệu. Chưa chứng minh Redis Cluster,
+Cacheable/evict, expiry token, Lua KEYS/ARGV, TTL của script, cập nhật đồng thời và lỗi đọc dữ liệu. Chưa chứng minh Redis Cluster,
 failover, TLS/ACL production, tải cao hoặc tính nhất quán của nghiệp vụ sử dụng cache.
 
 ## Khác với module mẫu
@@ -246,7 +317,7 @@ failover, TLS/ACL production, tải cao hoặc tính nhất quán của nghiệp
 - Giữ opt-in annotation, scope service/global, cache policy theo region và wrapper token.
 - TTL rõ ràng trên cả Spring Cache lẫn thao tác trực tiếp; cache memory có giới hạn.
 - Không copy helper Lua nối dữ liệu vào script, vòng lặp SET mất phần tử hoặc API nhận tham số nhưng bỏ qua.
-- Chưa cung cấp Redis Hash/Set helper, arbitrary Lua runner, distributed lock, cache thẻ/vé hoặc cơ chế warm-up nghiệp vụ.
+- Chưa cung cấp Redis Hash/Set helper, distributed lock, cache thẻ/vé hoặc cơ chế warm-up nghiệp vụ.
 - Không thay đổi folder mẫu; folder mẫu không thuộc reactor.
 
 Tham khảo [Spring Data Redis Cache](https://docs.spring.io/spring-data/redis/reference/redis/redis-cache.html).

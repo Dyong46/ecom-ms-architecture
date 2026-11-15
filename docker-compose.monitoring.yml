@@ -3,6 +3,17 @@
 name: ecom-monitoring
 
 services:
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    # Kafka advertises localhost:9092 in the local infrastructure stack.
+    # Join its network namespace so the advertised address remains reachable.
+    network_mode: "container:ms_kafka"
+    command:
+      - --kafka.server=localhost:9092
+      - --web.listen-address=0.0.0.0:9308
+      - --offset.show-all
+    restart: unless-stopped
+
   loki:
     image: grafana/loki:3.7.10
     command: ["-config.file=/etc/loki/config.yml"]
@@ -28,6 +39,9 @@ services:
     restart: unless-stopped
 
   prometheus:
+    networks:
+      - default
+      - kafka-metrics
     image: prom/prometheus:v3.16.0
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -65,3 +79,8 @@ volumes:
   alloy-data:
   prometheus-data:
   grafana-data:
+
+networks:
+  kafka-metrics:
+    external: true
+    name: ${KAFKA_DOCKER_NETWORK:-ecom-ms-architecture_microservices-net}

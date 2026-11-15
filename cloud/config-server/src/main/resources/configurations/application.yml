@@ -5,6 +5,30 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    admin:
+      auto-create: ${KAFKA_PROVISION_TOPICS:false}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        allow.auto.create.topics: false
+    listener:
+      ack-mode: record
+      concurrency: ${KAFKA_LISTENER_CONCURRENCY:1}
+      observation-enabled: true
+    template:
+      observation-enabled: true
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -27,6 +51,9 @@ integration-config:
     oauth-password: ${ECOM_OAUTH_CLIENT_SECRET:}
 
 application:
+  events:
+    order-topic: ${KAFKA_ORDER_TOPIC:order-topic}
+    payment-topic: ${KAFKA_PAYMENT_TOPIC:payment-topic}
   config:
     customer-url: ${CUSTOMER_SERVICE_URL:http://localhost:8090/internal/customers}
     product-url: ${PRODUCT_SERVICE_URL:http://localhost:8050/internal/products}
@@ -58,3 +85,7 @@ caching-config:
   environment: ${APP_ENV:local}
   default-ttl: ${CACHE_DEFAULT_TTL:5m}
   memory-max-size: ${CACHE_MEMORY_MAX_SIZE:1000}
+
+# Enable topic creation only for a controlled local/bootstrap run.
+kafka-module:
+  provision-topics: ${KAFKA_PROVISION_TOPICS:false}

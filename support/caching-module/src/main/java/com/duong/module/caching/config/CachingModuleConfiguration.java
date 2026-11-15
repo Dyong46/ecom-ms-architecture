@@ -1,6 +1,7 @@
 package com.duong.module.caching.config;
 
 import com.duong.module.caching.core.CacheKeys;
+import com.duong.module.caching.lua.RedisLuaExecutor;
 import com.duong.module.caching.core.AccessTokenCache;
 import java.time.Clock;
 import java.time.Duration;
@@ -39,6 +40,12 @@ public class CachingModuleConfiguration {
     RedisJsonCache redisJsonCache(RedisConnectionFactory factory, CacheKeys keys, CachingProperties properties) {
         // Dedicated String template: no dependency on consumer RedisTemplate serializer choices.
         return new RedisJsonCache(new StringRedisTemplate(factory), CacheJson.typedMapper(), keys, properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    RedisLuaExecutor redisLuaExecutor(RedisConnectionFactory factory, CacheKeys keys) {
+        return new RedisLuaExecutor(new StringRedisTemplate(factory), keys);
     }
 
     @Bean

@@ -22,9 +22,9 @@ public class NotificationConsumer {
     private final NotificationRepository repository;
     private final EmailService emailService;
 
-    @KafkaListener(topics = "payment-topic")
+    @KafkaListener(topics = "${application.events.payment-topic:payment-topic}")
     public void consumePaymentSuccessNotification(PaymentConfirmation paymentConfirmation) throws MessagingException {
-        log.info(String.format("Consuming the massage from payment-topic Topic:: %s", paymentConfirmation));
+        log.info("Consuming payment confirmation");
         repository.save(
                 Notification.builder()
                         .type(NotificationType.PAYMENT_CONFIRMATION)
@@ -43,9 +43,9 @@ public class NotificationConsumer {
         );
     }
 
-    @KafkaListener(topics = "order-topic")
+    @KafkaListener(topics = "${application.events.order-topic:order-topic}")
     public void consumeOrderConfirmationNotification(OrderConfirmation orderConfirmation) throws MessagingException {
-        log.info(String.format("Consuming the massage from order-topic Topic:: %s", orderConfirmation));
+        log.info("Consuming order confirmation");
         repository.save(
                 Notification.builder()
                         .type(NotificationType.ORDER_CONFIRMATION)

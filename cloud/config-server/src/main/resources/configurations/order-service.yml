@@ -16,8 +16,11 @@ spring:
     enabled: true
   kafka:
     producer:
-      bootstrap-servers: localhost:9092
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.kafka.OrderConfirmation
+
+kafka-module:
+  topics:
+    - name: ${application.events.order-topic}
+      partitions: 1
+      replicas: 1

@@ -44,6 +44,11 @@
         <dependencies>
             <dependency>
                 <groupId>com.duong</groupId>
+                <artifactId>kafka-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
                 <artifactId>caching-module</artifactId>
                 <version>${support.version}</version>
             </dependency>

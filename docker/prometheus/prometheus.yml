@@ -29,3 +29,8 @@ scrape_configs:
       - targets: ["host.docker.internal:8222"]
         labels:
           application: api-gateway
+
+  # The exporter shares ms_kafka's network namespace and listens on 9308.
+  - job_name: kafka-exporter
+    static_configs:
+      - targets: ["ms_kafka:9308"]

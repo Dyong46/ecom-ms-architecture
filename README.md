@@ -284,6 +284,8 @@ does not complete a phase. See
 
 ## Documentation
 
+- [Shared Kafka Module](support/kafka-module/README.md)
+
 - [Shared Caching Module (Redis and Memory)](support/caching-module/README.md)
 
 - [Shared HTTP Clients (Proxy Module)](support/proxy-module/README.md)

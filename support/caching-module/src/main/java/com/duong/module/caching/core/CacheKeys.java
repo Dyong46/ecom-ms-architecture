@@ -25,6 +25,22 @@ public final class CacheKeys {
         return root + (scope == CacheScope.GLOBAL ? "global" : "service:" + application) + ":json:" + region + ":" + encoded;
     }
 
+    /** Related script keys share a Redis Cluster slot within their scope and group. */
+    public String luaKey(CacheScope scope, String region, String group, String key) {
+        Objects.requireNonNull(scope, "cache scope");
+        CachingProperties.requireName(region, "region");
+        if (group == null || group.isBlank() || key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Lua group and key must not be blank");
+        }
+        String owner = scope == CacheScope.GLOBAL ? "global" : "service:" + application;
+        String prefix = root + owner + ":lua:" + region + ":";
+        String tag = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString((prefix + group).getBytes(StandardCharsets.UTF_8));
+        String encodedKey = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(key.getBytes(StandardCharsets.UTF_8));
+        return prefix + "{" + tag + "}:" + encodedKey;
+    }
+
     public String springPrefix(String region) {
         CachingProperties.requireName(region, "region");
         return root + "service:" + application + ":spring:" + region + ":";

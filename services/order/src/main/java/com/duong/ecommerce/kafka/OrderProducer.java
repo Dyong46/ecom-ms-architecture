@@ -1,27 +1,22 @@
 package com.duong.ecommerce.kafka;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
+import com.duong.module.kafka.service.KafkaPublisher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.CompletableFuture;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class OrderProducer {
+    private final KafkaPublisher publisher;
+    private final String topic;
 
-    private final KafkaTemplate<String, OrderConfirmation> kafkaTemplate;
+    public OrderProducer(KafkaPublisher publisher, @Value("${application.events.order-topic:order-topic}") String topic) {
+        this.publisher = publisher;
+        this.topic = topic;
+    }
 
-    public void sendOrderConfirmation(OrderConfirmation orderConfirmation) {
-        log.info("Sending order confirmation");
-        Message<OrderConfirmation> message = MessageBuilder
-                .withPayload(orderConfirmation)
-                .setHeader(KafkaHeaders.TOPIC, "order-topic")
-                .build();
-
-        kafkaTemplate.send(message);
+    public CompletableFuture<SendResult<Object, Object>> sendOrderConfirmation(OrderConfirmation event) {
+        return publisher.send(topic, event.orderReference(), event);
     }
 }

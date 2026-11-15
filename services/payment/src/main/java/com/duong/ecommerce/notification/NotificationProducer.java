@@ -1,27 +1,22 @@
 package com.duong.ecommerce.notification;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
+import com.duong.module.kafka.service.KafkaPublisher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.CompletableFuture;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationProducer {
+    private final KafkaPublisher publisher;
+    private final String topic;
 
-    private final KafkaTemplate<String, PaymentNotificationRequest> kafkaTemplate;
+    public NotificationProducer(KafkaPublisher publisher, @Value("${application.events.payment-topic:payment-topic}") String topic) {
+        this.publisher = publisher;
+        this.topic = topic;
+    }
 
-    public void sendNotification(PaymentNotificationRequest request) {
-        log.info("Sending notification with body <{}>", request);
-        Message<PaymentNotificationRequest> message = MessageBuilder
-                .withPayload(request)
-                .setHeader(KafkaHeaders.TOPIC, "payment-topic")
-                .build();
-
-        kafkaTemplate.send(message);
+    public CompletableFuture<SendResult<Object, Object>> sendNotification(PaymentNotificationRequest event) {
+        return publisher.send(topic, event.orderReference(), event);
     }
 }

@@ -1,7 +1,7 @@
 # Local microservice monitoring
 
 This setup assumes the Java applications run on the host through an IDE or Maven.
-Prometheus, Grafana, Loki and Alloy run in a separate Docker Compose project.
+Prometheus, Grafana, Loki, Alloy and Kafka Exporter run in a separate Docker Compose project.
 
 ```text
 Spring Boot Actuator / Micrometer -> Prometheus <- Grafana
@@ -31,6 +31,13 @@ to a private network or add authentication. Do not expose application Actuator
 endpoints publicly.
 
 ## 2. Start Prometheus and Grafana
+
+Start Kafka infrastructure first. Kafka Exporter uses the local `ms_kafka`
+container and the infrastructure Docker network.
+
+```bash
+docker compose up -d zookeeper kafka
+```
 
 Run these commands from the repository root. The initial setup creates an ignored
 `.env.monitoring` with a generated Grafana admin password. On a fresh checkout,
@@ -343,3 +350,104 @@ port binds only to `127.0.0.1`; production requires separate access controls.
 
 Version references: [Prometheus releases](https://prometheus.io/download/) and
 [Grafana 13.3.1](https://github.com/grafana/grafana/releases/tag/v13.3.1).
+
+
+## Kafka dashboard and warnings
+
+Open [Kafka Overview](http://localhost:3000/d/kafka-overview) under the Ecommerce
+folder. The dashboard is provisioned from `docker/grafana/dashboards/kafka-overview.json`.
+Grafana-managed alerts are provisioned from
+`docker/grafana/provisioning/alerting/kafka-alerts.json` and appear under
+**Alerting → Alert rules → Ecommerce / Kafka monitoring**.
+
+Kafka Exporter v1.9.0 supplies broker discovery, topic/partition metadata, committed
+offsets, consumer group members and approximate lag. Application metrics continue
+to come from Actuator. Publisher errors before enqueue and asynchronous delivery
+failures are monitored through Loki logs from KafkaPublisher/SafeProducerListener.
+
+| Rule | Severity | Initial condition |
+| --- | --- | --- |
+| Exporter scrape unavailable | warning | Scrape fails or target series is missing for 1m |
+| Broker discovery unavailable | critical | Exporter is reachable, broker metric is missing or broker count is below 1 for 1m |
+| Notification endpoint unavailable | critical | Notification Actuator scrape fails for 1m |
+| Expected consumer group inactive | warning | Group absent or members below 1 for 5m while exporter and broker metrics are available |
+| Lag high | warning | More than 100 pending messages per expected group/topic for 5m |
+| Consumer stalled | warning | Positive lag with no offset changes in the preceding 1m, sustained for 5m |
+| Publisher error logs | warning | Matching publisher error logs exist in the last 5m |
+| Expected topic metadata missing | warning | Either expected topic is absent from exporter metadata for 5m while broker is discoverable |
+
+Rules are evaluated every 30s. Thresholds are starting values for local use and
+should match workload and notification latency targets. The expected topics are
+`order-topic` and `payment-topic`; the expected group is the single literal string
+`paymentGroup,orderGroup`. Update rule queries when overriding application topic
+or group names. Dashboard variable selections affect charts, not alert selectors.
+
+Exporter scrape success measures HTTP availability. Broker discovery has a separate
+rule. An unavailable broker, missing metrics and an empty backlog have different
+interpretations. Fresh groups can have no lag series until offsets have been
+committed; the lag panel omits unknown negative values and shows missing data.
+The dashboard includes the number of partitions with known lag values. Native
+producer metrics appear after a producer client is used. Consumer fetch throughput
+measures fetched records, not successful email delivery.
+
+Prometheus query errors move rules to Alerting. Lag and publisher-log queries use
+OK on empty results, with monitoring/group/topic availability checked by separate
+rules. Loki query failures are evaluation errors, while an empty log result can
+mean no matching error logs or no ingested stream. These alerts depend on their
+data source and the configured logging pipeline.
+
+### Docker networking for the existing local broker
+
+The current broker advertises `localhost:9092`. Kafka Exporter joins its network
+namespace with `network_mode: container:ms_kafka`, so broker metadata addresses
+are reachable. Exporter listens on port 9308 within that namespace. Prometheus
+joins the infrastructure network and scrapes `ms_kafka:9308`; port 9308 is not
+published to the host.
+
+The default infrastructure network name is
+`ecom-ms-architecture_microservices-net`. If the infrastructure Compose project
+name differs, set `KAFKA_DOCKER_NETWORK` in the ignored `.env.monitoring` file.
+This local arrangement expects the broker container name `ms_kafka`. Recreate the
+exporter after recreating or restarting the broker so it joins the current network
+namespace.
+
+```bash
+docker compose --env-file .env.monitoring -f docker-compose.monitoring.yml up -d --force-recreate kafka-exporter
+```
+
+For a deployment with proper internal advertised listeners, connect the exporter
+to that listener over a shared network and update the Prometheus target. The local
+namespace-sharing configuration is specific to this repository's Docker setup.
+
+### Apply and verify
+
+```bash
+docker compose --env-file .env.monitoring -f docker-compose.monitoring.yml up -d kafka-exporter prometheus grafana
+docker compose --env-file .env.monitoring -f docker-compose.monitoring.yml restart prometheus grafana
+docker compose --env-file .env.monitoring -f docker-compose.monitoring.yml exec -T prometheus promtool check config /etc/prometheus/prometheus.yml
+```
+
+Verify `up{job="kafka-exporter"}` and `kafka_brokers{job="kafka-exporter"}` in
+Prometheus. Check rule evaluation health in Grafana. File-provisioned rule changes
+are applied by editing the source file and restarting Grafana or using its admin
+provisioning reload API. Dashboard changes are picked up by its file provider.
+
+The initial implementation was checked against the running exporter and seven
+synthetic Prometheus scenarios covering healthy data, exporter failure, missing
+broker data, persistent lag/stall, inactive group, Notification scrape failure and
+missing topic metadata. The checks used synthetic time series rather than stopping
+services or publishing business events.
+
+### Receiving notifications
+
+Rules are active in Grafana. Contact points and external notification destinations
+have not been configured by this setup. To receive messages, configure a contact
+point in **Alerting → Contact points**, then route the `component=kafka` alerts
+through a notification policy. Email requires Grafana SMTP configuration. Supply
+SMTP credentials, webhook URLs and integration tokens through runtime secret
+configuration. Confirm the recipient and test delivery as part of that channel's
+setup.
+
+References: [Kafka Exporter](https://github.com/danielqsj/kafka_exporter),
+[Grafana file provisioning](https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/),
+[Grafana contact points](https://grafana.com/docs/grafana/latest/alerting/configure-notifications/manage-contact-points/).
