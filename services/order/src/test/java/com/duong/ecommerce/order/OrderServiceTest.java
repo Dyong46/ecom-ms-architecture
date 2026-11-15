@@ -6,7 +6,7 @@ import com.duong.ecommerce.exception.BusinessException;
 import com.duong.ecommerce.kafka.OrderConfirmation;
 import com.duong.ecommerce.kafka.OrderProducer;
 import com.duong.ecommerce.orderline.OrderLineService;
-import com.duong.module.proxy.payment.PaymentClient;
+import com.duong.ecommerce.integration.OrderPaymentGateway;
 import com.duong.module.proxy.payment.request.PaymentRequest;
 import com.duong.module.proxy.product.ProductClient;
 import com.duong.module.proxy.product.request.PurchaseRequest;
@@ -48,7 +48,7 @@ class OrderServiceTest {
     @Mock
     private OrderProducer orderProducer;
     @Mock
-    private PaymentClient paymentClient;
+    private OrderPaymentGateway paymentClient;
 
     @InjectMocks
     private OrderService service;

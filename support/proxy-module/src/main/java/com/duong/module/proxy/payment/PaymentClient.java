@@ -5,16 +5,18 @@ import com.duong.module.proxy.config.ProxyFeignConfiguration;
 import com.duong.module.proxy.payment.request.PaymentRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
         name = "payment-service",
         url = "${application.config.payment-url}",
-        configuration = {ProxyFeignConfiguration.class, PaymentOAuthConfiguration.class}
+        configuration = ProxyFeignConfiguration.class
 )
 public interface PaymentClient {
 
     @PostMapping
     Integer requestOrderPayment(
+            @RequestHeader("Authorization") String authorization,
             @RequestBody PaymentRequest paymentRequest
     );
 }

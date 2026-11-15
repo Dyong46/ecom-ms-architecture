@@ -1,27 +1,29 @@
-package com.duong.module.proxy.ecom;
+package com.duong.ecommerce.integration.oauth;
 
+import com.duong.module.proxy.ecom.EcomAuthClient;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 
-/** Each process caches a token for the shared client identity; no user-token relay. */
+/** Acquires machine tokens for Order using its Redis cache policy. */
 public final class EcomTokenService {
     private final EcomAuthClient client;
     private final String realm;
     private final Clock clock;
-    private String token;
-    private Instant refreshAt = Instant.MIN;
+    private final EcomTokenCache cache;
 
-    public EcomTokenService(EcomAuthClient client, String realm, Clock clock) {
+    public EcomTokenService(EcomAuthClient client, String realm, Clock clock, EcomTokenCache cache) {
         this.client = client;
         this.realm = realm;
         this.clock = clock;
+        this.cache = cache;
     }
 
     public synchronized String getAccessToken() {
-        if (token != null && clock.instant().isBefore(refreshAt)) {
-            return token;
+        var cached = cache.getValidToken();
+        if (cached.isPresent()) {
+            return cached.get();
         }
         // Measure expiry conservatively from before the network request.
         Instant requestedAt = clock.instant();
@@ -30,8 +32,7 @@ public final class EcomTokenService {
                 || response.expiresIn() <= 0 || !"Bearer".equalsIgnoreCase(response.tokenType())) {
             throw new IllegalStateException("Ecom OAuth returned an invalid token response");
         }
-        token = response.accessToken();
-        refreshAt = requestedAt.plusSeconds(response.expiresIn() - Math.min(30, response.expiresIn() / 10));
-        return token;
+        cache.put(response.accessToken(), requestedAt.plusSeconds(response.expiresIn()));
+        return response.accessToken();
     }
 }

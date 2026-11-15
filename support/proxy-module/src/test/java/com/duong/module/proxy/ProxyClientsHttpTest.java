@@ -3,7 +3,7 @@ package com.duong.module.proxy;
 import com.duong.module.proxy.annotation.EnableProxyModule;
 import com.duong.module.proxy.annotation.EnableEcomAuth;
 import com.duong.module.proxy.ecom.EcomAuthClient;
-import com.duong.module.proxy.ecom.EcomTokenService;
+
 import com.duong.module.proxy.customer.CustomerClient;
 import com.duong.module.proxy.customer.response.CustomerResponse;
 import com.duong.module.proxy.payment.PaymentClient;
@@ -33,11 +33,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -143,7 +138,7 @@ class ProxyClientsHttpTest {
     @Test
     void customerOnlyConsumerNeedsNeitherOtherUrlsNorOAuthClasses() {
         context().withUserConfiguration(CustomerOnly.class)
-                .withClassLoader(new FilteredClassLoader("org.springframework.security.oauth2.client"))
+                .withClassLoader(new FilteredClassLoader("org.springframework.security.oauth2.client", "com.duong.module.caching", "org.springframework.data.redis"))
                 .withPropertyValues("application.config.customer-url=" + base + "/internal/customers")
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed().hasSingleBean(CustomerClient.class)
@@ -156,14 +151,28 @@ class ProxyClientsHttpTest {
     }
 
     @Test
+    void paymentOnlyConsumerSuppliesItsOwnAuthorizationWithoutOAuthOrRedis() {
+        context().withUserConfiguration(PaymentOnly.class)
+                .withClassLoader(new FilteredClassLoader("com.duong.module.caching", "org.springframework.data.redis"))
+                .withPropertyValues("application.config.payment-url=" + base + "/internal/payments")
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed().doesNotHaveBean(EcomAuthClient.class);
+                    ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer caller-token",
+                            new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", null));
+                    assertThat(calls).hasSize(1);
+                    assertThat(calls.get(0).authorization()).isEqualTo("Bearer caller-token");
+                });
+    }
+
+    @Test
     void preservesWireContractsWithOAuthOnlyForPayment() {
         allClients().run(ctx -> {
-            assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class).hasSingleBean(EcomTokenService.class);
+            assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class);
             var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow();
             var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2)));
             assertThat(products).hasSize(1);
             assertThat(products.get(0).price()).isEqualByComparingTo("10.00");
-            assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment(new PaymentRequest(
+            assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", new PaymentRequest(
                     new BigDecimal("20.00"), PaymentMethod.PAYPAL, 7, "ORDER-7", customer))).isEqualTo(42);
             for (var call : calls) {
                 switch (call.path()) {
@@ -197,24 +206,17 @@ class ProxyClientsHttpTest {
     }
 
     @Test
-    void sharedOAuthUsesBasicAuthAndCachesTokenWithoutLeakingCredentialsToInternalClients() {
+    void oauthClientSendsBasicCredentialsAndFormOnEveryExplicitRequest() {
         withSharedAuth().run(ctx -> {
-            assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class);
-            var tokens = ctx.getBean(EcomTokenService.class);
-            assertThat(tokens.getAccessToken()).isEqualTo("service-token");
-            assertThat(tokens.getAccessToken()).isEqualTo("service-token");
-            ctx.getBean(CustomerClient.class).findCustomerById("c1");
-            ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2)));
-            var customer = new CustomerResponse("c1", "Ada", "Lovelace", "ada@example.test");
-            ctx.getBean(PaymentClient.class).requestOrderPayment(new PaymentRequest(BigDecimal.TEN,
-                    PaymentMethod.PAYPAL, 7, "ORDER-7", customer));
-            var tokenCalls = calls.stream().filter(c -> c.path().endsWith("/token")).toList();
-            assertThat(tokenCalls).hasSize(1);
+            var auth = ctx.getBean(EcomAuthClient.class);
+            auth.oauthToken("micro-services", java.util.Map.of("grant_type", "client_credentials"));
+            auth.oauthToken("micro-services", java.util.Map.of("grant_type", "client_credentials"));
+            assertThat(calls).hasSize(2);
             String basic = "Basic " + Base64.getEncoder().encodeToString("ecom-test:dummy-secret".getBytes(StandardCharsets.UTF_8));
-            assertThat(tokenCalls.get(0).authorization()).isEqualTo(basic);
-            assertThat(tokenCalls.get(0).body()).isEqualTo("grant_type=client_credentials");
-            assertThat(calls.stream().filter(c -> c.path().startsWith("/internal/") && !c.path().equals("/internal/payments")))
-                    .allSatisfy(c -> assertThat(c.authorization()).isNull());
+            assertThat(calls).allSatisfy(call -> {
+                assertThat(call.authorization()).isEqualTo(basic);
+                assertThat(call.body()).isEqualTo("grant_type=client_credentials");
+            });
         });
     }
 
@@ -222,39 +224,10 @@ class ProxyClientsHttpTest {
     void sharedOAuthFailureIsNotRetriedAndDoesNotPreventInternalCalls() {
         tokenStatus = 401;
         withSharedAuth().run(ctx -> {
-            assertThatThrownBy(() -> ctx.getBean(EcomTokenService.class).getAccessToken())
+            assertThatThrownBy(() -> ctx.getBean(EcomAuthClient.class).oauthToken("micro-services", java.util.Map.of("grant_type", "client_credentials")))
                     .isInstanceOf(FeignException.Unauthorized.class);
             assertThat(calls).hasSize(1);
             assertThat(ctx.getBean(CustomerClient.class).findCustomerById("c1")).isPresent();
-        });
-    }
-
-    @Test
-    void paymentCallsReuseMachineTokenAndPayment401IsNotRetried() {
-        withSharedAuth().run(ctx -> {
-            var client = ctx.getBean(PaymentClient.class);
-            var customer = new CustomerResponse("c1", "Ada", "Lovelace", "ada@example.test");
-            var payment = new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", customer);
-            assertThat(client.requestOrderPayment(payment)).isEqualTo(42);
-            assertThat(client.requestOrderPayment(payment)).isEqualTo(42);
-            paymentStatus = 401;
-            assertThatThrownBy(() -> client.requestOrderPayment(payment)).isInstanceOf(FeignException.Unauthorized.class);
-            assertThat(calls.stream().filter(c -> c.path().endsWith("/token"))).hasSize(1);
-            assertThat(calls.stream().filter(c -> c.path().equals("/internal/payments")))
-                    .hasSize(3).allSatisfy(c -> assertThat(c.authorization()).isEqualTo("Bearer service-token"));
-        });
-    }
-
-    @Test
-    void tokenFailurePreventsPaymentRequestWithoutRetryOrAnonymousFallback() {
-        tokenStatus = 401;
-        withSharedAuth().run(ctx -> {
-            var customer = new CustomerResponse("c1", "Ada", "Lovelace", "ada@example.test");
-            assertThatThrownBy(() -> ctx.getBean(PaymentClient.class).requestOrderPayment(new PaymentRequest(
-                    BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", customer)))
-                    .isInstanceOf(FeignException.Unauthorized.class);
-            assertThat(calls).hasSize(1);
-            assertThat(calls.get(0).path()).endsWith("/token");
         });
     }
 
@@ -266,26 +239,6 @@ class ProxyClientsHttpTest {
                     .isInstanceOf(FeignException.class)
                     .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(302));
             assertThat(calls.stream().map(Call::path)).containsExactly("/internal/products/purchase");
-        });
-    }
-
-    @Test
-    void refreshesSharedTokenBeforeExpiry() {
-        withSharedAuth().run(ctx -> {
-            var time = new AtomicReference<>(Instant.parse("2026-11-14T00:00:00Z"));
-            Clock clock = new Clock() {
-                public ZoneId getZone() { return ZoneOffset.UTC; }
-                public Clock withZone(ZoneId zone) { return Clock.fixed(time.get(), zone); }
-                public Instant instant() { return time.get(); }
-            };
-            var tokens = new EcomTokenService(ctx.getBean(EcomAuthClient.class), "micro-services", clock);
-            tokens.getAccessToken();
-            time.set(time.get().plusSeconds(269));
-            tokens.getAccessToken();
-            assertThat(calls).hasSize(1);
-            time.set(time.get().plusSeconds(2));
-            tokens.getAccessToken();
-            assertThat(calls).hasSize(2);
         });
     }
 
@@ -324,6 +277,10 @@ class ProxyClientsHttpTest {
                     assertThat(calls).hasSize(1);
                 });
     }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableProxyModule(clients = PaymentClient.class)
+    static class PaymentOnly {}
 
     @Configuration(proxyBeanMethods = false)
     @EnableEcomAuth

@@ -4,9 +4,12 @@
 Module tham khảo `support/caching-module-mau`, giữ cách chia scope và đóng gói cache,
 nhưng không mang DTO thẻ/vé, credential hoặc tên key nghiệp vụ MB vào Ecom.
 
-Module đã vào Maven reactor và dependency management. Chưa service nghiệp vụ nào
-thêm dependency hoặc bật module; `EcomTokenService` hiện vẫn cache trong bộ nhớ
-như trước. Muốn chuyển OAuth sang Redis cần tích hợp riêng, không xảy ra tự động.
+Module đã vào Maven reactor và dependency management. Order đã thêm dependency
+và bật `@EnableCachingModule` trong `OrderOAuthConfiguration` của Order.
+Order sở hữu EcomTokenService/RedisEcomTokenCache, tự điều phối cache với HTTP.
+Caching không phụ thuộc proxy; proxy không phụ thuộc caching. Xem
+[rules kiến trúc](../../docs/architecture-rules.md).
+Các khả năng cache dữ liệu nghiệp vụ khác được service bật khi cần.
 
 ## Thành phần và phạm vi
 
@@ -275,7 +278,8 @@ accessTokenCache.put(identity,
         new CachedAccessToken(response.accessToken(), requestedAt.plusSeconds(response.expiresIn())));
 ```
 
-Đoạn trên là minh họa cách tích hợp, chưa thay code của EcomTokenService.
+Order đã tích hợp EcomTokenService với AccessTokenCache qua RedisEcomTokenCache
+trong order-service. Đoạn trên minh họa API lưu trữ bên dưới adapter.
 Bean mặc định dùng UTC clock và expiry margin 30s. TTL Redis = thời gian còn lại
 trừ margin; token đã gần hết hạn sẽ không được ghi (`put` trả false). `getValidToken`
 kiểm tra lại absolute expiry dù Redis vẫn còn entry. Scope được chuẩn hóa thứ tự;

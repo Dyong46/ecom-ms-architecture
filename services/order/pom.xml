@@ -26,6 +26,10 @@
 		<url/>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>com.duong</groupId>
+            <artifactId>caching-module</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>com.duong</groupId>
 			<artifactId>proxy-module</artifactId>

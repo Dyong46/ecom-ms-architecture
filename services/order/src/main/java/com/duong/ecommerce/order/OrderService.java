@@ -9,7 +9,7 @@ import com.duong.ecommerce.kafka.OrderConfirmation;
 import com.duong.ecommerce.kafka.OrderProducer;
 import com.duong.ecommerce.orderline.OrderLineRequest;
 import com.duong.ecommerce.orderline.OrderLineService;
-import com.duong.module.proxy.payment.PaymentClient;
+import com.duong.ecommerce.integration.OrderPaymentGateway;
 import com.duong.module.proxy.payment.request.PaymentRequest;
 import com.duong.module.proxy.product.ProductClient;
 import com.duong.module.proxy.product.request.PurchaseRequest;
@@ -33,7 +33,7 @@ public class OrderService {
     private final OrderMapper mapper;
     private final OrderLineService orderLineService;
     private final OrderProducer orderProducer;
-    private final PaymentClient paymentClient;
+    private final OrderPaymentGateway paymentClient;
 
     @Transactional
     public Integer createOrder(@Valid OrderRequest request) {

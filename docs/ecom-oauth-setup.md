@@ -1,7 +1,7 @@
 # Tạo client Keycloak và cấu hình Ecom OAuth cho service
 
-Hướng dẫn dành cho thành viên mới cần dùng `EcomAuthClient` hoặc
-`EcomTokenService` trong `support/proxy-module`. Client `ecom-services` dùng
+Hướng dẫn dành cho thành viên mới cần dùng HTTP client `EcomAuthClient` trong
+`support/proxy-module` và lớp điều phối `EcomTokenService` trong `services/order`. Client `ecom-services` dùng
 `client_credentials`: client ID và client secret được dùng để lấy access token
 đại diện cho ứng dụng, không phải tài khoản người dùng.
 
@@ -9,12 +9,13 @@ Hướng dẫn dành cho thành viên mới cần dùng `EcomAuthClient` hoặc
 
 Hiện tại Order gọi Customer và Product qua `/internal/**` không gửi token.
 Riêng Order → Payment gọi `/internal/payments` bằng Bearer token lấy từ Keycloak.
-Order đã bật `@EnableEcomAuth` và **bắt buộc có client secret khi khởi động**.
+Order đã cấu hình `OrderOAuthConfiguration` và **bắt buộc có client secret khi khởi động**.
 Payment kiểm tra JWT và chỉ chấp nhận client ID đã cấu hình.
 
 Chỉ bật Ecom OAuth ở service có integration thực sự cần machine token. Các
-service được phép dùng chung danh tính có thể nhận cùng credential; mỗi tiến
-trình có cache token riêng. Các API internal phải được giữ trong mạng riêng.
+service được phép dùng chung danh tính có thể nhận cùng credential. Order lưu
+token trong Redis; các consumer cùng namespace/môi trường và OAuth identity có
+thể dùng chung token. Các API internal phải được giữ trong mạng riêng.
 Xem [mô hình giao tiếp và ranh giới internal](../support/proxy-module/README.md).
 
 ## Tạo client và lấy secret trên Keycloak
@@ -78,22 +79,26 @@ ECOM_OAUTH_CLIENT_ID=ecom-services
 ECOM_OAUTH_CLIENT_SECRET=<secret thật lấy từ tab Credentials>
 ```
 
-Service cần có dependency `proxy-module` và bật đăng ký token client/cache:
+Order dùng dependency `proxy-module` và `caching-module`, bật Redis token cache:
 
 ```java
 import com.duong.module.proxy.annotation.EnableEcomAuth;
+import com.duong.module.caching.annotation.EnableCachingModule;
 
-@SpringBootApplication
+@Configuration(proxyBeanMethods = false)
 @EnableEcomAuth
-public class IntegrationApplication {
-    // main method của ứng dụng
+@EnableCachingModule
+public class OrderOAuthConfiguration {
+    // Order tự khai báo bean EcomTokenService và RedisEcomTokenCache.
+    // Xem implementation trong services/order/.../integration/oauth/.
 }
 ```
 
-Inject `EcomTokenService`, gọi `getAccessToken()` khi cần và gắn
-`Authorization: Bearer <access token>` vào request của integration tương ứng.
-Annotation không tự gắn token vào mọi Feign client. `PaymentClient` đã có
-interceptor riêng lấy token từ cache và gắn Bearer; Customer/Product không dùng nó.
+`OrderPaymentGateway` gọi `EcomTokenService.getAccessToken()` rồi truyền
+`Authorization: Bearer <access token>` vào `PaymentClient.requestOrderPayment(header, request)`.
+Proxy chỉ gửi HTTP; caching chỉ đọc/ghi Redis. Hai module không phụ thuộc nhau.
+Order sở hữu cache-aside, fallback và quyết định dùng credential nào.
+Xem [rules kiến trúc](architecture-rules.md).
 
 ## Chạy local bằng IntelliJ
 
@@ -122,7 +127,7 @@ Payment → kiểm tra chữ ký JWT, issuer, thời hạn và azp=ecom-services
 ```
 
 - **OrderApplication**: khai báo `ECOM_OAUTH_CLIENT_SECRET` như hướng dẫn ở trên.
-  `PaymentClient` bắt buộc đăng ký cùng `@EnableEcomAuth` khi được ứng dụng sử dụng.
+  `PaymentClient` đăng ký cùng Ecom auth; Order tự ghép hai module qua `OrderOAuthConfiguration`.
 - **PaymentApplication**: không cần client secret. Cấu hình Config Server trong
   `payment-service.yml` có các giá trị mặc định sau:
 
@@ -145,6 +150,14 @@ Payment → kiểm tra chữ ký JWT, issuer, thời hạn và azp=ecom-services
   và không tự retry thanh toán. Token được cache đến gần lúc hết hạn.
 - Các API `/api/v1/payments` giữ hành vi cũ; rule mới áp dụng cho `/internal/payments`
   và các đường dẫn con. Gateway vẫn chặn internal; service ports phải ở mạng riêng.
+
+Khởi động Redis local bằng `docker compose --profile caching up -d redis`.
+Order đọc `REDIS_HOST`/`REDIS_PORT` (mặc định localhost/6379), `CACHE_NAMESPACE`
+(mặc định ecom) và `APP_ENV` (mặc định local) từ cấu hình chung. Các consumer cần
+cùng namespace/môi trường để chia sẻ token. Redis lỗi sẽ khiến lớp điều phối trong Order lấy token
+mới từ Keycloak; Keycloak lỗi vẫn dừng lời gọi Payment. Cache trừ margin 30 giây
+khỏi thời hạn token và kiểm tra expiry khi đọc. Xem
+[hành vi cache và fallback](../support/proxy-module/README.md#order-owns-token-caching-and-outbound-policy).
 
 Sau khi reload Maven/rebuild, restart **Config Server → Payment → Order**; Keycloak
 phải chạy khi thực hiện request. Nếu trước đó override `PAYMENT_SERVICE_URL`, bảo
