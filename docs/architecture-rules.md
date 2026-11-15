@@ -49,7 +49,7 @@ already fully independent. This change fixes proxy/caching and prevents new rela
 refactoring the existing foundation stack is outside this change.
 
 Any new relationship requires updating this decision with its reason and consumer impact,
-then deliberately adjusting the boundary checker. Do not silently add an exception.
+and reviewing the affected module dependencies. Do not silently add an exception.
 Reference folders ending in `-mau` are not production reactor modules.
 
 ## OOP, SOLID and proportionate design
@@ -104,10 +104,8 @@ follow-up before making the departure. Do not silently change architecture as pa
 
 ## Verification
 
-Run `python3 scripts/check-support-boundaries.py`. CI runs this check independently of Maven.
-It checks reactor support POM dependency declarations and Java package references, including
-fully qualified references. It does not prove absence of reflective/dynamic coupling; code
-review must enforce that rule as well.
+Review POM dependencies, Java references, configuration and reflective/dynamic bean lookups
+against these rules during code review. No dedicated boundary-check script is used.
 
 Test support transport/storage separately. Test the composed workflow in the service,
 including cache hit/miss, expiry, infrastructure failures and whether downstream operations
