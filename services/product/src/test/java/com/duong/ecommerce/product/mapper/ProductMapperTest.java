@@ -1,11 +1,11 @@
 package com.duong.ecommerce.product.mapper;
 
 import com.duong.ecommerce.product.entity.Product;
-import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
-import com.duong.ecommerce.product.dto.ProductRequest;
-import com.duong.ecommerce.product.dto.ProductResponse;
+import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
+import com.duong.ecommerce.product.payload.request.ProductRequest;
+import com.duong.ecommerce.product.payload.response.ProductResponse;
 
-import com.duong.ecommerce.category.Category;
+import com.duong.ecommerce.product.category.entity.Category;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.duong.ecommerce.product.controller;
 
-import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
+import com.duong.ecommerce.product.payload.request.ProductPurchaseRequest;
 import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;

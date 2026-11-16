@@ -2,17 +2,17 @@ package com.duong.ecommerce.product.service;
 
 import com.duong.ecommerce.product.entity.Product;
 import com.duong.ecommerce.product.mapper.ProductMapper;
-import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
-import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
+import com.duong.ecommerce.product.payload.request.ProductPurchaseRequest;
+import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
 import com.duong.ecommerce.product.repository.ProductRepository;
-import com.duong.ecommerce.product.dto.ProductRequest;
+import com.duong.ecommerce.product.payload.request.ProductRequest;
 
 import com.duong.module.data.model.service.BaseService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.duong.ecommerce.exception.ProductPurchaseException;
+import com.duong.ecommerce.product.exception.ProductPurchaseException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

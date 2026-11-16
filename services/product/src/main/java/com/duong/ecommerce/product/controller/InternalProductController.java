@@ -2,8 +2,8 @@ package com.duong.ecommerce.product.controller;
 
 import com.duong.module.web.payload.response.BaseResponse;
 
-import com.duong.ecommerce.product.dto.ProductPurchaseBatchRequest;
-import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
+import com.duong.ecommerce.product.payload.request.ProductPurchaseBatchRequest;
+import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
 import com.duong.ecommerce.product.service.ProductService;
 
 import jakarta.validation.Valid;

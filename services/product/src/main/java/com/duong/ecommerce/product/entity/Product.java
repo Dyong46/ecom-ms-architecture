@@ -2,7 +2,7 @@ package com.duong.ecommerce.product.entity;
 
 import com.duong.module.data.model.entity.BaseEntity;
 
-import com.duong.ecommerce.category.Category;
+import com.duong.ecommerce.product.category.entity.Category;
 import jakarta.persistence.*;
 import lombok.*;
 

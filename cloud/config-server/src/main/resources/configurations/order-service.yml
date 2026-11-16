@@ -17,7 +17,7 @@ spring:
   kafka:
     producer:
       properties:
-        spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.kafka.OrderConfirmation
+        spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.order.payload.event.OrderConfirmation
 
 kafka-module:
   topics:

@@ -1,9 +1,11 @@
 package com.duong.ecommerce.product.controller;
 
-import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
+import com.duong.ecommerce.product.config.SecurityConfig;
+
+import com.duong.ecommerce.product.payload.request.ProductPurchaseRequest;
 import com.duong.ecommerce.product.service.ProductService;
 
-import com.duong.ecommerce.config.SecurityConfig;
+import com.duong.ecommerce.product.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

@@ -155,11 +155,11 @@ gửi đúng một lần. Cơ chế hiện tại chấp nhận khả năng gửi
 
 ## 3. Code và tài liệu liên quan
 
-- [OrderService](../services/order/src/main/java/com/duong/ecommerce/order/OrderService.java)
-- [PaymentService](../services/payment/src/main/java/com/duong/ecommerce/payment/PaymentService.java)
-- [NotificationConsumer](../services/notification/src/main/java/com/duong/ecommerce/kafka/NotificationConsumer.java)
-- [EmailJobStore](../services/notification/src/main/java/com/duong/ecommerce/notification/delivery/EmailJobStore.java)
-- [EmailDeliveryWorker](../services/notification/src/main/java/com/duong/ecommerce/notification/delivery/EmailDeliveryWorker.java)
+- [OrderService](../services/order/src/main/java/com/duong/ecommerce/order/service/OrderService.java)
+- [PaymentService](../services/payment/src/main/java/com/duong/ecommerce/payment/service/PaymentService.java)
+- [NotificationConsumer](../services/notification/src/main/java/com/duong/ecommerce/notification/integration/kafka/consumer/NotificationConsumer.java)
+- [EmailJobStore](../services/notification/src/main/java/com/duong/ecommerce/notification/repository/EmailJobStore.java)
+- [EmailDeliveryWorker](../services/notification/src/main/java/com/duong/ecommerce/notification/service/EmailDeliveryWorker.java)
 - [Chi tiết thiết kế, cấu hình và theo dõi email job](notification-delivery.md)
 - [Thiết kế mail-module](mail-module-design.md)
 - [Quy tắc kiến trúc và ranh giới module](architecture-rules.md)

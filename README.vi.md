@@ -284,6 +284,7 @@ không có nghĩa là giai đoạn đã hoàn tất. Xem chi tiết tại
 
 ## Tài liệu
 
+- [Cấu trúc package và MapStruct](docs/service-layout-and-mapping.md)
 - [Luồng tạo đơn hàng và gửi email bất đồng bộ](docs/order-and-notification-flow.md)
 - [HTTP client dùng chung (Proxy Module)](support/proxy-module/README.md)
 - [Thiết lập Prometheus và Grafana local](docs/monitoring.md)

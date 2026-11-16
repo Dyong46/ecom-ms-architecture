@@ -6,7 +6,7 @@ import com.duong.ecommerce.product.repository.ProductRepository;
 import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
-import com.duong.ecommerce.category.Category;
+import com.duong.ecommerce.product.category.entity.Category;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

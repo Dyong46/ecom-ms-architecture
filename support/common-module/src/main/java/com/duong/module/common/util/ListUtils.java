@@ -3,8 +3,6 @@ package com.duong.module.common.util;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.function.Function;
@@ -12,15 +10,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
-public class ListUtils {
-
-    private static ModelMapper modelMapper;
+public final class ListUtils {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ListUtils(ModelMapper mapper) {
-        ListUtils.modelMapper = mapper;
+    private ListUtils() {
     }
 
     public static <F, T> List<T> transform(List<F> fromList, Function<? super F, ? extends T> function) {
@@ -34,14 +28,6 @@ public class ListUtils {
                 .map(function)
                 .collect(Collectors.toSet());
     }
-
-    public static <F, T> List<T> mapAll(List<F> fromList, Class<T> clazz) {
-        return transform(fromList, item -> modelMapper.map(item, clazz));
-    }
-	
-	public static <F, T> Set<T> mapAll(Set<F> fromList, Class<T> clazz) {
-		return transform(fromList, item -> modelMapper.map(item, clazz));
-	}
 
     public static <T> List<T> filter(Collection<T> list, Predicate<T> predicate) {
         return list.stream().filter(predicate).collect(Collectors.toList());

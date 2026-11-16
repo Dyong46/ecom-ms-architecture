@@ -23,7 +23,7 @@ spring:
   kafka:
     producer:
       properties:
-        spring.json.type.mapping: paymentConfirmation:com.duong.ecommerce.notification.PaymentNotificationRequest
+        spring.json.type.mapping: paymentConfirmation:com.duong.ecommerce.payment.payload.event.PaymentNotificationRequest
 
 application:
   config:

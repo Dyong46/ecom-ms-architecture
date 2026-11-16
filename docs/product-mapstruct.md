@@ -6,6 +6,11 @@ The owner selected Product as the first service to migrate from manual mapping t
 MapStruct. This limits the initial scope while exercising record DTOs, Lombok
 builders, category references and responses with multiple source parameters.
 
+The project-wide follow-up on 2026-11-16 supersedes the initial scope and build
+layout below: all five business services now use MapStruct and inherit compiler
+settings from `services/pom.xml`. ModelMapper has been removed by owner choice.
+See [Current package and mapping conventions](service-layout-and-mapping.md).
+
 ## Configuration and ownership
 
 - The root POM manages MapStruct 1.6.3 and the Lombok binding version. Product
@@ -18,7 +23,7 @@ builders, category references and responses with multiple source parameters.
   is introduced. Business rules remain in `ProductService`.
 
 The Product feature uses subpackages by responsibility: `controller`, `service`,
-`repository`, `mapper`, `dto` and `entity`. Tests follow the corresponding
+`repository`, `mapper`, `payload/request`, `payload/response` and `entity`. Tests follow the corresponding
 subpackage, with database integration tests in `integration`. MapStruct generates
 `ProductMapperImpl` in the `mapper` package alongside its interface.
 

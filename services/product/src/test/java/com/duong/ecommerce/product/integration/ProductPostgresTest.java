@@ -2,12 +2,12 @@ package com.duong.ecommerce.product.integration;
 
 import com.duong.ecommerce.product.entity.Product;
 import com.duong.ecommerce.product.mapper.ProductMapperImpl;
-import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
+import com.duong.ecommerce.product.payload.request.ProductPurchaseRequest;
 import com.duong.ecommerce.product.repository.ProductRepository;
 import com.duong.ecommerce.product.service.ProductService;
 
-import com.duong.ecommerce.config.AuditingConfig;
-import com.duong.ecommerce.exception.ProductPurchaseException;
+import com.duong.ecommerce.product.config.AuditingConfig;
+import com.duong.ecommerce.product.exception.ProductPurchaseException;
 import com.duong.module.data.model.specification.SpecificationBuilder;
 import java.math.BigDecimal;
 import java.util.List;

@@ -36,8 +36,8 @@ của một key.
 
 | Alias trong header | DTO phía producer | DTO phía Notification |
 | --- | --- | --- |
-| `orderConfirmation` | `com.duong.ecommerce.kafka.OrderConfirmation` | `com.duong.ecommerce.kafka.order.OrderConfirmation` |
-| `paymentConfirmation` | `com.duong.ecommerce.notification.PaymentNotificationRequest` | `com.duong.ecommerce.kafka.payment.PaymentConfirmation` |
+| `orderConfirmation` | `com.duong.ecommerce.order.payload.event.OrderConfirmation` | `com.duong.ecommerce.notification.payload.event.order.OrderConfirmation` |
+| `paymentConfirmation` | `com.duong.ecommerce.payment.payload.event.PaymentNotificationRequest` | `com.duong.ecommerce.notification.payload.event.payment.PaymentConfirmation` |
 
 Các alias giữ tương thích với backlog đã gửi bằng cấu hình trước đây. Khi thay
 schema, producer và consumer cần thống nhất compatibility/version. Các trường

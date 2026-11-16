@@ -23,10 +23,10 @@ spring:
       # Historical value is ONE group ID; keep it to preserve committed offsets.
       group-id: ${NOTIFICATION_KAFKA_GROUP_ID:paymentGroup,orderGroup}
       properties:
-        spring.json.trusted.packages: com.duong.ecommerce.kafka.order,com.duong.ecommerce.kafka.payment
+        spring.json.trusted.packages: com.duong.ecommerce.notification.payload.event.order,com.duong.ecommerce.notification.payload.event.payment
         spring.json.type.mapping:
-          orderConfirmation:com.duong.ecommerce.kafka.order.OrderConfirmation,
-          paymentConfirmation:com.duong.ecommerce.kafka.payment.PaymentConfirmation
+          orderConfirmation:com.duong.ecommerce.notification.payload.event.order.OrderConfirmation,
+          paymentConfirmation:com.duong.ecommerce.notification.payload.event.payment.PaymentConfirmation
   mail:
     host: localhost
     port: 1025
