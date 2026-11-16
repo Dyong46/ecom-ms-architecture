@@ -1,5 +1,7 @@
 package com.duong.module.proxy.payment;
 
+import com.duong.module.proxy.response.ServiceResponse;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import com.duong.module.proxy.config.ProxyFeignConfiguration;
 import com.duong.module.proxy.payment.request.PaymentRequest;
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface PaymentClient {
 
     @PostMapping
-    Integer requestOrderPayment(
+    ServiceResponse<Integer> requestOrderPayment(
             @RequestHeader("Authorization") String authorization,
             @RequestBody PaymentRequest paymentRequest
     );

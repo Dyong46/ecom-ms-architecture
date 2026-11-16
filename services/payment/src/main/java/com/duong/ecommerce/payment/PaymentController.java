@@ -1,4 +1,6 @@
 package com.duong.ecommerce.payment;
+
+import com.duong.module.web.payload.response.BaseResponse;
 import com.duong.module.web.payload.response.PageResponse;
 import com.duong.module.web.payload.filter.PaginationRequest;
 
@@ -16,16 +18,16 @@ public class PaymentController {
     private final PaymentService service;
 
     @PostMapping
-    public ResponseEntity<Integer> createPayment(
+    public ResponseEntity<BaseResponse<Integer>> createPayment(
             @RequestBody @Valid PaymentRequest request
     ) {
-        return ResponseEntity.ok(service.createPayment(request));
+        return ResponseEntity.ok(BaseResponse.of(service.createPayment(request)));
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<PaymentResponse>> getPayment(
+    public ResponseEntity<BaseResponse<PageResponse<PaymentResponse>>> getPayment(
             @Valid @ModelAttribute PaginationRequest pagination
     ) {
-        return ResponseEntity.ok(PageResponse.build(service.findAll(pagination.toPageable())));
+        return ResponseEntity.ok(BaseResponse.of(PageResponse.build(service.findAll(pagination.toPageable()))));
     }
 }

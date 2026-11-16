@@ -5,6 +5,7 @@ import com.duong.ecommerce.product.mapper.ProductMapper;
 import com.duong.ecommerce.product.repository.ProductRepository;
 import com.duong.ecommerce.product.service.ProductService;
 
+import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import com.duong.ecommerce.category.Category;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,13 +26,14 @@ class ProductEntityControllerTest {
         var category = Category.builder().id(2).products(List.of(product)).build();
         product.setCategory(category);
         when(repository.findById(1)).thenReturn(Optional.of(product));
-        var mvc = MockMvcBuilders.standaloneSetup(new ProductEntityController(service)).build();
+        var mvc = MockMvcBuilders.standaloneSetup(new ProductEntityController(service))
+                .setControllerAdvice(new ExceptionControllerAdvice()).build();
         mvc.perform(get("/api/v1/products/1/entity"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.createdBy").value("user-id"))
-                .andExpect(jsonPath("$.createdAt").exists())
-                .andExpect(jsonPath("$.category.id").value(2))
-                .andExpect(jsonPath("$.category.products").doesNotExist());
+                .andExpect(jsonPath("$.data.createdBy").value("user-id"))
+                .andExpect(jsonPath("$.data.createdAt").exists())
+                .andExpect(jsonPath("$.data.category.id").value(2))
+                .andExpect(jsonPath("$.data.category.products").doesNotExist());
         mvc.perform(get("/api/v1/products/99/entity")).andExpect(status().isNotFound());
     }
 }

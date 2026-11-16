@@ -22,7 +22,7 @@ class InternalPaymentControllerTest {
                 {"amount":20.00,"paymentMethod":"PAYPAL","orderId":7,"orderReference":"ORDER-7",
                 "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"}}
                 """))
-                .andExpect(status().isOk()).andExpect(content().string("42"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data").value(42));
         verify(service).createPayment(expected);
     }
 }

@@ -1,5 +1,6 @@
 package com.duong.ecommerce;
 
+import com.duong.module.web.annotation.EnableWebModule;
 import org.springframework.boot.SpringApplication;
 import com.duong.module.kafka.annotation.EnableKafkaModule;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,6 +11,7 @@ import com.duong.module.proxy.payment.PaymentClient;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
+@EnableWebModule
 @EnableKafkaModule
 @EnableProxyModule(clients = {CustomerClient.class, ProductClient.class, PaymentClient.class})
 @EnableJpaAuditing

@@ -1,5 +1,7 @@
 package com.duong.ecommerce.product.controller;
 
+import com.duong.module.web.payload.response.BaseResponse;
+
 import com.duong.ecommerce.product.entity.Product;
 import com.duong.ecommerce.product.dto.ProductPurchaseBatchRequest;
 import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
@@ -29,33 +31,33 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Integer> create(
+    public ResponseEntity<BaseResponse<Integer>> create(
             @RequestBody @Valid ProductRequest request
     ) {
-        return ResponseEntity.ok(service.createProduct(request));
+        return ResponseEntity.ok(BaseResponse.of(service.createProduct(request)));
     }
 
     @PostMapping("/purchase")
-    public  ResponseEntity<List<ProductPurchaseResponse>> purchaseProduct(
+    public  ResponseEntity<BaseResponse<List<ProductPurchaseResponse>>> purchaseProduct(
             @RequestBody @Valid ProductPurchaseBatchRequest request
     ) {
-        return ResponseEntity.ok(service.purchaseProducts(request.products()));
+        return ResponseEntity.ok(BaseResponse.of(service.purchaseProducts(request.products())));
     }
 
     @GetMapping("/{product-id}")
-    public ResponseEntity<Product> findById(
+    public ResponseEntity<BaseResponse<Product>> findById(
             @PathVariable("product-id") Integer productId
     ) {
-        return ResponseEntity.ok(service.findById(productId));
+        return ResponseEntity.ok(BaseResponse.of(service.findById(productId)));
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<Product>> findAll(
+    public ResponseEntity<BaseResponse<PageResponse<Product>>> findAll(
             @Valid @ModelAttribute PaginationRequest pagination,
             @RequestParam(required = false) String name
     ) {
-        return ResponseEntity.ok(PageResponse.build(name == null ? service.findAll(pagination.toPageable())
-                : service.filter(new ProductFilter(name), pagination.toPageable())));
+        return ResponseEntity.ok(BaseResponse.of(PageResponse.build(name == null ? service.findAll(pagination.toPageable())
+                : service.filter(new ProductFilter(name), pagination.toPageable()))));
     }
 
     private record ProductFilter(String nameLk) { }

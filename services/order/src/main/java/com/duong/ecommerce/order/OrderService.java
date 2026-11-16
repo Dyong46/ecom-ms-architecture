@@ -39,10 +39,12 @@ public class OrderService {
     public Integer createOrder(@Valid OrderRequest request) {
         // check the customer --> OpenFeign
         var customer = this.customerClient.findCustomerById(request.customerId())
+                .map(com.duong.module.proxy.response.ServiceResponse::data)
                 .orElseThrow(() -> new BusinessException("Cannot create order:: No Customer exists with the provided ID"));
 
         // Purchase through Product's internal API using the shared Feign client.
-        var purchaseProduct = this.productClient.purchaseResponses(request.products());
+        var purchaseResponse = this.productClient.purchaseResponses(request.products());
+        var purchaseProduct = purchaseResponse == null ? null : purchaseResponse.data();
         var totalAmount = calculateTotalAmount(purchaseProduct);
 
         var order = this.repository.save(mapper.toOrder(request, totalAmount));

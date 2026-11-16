@@ -1,5 +1,7 @@
 package com.duong.module.proxy.product;
 
+import com.duong.module.proxy.response.ServiceResponse;
+
 import com.duong.module.proxy.config.ProxyFeignConfiguration;
 import com.duong.module.proxy.product.request.PurchaseRequest;
 import com.duong.module.proxy.product.response.PurchaseResponse;
@@ -13,5 +15,5 @@ import java.util.List;
         configuration = ProxyFeignConfiguration.class)
 public interface ProductClient {
     @PostMapping("/purchase")
-    List<PurchaseResponse> purchaseResponses(@RequestBody List<PurchaseRequest> request);
+    ServiceResponse<List<PurchaseResponse>> purchaseResponses(@RequestBody List<PurchaseRequest> request);
 }

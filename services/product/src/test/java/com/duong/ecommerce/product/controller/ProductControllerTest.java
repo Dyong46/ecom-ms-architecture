@@ -3,7 +3,7 @@ package com.duong.ecommerce.product.controller;
 import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
 import com.duong.ecommerce.product.service.ProductService;
 
-import com.duong.ecommerce.handler.GlobalExceptionHandler;
+import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,6 +21,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ProductControllerTest {
+    @Test
+    void noContentDeletionDoesNotAcquireResponseBody() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/products/1"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+        verify(service).deleteProduct(1);
+    }
+
     private ProductService service;
     private MockMvc mvc;
 
@@ -28,7 +36,7 @@ class ProductControllerTest {
     void setUp() {
         service = mock(ProductService.class);
         mvc = MockMvcBuilders.standaloneSetup(new ProductController(service))
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(new ExceptionControllerAdvice())
                 .build();
     }
 
@@ -39,12 +47,10 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"productId\":1,\"quantity\":" + quantity + "}]"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.instance").value("/api/v1/products/purchase"))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(result -> assertThat(result.getResolvedException())
                         .isInstanceOf(MethodArgumentNotValidException.class))
-                .andExpect(jsonPath("$.errors['products[0].quantity']")
+                .andExpect(jsonPath("$.data.extra_data.errors['products[0].quantity']")
                         .value("Quantity is mandatory"));
 
         verifyNoInteractions(service);
@@ -59,7 +65,7 @@ class ProductControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"productId\":1,\"quantity\":2}]"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(jsonPath("$.data").isEmpty());
 
         verify(service).purchaseProducts(products);
     }

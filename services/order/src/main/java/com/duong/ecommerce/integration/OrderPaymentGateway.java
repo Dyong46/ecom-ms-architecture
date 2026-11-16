@@ -18,6 +18,7 @@ public class OrderPaymentGateway {
 
     public Integer requestOrderPayment(PaymentRequest request) {
         String token = tokens.getAccessToken();
-        return payments.requestOrderPayment("Bearer " + token, request);
+        var response = payments.requestOrderPayment("Bearer " + token, request);
+        return response == null ? null : response.data();
     }
 }

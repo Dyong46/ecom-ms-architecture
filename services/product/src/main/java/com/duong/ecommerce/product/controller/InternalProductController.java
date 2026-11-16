@@ -1,5 +1,7 @@
 package com.duong.ecommerce.product.controller;
 
+import com.duong.module.web.payload.response.BaseResponse;
+
 import com.duong.ecommerce.product.dto.ProductPurchaseBatchRequest;
 import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
 import com.duong.ecommerce.product.service.ProductService;
@@ -20,7 +22,7 @@ public class InternalProductController {
     private final ProductService service;
 
     @PostMapping("/purchase")
-    public List<ProductPurchaseResponse> purchase(@RequestBody @Valid ProductPurchaseBatchRequest request) {
-        return service.purchaseProducts(request.products());
+    public BaseResponse<List<ProductPurchaseResponse>> purchase(@RequestBody @Valid ProductPurchaseBatchRequest request) {
+        return BaseResponse.of(service.purchaseProducts(request.products()));
     }
 }

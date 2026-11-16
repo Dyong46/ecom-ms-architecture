@@ -8,9 +8,9 @@ builders, category references and responses with multiple source parameters.
 
 ## Configuration and ownership
 
-- The root POM manages MapStruct 1.6.3 and the Lombok binding version. Only Product
+- The root POM manages MapStruct 1.6.3 and the Lombok binding version. Product
   declares the MapStruct dependency and enables its annotation processor alongside
-  Lombok. Other modules retain their current mapping configuration.
+  Lombok. Customer adopted the same setup in the follow-up recorded below.
 - `ProductMapper` belongs to Product and is generated as a Spring bean. Unmapped
   target properties fail compilation; audit and soft-delete fields are explicitly
   ignored when constructing a product and remain owned by persistence.
@@ -37,8 +37,23 @@ purchase responses do not require a category. Small hooks and explicit expressio
 preserve these behaviors instead of adopting MapStruct's default null handling.
 
 Other service mappers and the existing ModelMapper utilities are outside this
-migration. Subsequent migrations can reuse the version settings after their
+migration's initial Product scope. Subsequent migrations can reuse the version settings after their
 individual mapping behavior has been checked.
+
+## Customer follow-up
+
+Accepted by the project owner on 2026-11-16: migrate `CustomerMapper` using the same
+module-local dependency and Lombok processor setup. The mapper remains in
+`customer.mapper`, is generated as a Spring bean and fails compilation on unmapped
+target fields. No shared mapper module or additional support relationship is added.
+
+Both method signatures and existing behavior are preserved: `toCustomer(null)`
+returns null, `fromCustomer(null)` throws `NullPointerException`, null field values
+remain null, and the `Address` instance is assigned directly in both directions.
+Customer update/merge logic remains in `CustomerService`; it is not part of this
+mapper migration. `CustomerMapperTest` covers generated bean injection and these
+compatibility cases. Verify with
+`./services/product/mvnw -f pom.xml -pl services/customer -am --batch-mode clean verify`.
 
 ## Verification
 

@@ -1,6 +1,6 @@
 package com.duong.ecommerce.order;
 
-import com.duong.ecommerce.handler.GlobalExceptionHandler;
+import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ class OrderPaginationTest {
     void setUp() {
         service = mock(OrderService.class);
         mvc = MockMvcBuilders.standaloneSetup(new OrderController(service))
-                .setControllerAdvice(new GlobalExceptionHandler()).build();
+                .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
     @Test
@@ -47,13 +47,13 @@ class OrderPaginationTest {
 
         mvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty())
-                .andExpect(jsonPath("$.page_info.number").value(1))
-                .andExpect(jsonPath("$.page_info.size").value(20))
-                .andExpect(jsonPath("$.page_info.total_elements").value(0))
-                .andExpect(jsonPath("$.page_info.total_pages").value(0))
-                .andExpect(jsonPath("$.page_info.is_first").value(true))
-                .andExpect(jsonPath("$.page_info.is_last").value(true));
+                .andExpect(jsonPath("$.data.content").isEmpty())
+                .andExpect(jsonPath("$.data.page_info.number").value(1))
+                .andExpect(jsonPath("$.data.page_info.size").value(20))
+                .andExpect(jsonPath("$.data.page_info.total_elements").value(0))
+                .andExpect(jsonPath("$.data.page_info.total_pages").value(0))
+                .andExpect(jsonPath("$.data.page_info.is_first").value(true))
+                .andExpect(jsonPath("$.data.page_info.is_last").value(true));
 
         verify(service).findAll(pageable);
     }
@@ -66,13 +66,13 @@ class OrderPaginationTest {
 
         mvc.perform(get("/api/v1/orders").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.page_info.number").value(2))
-                .andExpect(jsonPath("$.page_info.size").value(10))
-                .andExpect(jsonPath("$.page_info.total_elements").value(45))
-                .andExpect(jsonPath("$.page_info.total_pages").value(5))
-                .andExpect(jsonPath("$.page_info.is_first").value(false))
-                .andExpect(jsonPath("$.page_info.is_last").value(false));
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.page_info.number").value(2))
+                .andExpect(jsonPath("$.data.page_info.size").value(10))
+                .andExpect(jsonPath("$.data.page_info.total_elements").value(45))
+                .andExpect(jsonPath("$.data.page_info.total_pages").value(5))
+                .andExpect(jsonPath("$.data.page_info.is_first").value(false))
+                .andExpect(jsonPath("$.data.page_info.is_last").value(false));
     }
 
     @Test
@@ -82,9 +82,9 @@ class OrderPaginationTest {
 
         mvc.perform(get("/api/v1/orders").param("page", "11"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty())
-                .andExpect(jsonPath("$.page_info.total_elements").value(45))
-                .andExpect(jsonPath("$.page_info.is_last").value(true));
+                .andExpect(jsonPath("$.data.content").isEmpty())
+                .andExpect(jsonPath("$.data.page_info.total_elements").value(45))
+                .andExpect(jsonPath("$.data.page_info.is_last").value(true));
     }
 
     @ParameterizedTest
@@ -93,9 +93,8 @@ class OrderPaginationTest {
         var param = query.split("=");
         mvc.perform(get("/api/v1/orders").param(param[0], param[1]))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.errors." + param[0]).exists());
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.extra_data.errors." + param[0]).exists());
         verifyNoInteractions(service);
     }
 

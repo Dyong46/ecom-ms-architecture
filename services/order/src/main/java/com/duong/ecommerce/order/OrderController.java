@@ -1,4 +1,6 @@
 package com.duong.ecommerce.order;
+
+import com.duong.module.web.payload.response.BaseResponse;
 import com.duong.module.web.payload.response.PageResponse;
 import com.duong.module.web.payload.filter.PaginationRequest;
 
@@ -16,23 +18,23 @@ public class OrderController {
     private final OrderService service;
 
     @PostMapping
-    public ResponseEntity<Integer> createOrder(
+    public ResponseEntity<BaseResponse<Integer>> createOrder(
             @RequestBody @Valid OrderRequest request
     ) {
-        return ResponseEntity.ok(service.createOrder(request));
+        return ResponseEntity.ok(BaseResponse.of(service.createOrder(request)));
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<OrderResponse>> findAll(
+    public ResponseEntity<BaseResponse<PageResponse<OrderResponse>>> findAll(
             @Valid @ModelAttribute PaginationRequest pagination
     ) {
-        return ResponseEntity.ok(PageResponse.build(service.findAll(pagination.toPageable())));
+        return ResponseEntity.ok(BaseResponse.of(PageResponse.build(service.findAll(pagination.toPageable()))));
     }
 
     @GetMapping("/{order-id}")
-    public ResponseEntity<OrderResponse> findById(
+    public ResponseEntity<BaseResponse<OrderResponse>> findById(
             @PathVariable("order-id") Integer orderId
     ) {
-        return ResponseEntity.ok(service.findById(orderId));
+        return ResponseEntity.ok(BaseResponse.of(service.findById(orderId)));
     }
 }

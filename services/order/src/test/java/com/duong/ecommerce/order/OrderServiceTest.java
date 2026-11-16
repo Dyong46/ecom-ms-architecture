@@ -1,6 +1,7 @@
 package com.duong.ecommerce.order;
 
 import com.duong.module.proxy.customer.CustomerClient;
+import com.duong.module.proxy.response.ServiceResponse;
 import com.duong.module.proxy.customer.response.CustomerResponse;
 import com.duong.ecommerce.exception.BusinessException;
 import com.duong.ecommerce.kafka.OrderConfirmation;
@@ -66,11 +67,11 @@ class OrderServiceTest {
                 "customer-1", "Ada", "Lovelace", "ada@example.com"
         );
 
-        when(customerClient.findCustomerById("customer-1")).thenReturn(Optional.of(customer));
-        when(productClient.purchaseResponses(request.products())).thenReturn(List.of(
+        when(customerClient.findCustomerById("customer-1")).thenReturn(Optional.of(customer).map(value -> new ServiceResponse<>(value, null)));
+        when(productClient.purchaseResponses(request.products())).thenReturn(new ServiceResponse<>(List.of(
                 new PurchaseResponse(1, "Keyboard", "", new BigDecimal("10.00"), 2),
                 new PurchaseResponse(2, "Mouse", "", new BigDecimal("5.00"), 1)
-        ));
+        ), null));
         when(repository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.setId(42);
@@ -101,10 +102,10 @@ class OrderServiceTest {
         );
         when(customerClient.findCustomerById("customer-1")).thenReturn(Optional.of(
                 new CustomerResponse("customer-1", "Ada", "Lovelace", "ada@example.com")
-        ));
-        when(productClient.purchaseResponses(request.products())).thenReturn(List.of(
+        ).map(value -> new ServiceResponse<>(value, null)));
+        when(productClient.purchaseResponses(request.products())).thenReturn(new ServiceResponse<>(List.of(
                 response
-        ));
+        ), null));
 
         assertThatThrownBy(() -> service.createOrder(request))
                 .isInstanceOf(BusinessException.class)

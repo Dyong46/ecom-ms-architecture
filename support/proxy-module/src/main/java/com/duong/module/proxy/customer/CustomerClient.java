@@ -1,5 +1,7 @@
 package com.duong.module.proxy.customer;
 
+import com.duong.module.proxy.response.ServiceResponse;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import com.duong.module.proxy.config.ProxyFeignConfiguration;
 import com.duong.module.proxy.customer.response.CustomerResponse;
@@ -16,7 +18,7 @@ import java.util.Optional;
 public interface CustomerClient {
 
     @GetMapping("/{customer-id}")
-    Optional<CustomerResponse> findCustomerById(
+    Optional<ServiceResponse<CustomerResponse>> findCustomerById(
             @PathVariable("customer-id") String customerId
     );
 }

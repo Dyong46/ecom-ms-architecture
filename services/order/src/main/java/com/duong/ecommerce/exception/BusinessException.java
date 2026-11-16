@@ -1,11 +1,14 @@
 package com.duong.ecommerce.exception;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.duong.module.common.exception.BadRequestException;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class BusinessException extends RuntimeException {
+public class BusinessException extends BadRequestException {
 
-    private final String msg;
+    public BusinessException(String message) {
+        super(message);
+    }
+
+    public String getMsg() {
+        return getMessage();
+    }
 }

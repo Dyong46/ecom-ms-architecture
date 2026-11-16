@@ -1,12 +1,11 @@
 package com.duong.ecommerce.product.controller;
 
+import com.duong.module.web.payload.response.BaseResponse;
+
 import com.duong.ecommerce.product.entity.Product;
 import com.duong.ecommerce.product.service.ProductService;
 
-import com.duong.module.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,12 +15,8 @@ public class ProductEntityController {
     private final ProductService service;
 
     @GetMapping("/{id}/entity")
-    public Product findEntityById(@PathVariable Integer id) {
-        return service.findById(id);
+    public BaseResponse<Product> findEntityById(@PathVariable Integer id) {
+        return BaseResponse.of(service.findById(id));
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ProblemDetail notFound(NotFoundException exception) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Product not found");
-    }
 }

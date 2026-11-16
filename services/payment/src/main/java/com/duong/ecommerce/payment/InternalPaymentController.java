@@ -1,5 +1,7 @@
 package com.duong.ecommerce.payment;
 
+import com.duong.module.web.payload.response.BaseResponse;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +16,7 @@ public class InternalPaymentController {
     private final PaymentService service;
 
     @PostMapping
-    public Integer createPayment(@RequestBody @Valid PaymentRequest request) {
-        return service.createPayment(request);
+    public BaseResponse<Integer> createPayment(@RequestBody @Valid PaymentRequest request) {
+        return BaseResponse.of(service.createPayment(request));
     }
 }

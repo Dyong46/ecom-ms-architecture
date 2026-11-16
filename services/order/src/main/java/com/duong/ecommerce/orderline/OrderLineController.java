@@ -1,5 +1,7 @@
 package com.duong.ecommerce.orderline;
 
+import com.duong.module.web.payload.response.BaseResponse;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +19,9 @@ public class OrderLineController {
     private final OrderLineService service;
 
     @GetMapping("/order/{order-id}")
-    public ResponseEntity<List<OrderLineResponse>> findByOrderId(
+    public ResponseEntity<BaseResponse<List<OrderLineResponse>>> findByOrderId(
             @PathVariable("order-id") Integer orderId
     ) {
-        return ResponseEntity.ok(service.findAllByOrderId(orderId));
+        return ResponseEntity.ok(BaseResponse.of(service.findAllByOrderId(orderId)));
     }
 }

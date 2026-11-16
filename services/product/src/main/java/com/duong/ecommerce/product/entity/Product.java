@@ -1,5 +1,7 @@
 package com.duong.ecommerce.product.entity;
 
+import com.duong.module.data.model.entity.BaseEntity;
+
 import com.duong.ecommerce.category.Category;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +16,7 @@ import java.math.BigDecimal;
 @Entity
 @org.hibernate.annotations.SQLDelete(sql = "UPDATE product SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
 @org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
-public class Product extends com.duong.module.data.model.entity.BaseEntity<Integer> {
+public class Product extends BaseEntity<Integer> {
 
     @Id
     @GeneratedValue

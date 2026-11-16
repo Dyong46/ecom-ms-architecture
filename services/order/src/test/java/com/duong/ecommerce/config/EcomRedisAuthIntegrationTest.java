@@ -71,7 +71,7 @@ class EcomRedisAuthIntegrationTest {
             paymentRequests.incrementAndGet();
             paymentAuthorization = exchange.getRequestHeaders().getFirst("Authorization");
             exchange.getRequestBody().readAllBytes();
-            byte[] bytes = (paymentStatus == 200 ? "42" : "{}").getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = (paymentStatus == 200 ? "{\"data\":42,\"request_id\":null}" : "{}").getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(paymentStatus, bytes.length);
             exchange.getResponseBody().write(bytes);

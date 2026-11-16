@@ -51,7 +51,7 @@ class PaymentOAuthSecurityTest {
         when(service.createPayment(any())).thenReturn(42);
         mvc.perform(post("/internal/payments").header("Authorization", "Bearer " + token(KEY, ISSUER, "ecom-services", 300))
                         .contentType(MediaType.APPLICATION_JSON).content(BODY))
-                .andExpect(status().isOk()).andExpect(content().string("42"));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data").value(42));
         verify(service).createPayment(any());
     }
 

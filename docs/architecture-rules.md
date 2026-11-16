@@ -54,6 +54,11 @@ Reference folders ending in `-mau` are not production reactor modules.
 
 ## OOP, SOLID and proportionate design
 
+The accepted exception-handling direction and optional future extensions are
+documented in [Exception handling design](exception-handling-design.md). It selects
+base exceptions with centralized HTTP handling; its implementation and response
+format must be distinguished from that architectural choice.
+
 Use these principles to solve concrete problems, not as a requirement to apply every
 pattern to every feature:
 

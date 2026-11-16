@@ -93,6 +93,9 @@ class ProxyClientsHttpTest {
                 case "/internal/payments" -> { status = paymentStatus; body = status == 200 ? "42" : "{}"; }
                 default -> { status = 501; body = "Unexpected dependency request"; }
             }
+            if (path.startsWith("/internal/") && status == 200) {
+                body = "{\"data\":" + body + ",\"request_id\":null}";
+            }
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             try {
@@ -144,7 +147,7 @@ class ProxyClientsHttpTest {
                     assertThat(ctx).hasNotFailed().hasSingleBean(CustomerClient.class)
                             .doesNotHaveBean(ProductClient.class).doesNotHaveBean(PaymentClient.class);
                     assertThat(ctx.getBean(CustomerClient.class).findCustomerById("c1")).get()
-                            .extracting(CustomerResponse::id).isEqualTo("c1");
+                            .extracting(response -> response.data().id()).isEqualTo("c1");
                     assertThat(calls).hasSize(1);
                     assertThat(calls.get(0).authorization()).isNull();
                 });
@@ -168,12 +171,12 @@ class ProxyClientsHttpTest {
     void preservesWireContractsWithOAuthOnlyForPayment() {
         allClients().run(ctx -> {
             assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class);
-            var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow();
-            var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2)));
+            var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow().data();
+            var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2))).data();
             assertThat(products).hasSize(1);
             assertThat(products.get(0).price()).isEqualByComparingTo("10.00");
             assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", new PaymentRequest(
-                    new BigDecimal("20.00"), PaymentMethod.PAYPAL, 7, "ORDER-7", customer))).isEqualTo(42);
+                    new BigDecimal("20.00"), PaymentMethod.PAYPAL, 7, "ORDER-7", customer)).data()).isEqualTo(42);
             for (var call : calls) {
                 switch (call.path()) {
                     case "/internal/products/purchase" -> {
