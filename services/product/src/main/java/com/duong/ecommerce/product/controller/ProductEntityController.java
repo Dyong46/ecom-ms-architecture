@@ -1,4 +1,7 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.controller;
+
+import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.module.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;

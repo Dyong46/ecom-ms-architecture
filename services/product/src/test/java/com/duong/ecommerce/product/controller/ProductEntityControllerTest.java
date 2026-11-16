@@ -1,4 +1,9 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.controller;
+
+import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.mapper.ProductMapper;
+import com.duong.ecommerce.product.repository.ProductRepository;
+import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.ecommerce.category.Category;
 import java.time.LocalDateTime;
@@ -14,7 +19,7 @@ class ProductEntityControllerTest {
     @Test
     void inheritedFindByIdReturnsEntityWithoutCategoryCycle() throws Exception {
         var repository = mock(ProductRepository.class);
-        var service = new ProductService(repository, new ProductMapper());
+        var service = new ProductService(repository, org.mapstruct.factory.Mappers.getMapper(ProductMapper.class));
         var product = Product.builder().id(1).name("Keyboard").createdBy("user-id")
                 .createdAt(LocalDateTime.of(2026, 10, 23, 12, 0)).build();
         var category = Category.builder().id(2).products(List.of(product)).build();

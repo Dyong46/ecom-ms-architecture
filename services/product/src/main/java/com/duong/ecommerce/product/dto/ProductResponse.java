@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

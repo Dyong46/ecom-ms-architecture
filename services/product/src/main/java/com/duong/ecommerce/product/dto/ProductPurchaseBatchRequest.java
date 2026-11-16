@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.Valid;

@@ -1,4 +1,11 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.service;
+
+import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.mapper.ProductMapper;
+import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
+import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
+import com.duong.ecommerce.product.repository.ProductRepository;
+import com.duong.ecommerce.product.dto.ProductRequest;
 
 import com.duong.module.data.model.service.BaseService;
 

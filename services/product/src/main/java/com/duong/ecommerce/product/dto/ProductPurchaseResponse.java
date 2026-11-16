@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.dto;
 
 import java.math.BigDecimal;
 

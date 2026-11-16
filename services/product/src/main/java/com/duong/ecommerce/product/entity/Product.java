@@ -1,4 +1,4 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.entity;
 
 import com.duong.ecommerce.category.Category;
 import jakarta.persistence.*;

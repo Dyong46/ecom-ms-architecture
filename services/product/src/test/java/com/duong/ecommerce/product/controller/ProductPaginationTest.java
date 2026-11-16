@@ -1,4 +1,9 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.controller;
+
+import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.mapper.ProductMapper;
+import com.duong.ecommerce.product.repository.ProductRepository;
+import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.ecommerce.handler.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;

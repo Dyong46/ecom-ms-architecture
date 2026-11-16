@@ -1,4 +1,10 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.integration;
+
+import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.mapper.ProductMapperImpl;
+import com.duong.ecommerce.product.dto.ProductPurchaseRequest;
+import com.duong.ecommerce.product.repository.ProductRepository;
+import com.duong.ecommerce.product.service.ProductService;
 
 import com.duong.ecommerce.config.AuditingConfig;
 import com.duong.ecommerce.exception.ProductPurchaseException;
@@ -29,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DataJpaTest(properties = {"spring.cloud.config.enabled=false", "eureka.client.enabled=false",
         "spring.jpa.hibernate.ddl-auto=validate"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({AuditingConfig.class, ProductService.class, ProductMapper.class})
+@Import({AuditingConfig.class, ProductService.class, ProductMapperImpl.class})
 @Testcontainers
 class ProductPostgresTest {
     @Container static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
@@ -90,7 +96,7 @@ class ProductPostgresTest {
             var page = repository.findAll(SpecificationBuilder.<Product>build(new Filter("KEYBOARD")),
                     org.springframework.data.domain.PageRequest.of(0, 10));
             assertThat(page.getContent()).extracting(Product::getId).contains(product.getId());
-            new ProductService(repository, new ProductMapper()).softDelete(product.getId());
+            service.softDelete(product.getId());
             repository.flush();
             entityManager.clear();
             assertThat(repository.findById(product.getId())).isEmpty();

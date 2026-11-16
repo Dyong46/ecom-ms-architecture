@@ -1,4 +1,8 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.controller;
+
+import com.duong.ecommerce.product.dto.ProductPurchaseBatchRequest;
+import com.duong.ecommerce.product.dto.ProductPurchaseResponse;
+import com.duong.ecommerce.product.service.ProductService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

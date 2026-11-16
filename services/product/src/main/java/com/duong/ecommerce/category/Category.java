@@ -1,6 +1,6 @@
 package com.duong.ecommerce.category;
 
-import com.duong.ecommerce.product.Product;
+import com.duong.ecommerce.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.*;
 

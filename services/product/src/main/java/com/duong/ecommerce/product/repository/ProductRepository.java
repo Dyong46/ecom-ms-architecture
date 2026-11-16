@@ -1,4 +1,6 @@
-package com.duong.ecommerce.product;
+package com.duong.ecommerce.product.repository;
+
+import com.duong.ecommerce.product.entity.Product;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
