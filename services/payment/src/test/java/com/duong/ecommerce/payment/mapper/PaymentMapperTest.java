@@ -1,7 +1,7 @@
 package com.duong.ecommerce.payment.mapper;
 
 import com.duong.ecommerce.payment.entity.Payment;
-import com.duong.ecommerce.payment.enumtype.PaymentMethod;
+import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.payment.payload.request.PaymentRequest;
 import com.duong.ecommerce.payment.payload.response.PaymentResponse;
 import java.math.BigDecimal;
@@ -19,11 +19,11 @@ class PaymentMapperTest {
     @Test
     void requestMappingLeavesAuditingToPersistence() {
         var payment = mapper.toPayment(new PaymentRequest(
-                4, new BigDecimal("99.98"), PaymentMethod.PAYPAL, 9, "ORDER-9", null));
+                4, new BigDecimal("99.98"), PaymentMethodEnum.PAYPAL, 9, "ORDER-9", null));
         assertThat(payment.getId()).isEqualTo(4);
         assertThat(payment.getOrderId()).isEqualTo(9);
         assertThat(payment.getAmount()).isEqualByComparingTo("99.98");
-        assertThat(payment.getPaymentMethod()).isEqualTo(PaymentMethod.PAYPAL);
+        assertThat(payment.getPaymentMethod()).isEqualTo(PaymentMethodEnum.PAYPAL);
         assertThat(payment.getCreateDate()).isNull();
         assertThat(payment.getLastModifiedDate()).isNull();
     }
@@ -33,9 +33,9 @@ class PaymentMapperTest {
         var created = LocalDateTime.of(2026, 11, 16, 15, 0);
         var modified = created.plusMinutes(1);
         var payment = Payment.builder().id(4).orderId(9).amount(BigDecimal.TEN)
-                .paymentMethod(PaymentMethod.PAYPAL).createDate(created).lastModifiedDate(modified).build();
+                .paymentMethod(PaymentMethodEnum.PAYPAL).createDate(created).lastModifiedDate(modified).build();
         assertThat(mapper.fromPayment(payment)).isEqualTo(
-                new PaymentResponse(4, 9, BigDecimal.TEN, PaymentMethod.PAYPAL, created, modified));
+                new PaymentResponse(4, 9, BigDecimal.TEN, PaymentMethodEnum.PAYPAL, created, modified));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package com.duong.module.caching.core;
 
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
+
 import com.duong.module.caching.config.CachingProperties;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -16,23 +18,23 @@ public final class CacheKeys {
         this.application = application;
     }
 
-    public String jsonKey(CacheScope scope, String region, String key) {
+    public String jsonKey(CacheScopeEnum scope, String region, String key) {
         Objects.requireNonNull(scope, "cache scope");
         CachingProperties.requireName(region, "region");
         if (key == null || key.isBlank()) { throw new IllegalArgumentException("cache key must not be blank"); }
         // Encode arbitrary caller keys so delimiters cannot collide with namespace segments.
         String encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(key.getBytes(StandardCharsets.UTF_8));
-        return root + (scope == CacheScope.GLOBAL ? "global" : "service:" + application) + ":json:" + region + ":" + encoded;
+        return root + (scope == CacheScopeEnum.GLOBAL ? "global" : "service:" + application) + ":json:" + region + ":" + encoded;
     }
 
     /** Related script keys share a Redis Cluster slot within their scope and group. */
-    public String luaKey(CacheScope scope, String region, String group, String key) {
+    public String luaKey(CacheScopeEnum scope, String region, String group, String key) {
         Objects.requireNonNull(scope, "cache scope");
         CachingProperties.requireName(region, "region");
         if (group == null || group.isBlank() || key == null || key.isBlank()) {
             throw new IllegalArgumentException("Lua group and key must not be blank");
         }
-        String owner = scope == CacheScope.GLOBAL ? "global" : "service:" + application;
+        String owner = scope == CacheScopeEnum.GLOBAL ? "global" : "service:" + application;
         String prefix = root + owner + ":lua:" + region + ":";
         String tag = Base64.getUrlEncoder().withoutPadding()
                 .encodeToString((prefix + group).getBytes(StandardCharsets.UTF_8));

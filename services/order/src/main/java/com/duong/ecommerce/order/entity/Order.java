@@ -1,6 +1,6 @@
 package com.duong.ecommerce.order.entity;
 
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 
 import com.duong.ecommerce.order.orderline.entity.OrderLine;
 import jakarta.persistence.*;
@@ -34,7 +34,7 @@ public class Order {
     private BigDecimal totalAmount;
 
     @Enumerated(STRING)
-    private PaymentMethod paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     private String customerId;
 

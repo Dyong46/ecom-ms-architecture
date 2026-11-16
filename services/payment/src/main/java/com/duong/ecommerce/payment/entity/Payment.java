@@ -1,6 +1,6 @@
 package com.duong.ecommerce.payment.entity;
 
-import com.duong.ecommerce.payment.enumtype.PaymentMethod;
+import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,7 +32,7 @@ public class Payment {
     private BigDecimal amount;
 
     @Enumerated(STRING)
-    private PaymentMethod paymentMethod;
+    private PaymentMethodEnum paymentMethod;
 
     private Integer orderId;
 

@@ -1,7 +1,7 @@
 package com.duong.module.caching.lua;
 
 import com.duong.module.caching.core.CacheKeys;
-import com.duong.module.caching.core.CacheScope;
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -37,7 +37,7 @@ public final class RedisLuaExecutor {
         return script;
     }
 
-    public <T> T execute(RedisScript<T> script, CacheScope scope, String region,
+    public <T> T execute(RedisScript<T> script, CacheScopeEnum scope, String region,
                          String group, List<String> keys, String... arguments) {
         Objects.requireNonNull(script, "Lua script");
         Objects.requireNonNull(keys, "Lua keys");

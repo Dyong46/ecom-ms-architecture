@@ -1,6 +1,6 @@
 package com.duong.ecommerce.order.integration.kafka;
 
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.order.payload.event.OrderConfirmation;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +25,7 @@ class OrderEventContractTest {
         try (var serializer = new JsonSerializer<OrderConfirmation>()) {
             serializer.configure(Map.of(JsonSerializer.TYPE_MAPPINGS, mapping), false);
             var headers = new RecordHeaders();
-            var event = new OrderConfirmation("ORDER-1", BigDecimal.TEN, PaymentMethod.PAYPAL, null, List.of());
+            var event = new OrderConfirmation("ORDER-1", BigDecimal.TEN, PaymentMethodEnum.PAYPAL, null, List.of());
             serializer.serialize("order-topic", headers, event);
             assertThat(new String(headers.lastHeader("__TypeId__").value(), StandardCharsets.UTF_8))
                     .isEqualTo("orderConfirmation");

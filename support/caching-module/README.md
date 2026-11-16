@@ -150,20 +150,20 @@ Grafana hoặc instrument từng lời gọi `RedisJsonCache`.
 ## RedisJsonCache: service hoặc global
 
 ```java
-import com.duong.module.caching.core.CacheScope;
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
 import com.duong.module.caching.core.RedisJsonCache;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 // Inject RedisJsonCache vào service qua constructor.
-cache.put(CacheScope.SERVICE, "product-summary-v1", "1051", summary);
-var found = cache.get(CacheScope.SERVICE, "product-summary-v1", "1051", ProductSummary.class);
+cache.put(CacheScopeEnum.SERVICE, "product-summary-v1", "1051", summary);
+var found = cache.get(CacheScopeEnum.SERVICE, "product-summary-v1", "1051", ProductSummary.class);
 
 // Ghi nguyên list dưới một key; không ghi đè từng phần tử vào cùng một key.
-cache.put(CacheScope.GLOBAL, "catalog-v1", "featured", summaries, Duration.ofMinutes(1));
-var list = cache.get(CacheScope.GLOBAL, "catalog-v1", "featured",
+cache.put(CacheScopeEnum.GLOBAL, "catalog-v1", "featured", summaries, Duration.ofMinutes(1));
+var list = cache.get(CacheScopeEnum.GLOBAL, "catalog-v1", "featured",
         new TypeReference<List<ProductSummary>>() {});
 
-cache.evict(CacheScope.SERVICE, "product-summary-v1", "1051");
+cache.evict(CacheScopeEnum.SERVICE, "product-summary-v1", "1051");
 ```
 
 `get` trả `Optional.empty()` khi không có entry. Redis lỗi sẽ ném lỗi Redis;
@@ -231,7 +231,7 @@ Inject script và `RedisLuaExecutor` qua constructor, rồi thực thi.
 ```java
 Long accepted = luaExecutor.execute(
         incrementIfBelow,
-        CacheScope.SERVICE,
+        CacheScopeEnum.SERVICE,
         "limits-v1",           // region
         "checkout-1051",       // group của các key liên quan
         List.of("counter"),    // logical keys, lần lượt thành KEYS[1], KEYS[2]...

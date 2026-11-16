@@ -1,5 +1,7 @@
 package com.duong.ecommerce.order.service;
 
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
+
 import com.duong.ecommerce.order.entity.Order;
 import com.duong.ecommerce.order.mapper.OrderMapper;
 import com.duong.ecommerce.order.payload.request.OrderRequest;
@@ -69,7 +71,7 @@ public class OrderService {
         // start payment process
         var paymentRequest = new PaymentRequest(
                 totalAmount,
-                com.duong.module.proxy.payment.enumtype.PaymentMethod.valueOf(request.paymentMethod().name()),
+                com.duong.module.proxy.payment.entity.enumeration.PaymentMethodEnum.valueOf(request.paymentMethod().name()),
                 order.getId(),
                 order.getReference(),
                 customer

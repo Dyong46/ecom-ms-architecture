@@ -1,12 +1,14 @@
 package com.duong.ecommerce.order.config;
 
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
+
 import com.duong.module.caching.core.*;
 import com.duong.ecommerce.order.config.OrderOAuthConfiguration;
 import com.duong.ecommerce.order.integration.OrderPaymentGateway;
 import com.duong.module.proxy.annotation.EnableProxyModule;
 import com.duong.module.proxy.payment.PaymentClient;
 import com.duong.module.proxy.payment.request.PaymentRequest;
-import com.duong.module.proxy.payment.enumtype.PaymentMethod;
+import com.duong.module.proxy.payment.entity.enumeration.PaymentMethodEnum;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Import;
 import com.duong.ecommerce.order.integration.oauth.EcomTokenService;
@@ -111,7 +113,7 @@ class EcomRedisAuthIntegrationTest {
             assertThat(ctx).hasNotFailed();
             assertThat(ctx.getBean(EcomTokenService.class).getAccessToken()).isEqualTo("fixture-token-1");
             var redis = new StringRedisTemplate(ctx.getBean(RedisConnectionFactory.class));
-            String key = ctx.getBean(CacheKeys.class).jsonKey(CacheScope.GLOBAL, "oauth-tokens", identity().cacheKey());
+            String key = ctx.getBean(CacheKeys.class).jsonKey(CacheScopeEnum.GLOBAL, "oauth-tokens", identity().cacheKey());
             assertThat(redis.getExpire(key, TimeUnit.SECONDS)).isBetween(250L, 270L);
             assertThat(ctx.getBean(AccessTokenCache.class).getValidToken(identity())).contains("fixture-token-1");
         });
@@ -123,7 +125,7 @@ class EcomRedisAuthIntegrationTest {
     @Test
     void nearExpiryCachedTokenIsReplacedAndDifferentClientHasItsOwnEntry() {
         context().run(ctx -> {
-            ctx.getBean(RedisJsonCache.class).put(CacheScope.GLOBAL, "oauth-tokens", identity().cacheKey(),
+            ctx.getBean(RedisJsonCache.class).put(CacheScopeEnum.GLOBAL, "oauth-tokens", identity().cacheKey(),
                     new CachedAccessToken("old-fixture-token", Instant.now().plusSeconds(10)), Duration.ofMinutes(5));
             assertThat(ctx.getBean(EcomTokenService.class).getAccessToken()).isEqualTo("fixture-token-1");
         });
@@ -147,7 +149,7 @@ class EcomRedisAuthIntegrationTest {
     void orderAttachesCachedTokenAndDoesNotRetryPayment401() {
         context().run(ctx -> {
             var gateway = ctx.getBean(OrderPaymentGateway.class);
-            var request = new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "fixture-order", null);
+            var request = new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "fixture-order", null);
             assertThat(gateway.requestOrderPayment(request)).isEqualTo(42);
             assertThat(gateway.requestOrderPayment(request)).isEqualTo(42);
             assertThat(requests).hasValue(1);
@@ -163,7 +165,7 @@ class EcomRedisAuthIntegrationTest {
     void authFailurePreventsOrderFromSendingPayment() {
         authStatus = 401;
         context().run(ctx -> {
-            var request = new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "fixture-order", null);
+            var request = new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "fixture-order", null);
             assertThatThrownBy(() -> ctx.getBean(OrderPaymentGateway.class).requestOrderPayment(request))
                     .isInstanceOf(FeignException.Unauthorized.class);
             assertThat(requests).hasValue(1);

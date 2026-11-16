@@ -60,6 +60,11 @@ no dependency on other support capabilities or the foundation stack. See
 
 ## OOP, SOLID and proportionate design
 
+Top-level enums use the `Enum` suffix and live under `entity.enumeration` within
+their owning service or support capability. Keep enum ownership and module
+boundaries intact. See [Service layout and mapping](service-layout-and-mapping.md)
+for the project naming convention and examples.
+
 The accepted exception-handling direction and optional future extensions are
 documented in [Exception handling design](exception-handling-design.md). It selects
 base exceptions with centralized HTTP handling; its implementation and response

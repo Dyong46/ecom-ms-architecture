@@ -1,7 +1,7 @@
 package com.duong.ecommerce.payment.controller;
 
 import com.duong.ecommerce.payment.entity.Payment;
-import com.duong.ecommerce.payment.enumtype.PaymentMethod;
+import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.payment.mapper.PaymentMapper;
 import com.duong.ecommerce.payment.payload.response.PaymentResponse;
 import com.duong.ecommerce.payment.repository.PaymentRepository;
@@ -69,7 +69,7 @@ class PaymentPaginationTest {
     void returnsRequestedPageAndMetadata() throws Exception {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
-                List.of(new PaymentResponse(1, 1, java.math.BigDecimal.TEN, PaymentMethod.CREDIT_CARD, null, null)), pageable, 45));
+                List.of(new PaymentResponse(1, 1, java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, null, null)), pageable, 45));
 
         mvc.perform(get("/api/v1/payments").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -109,7 +109,7 @@ class PaymentPaginationTest {
     void repositoryQueryIsPagedAndMappingPreservesTotals() {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         var entity = mock(Payment.class);
-        var response = new PaymentResponse(1, 1, java.math.BigDecimal.TEN, PaymentMethod.CREDIT_CARD, null, null);
+        var response = new PaymentResponse(1, 1, java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, null, null);
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity), pageable, 45));
         when(mapper.fromPayment(entity)).thenReturn(response);
 

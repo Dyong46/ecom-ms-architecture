@@ -1,5 +1,7 @@
 package com.duong.module.caching;
 
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
+
 import com.duong.module.caching.annotation.EnableCachingModule;
 import com.duong.module.caching.config.CacheJson;
 import com.duong.module.caching.config.CachingProperties;
@@ -28,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.duong.module.caching.core.CacheScope.*;
+import static com.duong.module.caching.entity.enumeration.CacheScopeEnum.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 

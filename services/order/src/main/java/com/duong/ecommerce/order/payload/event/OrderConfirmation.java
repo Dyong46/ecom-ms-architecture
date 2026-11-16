@@ -1,7 +1,7 @@
 package com.duong.ecommerce.order.payload.event;
 
 import com.duong.module.proxy.customer.response.CustomerResponse;
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 import com.duong.module.proxy.product.response.PurchaseResponse;
 
 import java.math.BigDecimal;
@@ -10,7 +10,7 @@ import java.util.List;
 public record OrderConfirmation(
         String orderReference,
         BigDecimal totalAmount,
-        PaymentMethod paymentMethod,
+        PaymentMethodEnum paymentMethod,
         CustomerResponse customer,
         List<PurchaseResponse> products,
         String eventId
@@ -18,7 +18,7 @@ public record OrderConfirmation(
     public OrderConfirmation(
         String orderReference,
         BigDecimal totalAmount,
-        PaymentMethod paymentMethod,
+        PaymentMethodEnum paymentMethod,
         CustomerResponse customer,
         List<PurchaseResponse> products
     ) {

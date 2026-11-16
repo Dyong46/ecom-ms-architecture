@@ -1,7 +1,7 @@
 package com.duong.ecommerce.notification.mapper;
 
 import com.duong.ecommerce.notification.entity.Notification;
-import com.duong.ecommerce.notification.enumtype.DeliveryStatus;
+import com.duong.ecommerce.notification.entity.enumeration.DeliveryStatusEnum;
 import com.duong.module.mail.message.MailMessage;
 import java.time.Instant;
 import java.util.List;
@@ -19,7 +19,7 @@ class NotificationMapperTest {
     void updatesEmailSnapshotWithoutChangingJobIdentityOrDeliveryState() {
         var due = Instant.parse("2026-11-16T00:00:00Z");
         var job = Notification.builder().id("event-1").eventId("event-1")
-                .status(DeliveryStatus.RETRY).attemptCount(2).nextRetryAt(due).leaseToken("lease-1").build();
+                .status(DeliveryStatusEnum.RETRY).attemptCount(2).nextRetryAt(due).leaseToken("lease-1").build();
         mapper.updateMailSnapshot(new MailMessage("shop@example.test", List.of("ada@example.test"),
                 "Subject", "<p>Body</p>", true), job);
         assertThat(job.getSenderAddress()).isEqualTo("shop@example.test");
@@ -29,7 +29,7 @@ class NotificationMapperTest {
         assertThat(job.isHtml()).isTrue();
         assertThat(job.getId()).isEqualTo("event-1");
         assertThat(job.getEventId()).isEqualTo("event-1");
-        assertThat(job.getStatus()).isEqualTo(DeliveryStatus.RETRY);
+        assertThat(job.getStatus()).isEqualTo(DeliveryStatusEnum.RETRY);
         assertThat(job.getAttemptCount()).isEqualTo(2);
         assertThat(job.getNextRetryAt()).isEqualTo(due);
         assertThat(job.getLeaseToken()).isEqualTo("lease-1");

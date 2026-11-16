@@ -1,7 +1,7 @@
 package com.duong.ecommerce.order.service;
 
 import com.duong.ecommerce.order.entity.Order;
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.order.mapper.OrderMapper;
 import com.duong.ecommerce.order.payload.request.OrderRequest;
 import com.duong.ecommerce.order.repository.OrderRepository;
@@ -65,7 +65,7 @@ class OrderServiceTest {
         var request = new OrderRequest(
                 null,
                 "ORDER-001",
-                PaymentMethod.CREDIT_CARD,
+                PaymentMethodEnum.CREDIT_CARD,
                 "customer-1",
                 List.of(new PurchaseRequest(1, 2), new PurchaseRequest(2, 1))
         );
@@ -103,7 +103,7 @@ class OrderServiceTest {
         var request = new OrderRequest(
                 null,
                 "ORDER-002",
-                PaymentMethod.CREDIT_CARD,
+                PaymentMethodEnum.CREDIT_CARD,
                 "customer-1",
                 List.of(new PurchaseRequest(1, 1))
         );

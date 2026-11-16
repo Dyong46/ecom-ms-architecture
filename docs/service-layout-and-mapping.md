@@ -20,8 +20,8 @@ com.duong.ecommerce.<service>
 ├── service/
 ├── repository/
 ├── entity/
+│   └── enumeration/
 ├── mapper/
-├── enumtype/
 ├── exception/
 ├── payload/
 │   ├── request/
@@ -55,6 +55,29 @@ Test đi theo package của thành phần được kiểm tra; các suite databa
 security giữ nhóm integration hoặc security phù hợp. Các service trong `cloud/`
 và thư viện `support/` vốn đã chia theo chức năng được giữ trong phạm vi sở hữu
 hiện tại; không bổ sung MapStruct vào module không có mapping dữ liệu cụ thể.
+
+## Quy tắc đặt tên enum
+
+Chủ project chọn quy ước: mọi enum cấp cao nhất có hậu tố `Enum`, nằm trong
+`entity/enumeration` của service hoặc capability sở hữu enum đó. Ví dụ:
+
+```text
+payment/entity/enumeration/PaymentMethodEnum.java
+notification/entity/enumeration/DeliveryStatusEnum.java
+notification/entity/enumeration/EmailTemplatesEnum.java
+```
+
+Các support module dùng cùng quy ước, ví dụ `CacheScopeEnum`, `EventStatusEnum`,
+`UserStatusEnum`; các tên đã có hậu tố như `PredicateTypeEnum` chỉ đổi package.
+Enum cho HTTP contract vẫn thuộc proxy; mỗi service giữ enum nghiệp vụ của mình,
+không gom vào common-module hoặc thêm dependency giữa các capability độc lập.
+Folder `entity` trong thư viện kỹ thuật không hàm ý class được đánh dấu JPA Entity.
+Đổi tên kiểu Java giữ nguyên các enum constant và dữ liệu JSON/database hiện có;
+consumer ngoài repo cần cập nhật import và tên kiểu khi nâng phiên bản thư viện.
+
+Đây là quy ước đặt tên của repo. Việc đổi tên class/package giữ nguyên các enum
+constant, giá trị JSON, giá trị lưu database và cấu trúc cache key. Code Java sử
+dụng thư viện cần cập nhật import và tên kiểu mới khi nâng phiên bản.
 
 ## Quy tắc MapStruct
 

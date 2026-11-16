@@ -1,11 +1,11 @@
-package com.duong.module.data.model.enumtype;
+package com.duong.module.data.model.entity.enumeration;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum EventStatus {
+public enum EventStatusEnum {
 
   INACTIVE,
   ACTIVE,

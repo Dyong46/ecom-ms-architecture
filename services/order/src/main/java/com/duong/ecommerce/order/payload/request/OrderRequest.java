@@ -1,7 +1,7 @@
 package com.duong.ecommerce.order.payload.request;
 
 import com.duong.ecommerce.order.entity.Order;
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 
 import com.duong.module.proxy.product.request.PurchaseRequest;
 import jakarta.validation.Valid;
@@ -18,7 +18,7 @@ public record OrderRequest(
         String reference,
 
         @NotNull(message = "Payment method should be precised")
-        PaymentMethod paymentMethod,
+        PaymentMethodEnum paymentMethod,
 
         @NotNull(message = "Customer should be present")
         @NotEmpty(message = "Customer should be present")

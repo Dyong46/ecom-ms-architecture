@@ -1,5 +1,7 @@
 package com.duong.module.caching;
 
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
+
 import com.duong.module.caching.annotation.EnableCachingModule;
 import com.duong.module.caching.config.CacheJson;
 import com.duong.module.caching.config.CachingProperties;
@@ -35,16 +37,16 @@ class CachingModuleTest {
         var order = new CacheKeys(defaults(), "order-service");
         var product = new CacheKeys(defaults(), "product-service");
         var prod = new CacheKeys(new CachingProperties("ecom", "prod", Duration.ofMinutes(1), 10, Map.of()), "order-service");
-        assertThat(order.jsonKey(CacheScope.SERVICE, "catalog", "1"))
-                .isNotEqualTo(product.jsonKey(CacheScope.SERVICE, "catalog", "1"))
-                .isNotEqualTo(prod.jsonKey(CacheScope.SERVICE, "catalog", "1"))
-                .isNotEqualTo(order.jsonKey(CacheScope.GLOBAL, "catalog", "1"))
+        assertThat(order.jsonKey(CacheScopeEnum.SERVICE, "catalog", "1"))
+                .isNotEqualTo(product.jsonKey(CacheScopeEnum.SERVICE, "catalog", "1"))
+                .isNotEqualTo(prod.jsonKey(CacheScopeEnum.SERVICE, "catalog", "1"))
+                .isNotEqualTo(order.jsonKey(CacheScopeEnum.GLOBAL, "catalog", "1"))
                 .isNotEqualTo(order.springPrefix("catalog") + "1");
-        assertThat(order.jsonKey(CacheScope.GLOBAL, "catalog", "1"))
-                .isEqualTo(product.jsonKey(CacheScope.GLOBAL, "catalog", "1"));
-        assertThat(order.jsonKey(CacheScope.SERVICE, "catalog", "a:b"))
-                .isNotEqualTo(order.jsonKey(CacheScope.SERVICE, "catalog", "a::b"));
-        assertThatThrownBy(() -> order.jsonKey(CacheScope.SERVICE, "bad:region", "1"))
+        assertThat(order.jsonKey(CacheScopeEnum.GLOBAL, "catalog", "1"))
+                .isEqualTo(product.jsonKey(CacheScopeEnum.GLOBAL, "catalog", "1"));
+        assertThat(order.jsonKey(CacheScopeEnum.SERVICE, "catalog", "a:b"))
+                .isNotEqualTo(order.jsonKey(CacheScopeEnum.SERVICE, "catalog", "a::b"));
+        assertThatThrownBy(() -> order.jsonKey(CacheScopeEnum.SERVICE, "bad:region", "1"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -1,7 +1,7 @@
 package com.duong.ecommerce.notification.entity;
 
-import com.duong.ecommerce.notification.enumtype.DeliveryStatus;
-import com.duong.ecommerce.notification.enumtype.NotificationType;
+import com.duong.ecommerce.notification.entity.enumeration.DeliveryStatusEnum;
+import com.duong.ecommerce.notification.entity.enumeration.NotificationTypeEnum;
 
 import com.duong.ecommerce.notification.payload.event.order.OrderConfirmation;
 import com.duong.ecommerce.notification.payload.event.payment.PaymentConfirmation;
@@ -25,8 +25,8 @@ public class Notification {
 
     // New jobs use eventId as Mongo _id, enforcing uniqueness without a secondary index.
     private String eventId;
-    private NotificationType type;
-    private DeliveryStatus status;
+    private NotificationTypeEnum type;
+    private DeliveryStatusEnum status;
     private int attemptCount;
     private java.time.Instant nextRetryAt;
     private java.time.Instant leaseUntil;

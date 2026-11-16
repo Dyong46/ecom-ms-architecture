@@ -1,6 +1,6 @@
 package com.duong.ecommerce.notification.service;
 
-import com.duong.ecommerce.notification.enumtype.EmailTemplates;
+import com.duong.ecommerce.notification.entity.enumeration.EmailTemplatesEnum;
 
 import com.duong.ecommerce.notification.payload.event.order.Product;
 import com.duong.module.mail.message.MailMessage;
@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import static com.duong.ecommerce.notification.enumtype.EmailTemplates.ORDER_CONFIRMATION;
-import static com.duong.ecommerce.notification.enumtype.EmailTemplates.PAYMENT_CONFIRMATION;
+import static com.duong.ecommerce.notification.entity.enumeration.EmailTemplatesEnum.ORDER_CONFIRMATION;
+import static com.duong.ecommerce.notification.entity.enumeration.EmailTemplatesEnum.PAYMENT_CONFIRMATION;
 
 @Service
 public class EmailService {
@@ -51,7 +51,7 @@ public class EmailService {
         return build(ORDER_CONFIRMATION, variables, destinationEmail);
     }
 
-    private MailMessage build(EmailTemplates template, Map<String, Object> variables, String destinationEmail) {
+    private MailMessage build(EmailTemplatesEnum template, Map<String, Object> variables, String destinationEmail) {
         var context = new Context();
         context.setVariables(variables);
         String html = templateEngine.process(template.getTemplate(), context);

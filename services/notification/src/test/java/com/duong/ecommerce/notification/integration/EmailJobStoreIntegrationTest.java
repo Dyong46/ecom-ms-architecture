@@ -4,7 +4,7 @@ import com.duong.ecommerce.notification.repository.EmailJobStore;
 import com.duong.ecommerce.notification.service.EmailDeliveryWorker;
 import com.duong.ecommerce.notification.service.SmtpFailurePolicy;
 
-import com.duong.ecommerce.notification.enumtype.DeliveryStatus;
+import com.duong.ecommerce.notification.entity.enumeration.DeliveryStatusEnum;
 import com.duong.ecommerce.notification.entity.Notification;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -42,7 +42,7 @@ class EmailJobStoreIntegrationTest {
     @AfterEach void close() { client.close(); }
 
     Notification job() {
-        return Notification.builder().id("event-1").eventId("event-1").status(DeliveryStatus.PENDING)
+        return Notification.builder().id("event-1").eventId("event-1").status(DeliveryStatusEnum.PENDING)
                 .senderAddress("shop@example.test").recipient("ada@example.test").subject("Subject")
                 .content("Original content").html(true).nextRetryAt(now).build();
     }
@@ -108,7 +108,7 @@ class EmailJobStoreIntegrationTest {
         assertThat(store.markFailure(first, "STALE", null)).isFalse();
         assertThat(store.markSent(second, now.plusSeconds(123))).isTrue();
         var saved = template.findById("event-1", Notification.class);
-        assertThat(saved.getStatus()).isEqualTo(DeliveryStatus.SENT);
+        assertThat(saved.getStatus()).isEqualTo(DeliveryStatusEnum.SENT);
         assertThat(saved.getSubmittedAt()).isEqualTo(now.plusSeconds(123));
         assertThat(saved.getNextRetryAt()).isNull();
         assertThat(store.claim(now.plusSeconds(1000), Duration.ofMinutes(2))).isNull();
@@ -130,7 +130,7 @@ class EmailJobStoreIntegrationTest {
         assertThat(store.claim(now, Duration.ofMinutes(2)).getAttemptCount()).isEqualTo(5);
         assertThat(store.claim(now.plusSeconds(121), Duration.ofMinutes(2))).isNull();
         var saved = template.findById("event-1", Notification.class);
-        assertThat(saved.getStatus()).isEqualTo(DeliveryStatus.FAILED);
+        assertThat(saved.getStatus()).isEqualTo(DeliveryStatusEnum.FAILED);
         assertThat(saved.getLastError()).isEqualTo("LEASE_EXPIRED_AT_ATTEMPT_LIMIT");
         assertThat(saved.getAttemptCount()).isEqualTo(5);
     }
@@ -150,13 +150,13 @@ class EmailJobStoreIntegrationTest {
         new EmailDeliveryWorker(store, smtp, new SmtpFailurePolicy(),
                 java.time.Clock.fixed(now, java.time.ZoneOffset.UTC), Duration.ofMinutes(2)).poll();
         var pending = template.findById("event-1", Notification.class);
-        assertThat(pending.getStatus()).isEqualTo(DeliveryStatus.RETRY);
+        assertThat(pending.getStatus()).isEqualTo(DeliveryStatusEnum.RETRY);
         assertThat(pending.getAttemptCount()).isEqualTo(1);
         assertThat(pending.getNextRetryAt()).isAfter(now);
         new EmailDeliveryWorker(new EmailJobStore(template), smtp, new SmtpFailurePolicy(),
                 java.time.Clock.fixed(pending.getNextRetryAt(), java.time.ZoneOffset.UTC), Duration.ofMinutes(2)).poll();
         var sent = template.findById("event-1", Notification.class);
-        assertThat(sent.getStatus()).isEqualTo(DeliveryStatus.SENT);
+        assertThat(sent.getStatus()).isEqualTo(DeliveryStatusEnum.SENT);
         assertThat(sent.getAttemptCount()).isEqualTo(2);
         assertThat(sent.getSubmittedAt()).isEqualTo(pending.getNextRetryAt());
         org.mockito.Mockito.verify(smtp, org.mockito.Mockito.times(2)).send(org.mockito.ArgumentMatchers.any());

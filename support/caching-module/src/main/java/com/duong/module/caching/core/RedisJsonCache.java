@@ -1,5 +1,7 @@
 package com.duong.module.caching.core;
 
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
+
 import com.duong.module.caching.config.CachingProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,37 +26,37 @@ public final class RedisJsonCache {
         this.properties = properties;
     }
 
-    public <T> Optional<T> get(CacheScope scope, String region, String key, Class<T> type) {
+    public <T> Optional<T> get(CacheScopeEnum scope, String region, String key, Class<T> type) {
         return read(scope, region, key, mapper.constructType(type));
     }
 
-    public <T> Optional<T> get(CacheScope scope, String region, String key, TypeReference<T> type) {
+    public <T> Optional<T> get(CacheScopeEnum scope, String region, String key, TypeReference<T> type) {
         return read(scope, region, key, mapper.constructType(type));
     }
 
-    private <T> Optional<T> read(CacheScope scope, String region, String key, JavaType type) {
+    private <T> Optional<T> read(CacheScopeEnum scope, String region, String key, JavaType type) {
         String json = redis.opsForValue().get(keys.jsonKey(scope, region, key));
         if (json == null) { return Optional.empty(); }
         try { return Optional.ofNullable(mapper.readValue(json, type)); }
         catch (JsonProcessingException ex) { throw new CacheSerializationException(); }
     }
 
-    public void put(CacheScope scope, String region, String key, Object value) {
+    public void put(CacheScopeEnum scope, String region, String key, Object value) {
         put(scope, region, key, value, properties.ttl(region));
     }
 
-    public void put(CacheScope scope, String region, String key, Object value, Duration ttl) {
+    public void put(CacheScopeEnum scope, String region, String key, Object value, Duration ttl) {
         CachingProperties.positiveTtl(ttl);
         redis.opsForValue().set(keys.jsonKey(scope, region, key), json(value), ttl);
     }
 
     /** Atomic SET NX with TTL. This primitive is not a distributed lock or payment idempotency protocol. */
-    public boolean putIfAbsent(CacheScope scope, String region, String key, Object value, Duration ttl) {
+    public boolean putIfAbsent(CacheScopeEnum scope, String region, String key, Object value, Duration ttl) {
         CachingProperties.positiveTtl(ttl);
         return Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(keys.jsonKey(scope, region, key), json(value), ttl));
     }
 
-    public boolean evict(CacheScope scope, String region, String key) {
+    public boolean evict(CacheScopeEnum scope, String region, String key) {
         return Boolean.TRUE.equals(redis.delete(keys.jsonKey(scope, region, key)));
     }
 

@@ -4,9 +4,9 @@ import com.duong.ecommerce.notification.mapper.NotificationMapper;
 import com.duong.ecommerce.notification.service.EmailService;
 import com.duong.ecommerce.notification.payload.event.order.OrderConfirmation;
 import com.duong.ecommerce.notification.payload.event.payment.PaymentConfirmation;
-import com.duong.ecommerce.notification.enumtype.DeliveryStatus;
+import com.duong.ecommerce.notification.entity.enumeration.DeliveryStatusEnum;
 import com.duong.ecommerce.notification.entity.Notification;
-import com.duong.ecommerce.notification.enumtype.NotificationType;
+import com.duong.ecommerce.notification.entity.enumeration.NotificationTypeEnum;
 import com.duong.ecommerce.notification.repository.EmailJobStore;
 import com.duong.module.mail.message.MailMessage;
 import java.time.Clock;
@@ -29,7 +29,7 @@ public class NotificationConsumer {
     @KafkaListener(topics = "${application.events.payment-topic:payment-topic}")
     public void consumePaymentSuccessNotification(ConsumerRecord<String, PaymentConfirmation> record, Acknowledgment acknowledgment) {
         var event = record.value();
-        var job = newJob(event.eventId(), record, NotificationType.PAYMENT_CONFIRMATION);
+        var job = newJob(event.eventId(), record, NotificationTypeEnum.PAYMENT_CONFIRMATION);
         job.setPaymentConfirmation(event);
         prepare(job, () -> renderer.buildPaymentSuccessEmail(event.customerEmail(),
                 event.customerFirstname() + " " + event.customerLastname(), event.amount(), event.orderReference()));
@@ -40,7 +40,7 @@ public class NotificationConsumer {
     @KafkaListener(topics = "${application.events.order-topic:order-topic}")
     public void consumeOrderConfirmationNotification(ConsumerRecord<String, OrderConfirmation> record, Acknowledgment acknowledgment) {
         var event = record.value();
-        var job = newJob(event.eventId(), record, NotificationType.ORDER_CONFIRMATION);
+        var job = newJob(event.eventId(), record, NotificationTypeEnum.ORDER_CONFIRMATION);
         job.setOrderConfirmation(event);
         prepare(job, () -> renderer.buildOrderConfirmationEmail(event.customer().email(),
                 event.customer().firstname() + " " + event.customer().lastname(), event.totalAmount(),
@@ -49,10 +49,10 @@ public class NotificationConsumer {
         acknowledgment.acknowledge();
     }
 
-    private Notification newJob(String eventId, ConsumerRecord<?, ?> record, NotificationType type) {
+    private Notification newJob(String eventId, ConsumerRecord<?, ?> record, NotificationTypeEnum type) {
         String id = eventId == null || eventId.isBlank()
                 ? "legacy:" + record.topic() + ":" + record.partition() + ":" + record.offset() : eventId;
-        return Notification.builder().id(id).eventId(id).type(type).status(DeliveryStatus.PENDING)
+        return Notification.builder().id(id).eventId(id).type(type).status(DeliveryStatusEnum.PENDING)
                 .nextRetryAt(clock.instant()).notificationDate(LocalDateTime.ofInstant(clock.instant(), ZoneId.systemDefault())).build();
     }
 
@@ -61,7 +61,7 @@ public class NotificationConsumer {
             var mail = build.get();
             mapper.updateMailSnapshot(mail, job);
         } catch (RuntimeException exception) {
-            job.setStatus(DeliveryStatus.FAILED);
+            job.setStatus(DeliveryStatusEnum.FAILED);
             job.setLastError("MESSAGE_PREPARATION_FAILED");
             job.setNextRetryAt(null);
         }

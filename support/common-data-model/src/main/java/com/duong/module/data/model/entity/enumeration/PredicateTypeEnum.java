@@ -1,4 +1,4 @@
-package com.duong.module.data.model.specification;
+package com.duong.module.data.model.entity.enumeration;
 
 public enum PredicateTypeEnum {
 

@@ -1,6 +1,6 @@
 package com.duong.ecommerce.order.mapper;
 
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.order.payload.request.OrderRequest;
 import com.duong.ecommerce.order.payload.response.OrderResponse;
 import java.math.BigDecimal;
@@ -17,10 +17,10 @@ class OrderMapperTest {
 
     @Test
     void usesCalculatedTotalAndExposesItAsResponseAmount() {
-        var request = new OrderRequest(9, "ORDER-9", PaymentMethod.PAYPAL, "customer-1", List.of());
+        var request = new OrderRequest(9, "ORDER-9", PaymentMethodEnum.PAYPAL, "customer-1", List.of());
         var order = mapper.toOrder(request, new BigDecimal("99.98"));
         assertThat(mapper.fromOrder(order)).isEqualTo(new OrderResponse(
-                9, "ORDER-9", new BigDecimal("99.98"), PaymentMethod.PAYPAL, "customer-1"));
+                9, "ORDER-9", new BigDecimal("99.98"), PaymentMethodEnum.PAYPAL, "customer-1"));
         assertThat(order.getOrderLines()).isNull();
         assertThat(order.getCreateAt()).isNull();
         assertThat(order.getLastModifiedDate()).isNull();

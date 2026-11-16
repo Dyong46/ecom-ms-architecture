@@ -1,6 +1,6 @@
 package com.duong.ecommerce.notification.repository;
 
-import com.duong.ecommerce.notification.enumtype.DeliveryStatus;
+import com.duong.ecommerce.notification.entity.enumeration.DeliveryStatusEnum;
 import com.duong.ecommerce.notification.entity.Notification;
 import java.time.Duration;
 import java.time.Instant;
@@ -47,33 +47,33 @@ public class EmailJobStore {
     public Notification claim(Instant now, Duration lease) {
         ensureIndexes();
         // A crash on the last attempt must not leave a job PROCESSING forever.
-        var exhausted = Query.query(Criteria.where("status").is(DeliveryStatus.PROCESSING)
+        var exhausted = Query.query(Criteria.where("status").is(DeliveryStatusEnum.PROCESSING)
                 .and("leaseUntil").lte(now).and("attemptCount").gte(MAX_ATTEMPTS));
-        mongo.updateMulti(exhausted, clearLease(new Update().set("status", DeliveryStatus.FAILED)
+        mongo.updateMulti(exhausted, clearLease(new Update().set("status", DeliveryStatusEnum.FAILED)
                 .set("lastError", "LEASE_EXPIRED_AT_ATTEMPT_LIMIT").unset("nextRetryAt")), Notification.class);
         var eligible = new Criteria().orOperator(
-                Criteria.where("status").in(DeliveryStatus.PENDING, DeliveryStatus.RETRY).and("nextRetryAt").lte(now),
-                Criteria.where("status").is(DeliveryStatus.PROCESSING).and("leaseUntil").lte(now));
+                Criteria.where("status").in(DeliveryStatusEnum.PENDING, DeliveryStatusEnum.RETRY).and("nextRetryAt").lte(now),
+                Criteria.where("status").is(DeliveryStatusEnum.PROCESSING).and("leaseUntil").lte(now));
         var query = Query.query(new Criteria().andOperator(eligible, Criteria.where("attemptCount").lt(MAX_ATTEMPTS)))
                 .with(Sort.by("nextRetryAt", "_id"));
-        var update = new Update().set("status", DeliveryStatus.PROCESSING).inc("attemptCount", 1)
+        var update = new Update().set("status", DeliveryStatusEnum.PROCESSING).inc("attemptCount", 1)
                 .set("lastAttemptAt", now).set("leaseUntil", now.plus(lease)).set("leaseToken", UUID.randomUUID().toString());
         return mongo.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Notification.class);
     }
 
     public boolean markSent(Notification job, Instant now) {
-        return finish(job, new Update().set("status", DeliveryStatus.SENT).set("submittedAt", now)
+        return finish(job, new Update().set("status", DeliveryStatusEnum.SENT).set("submittedAt", now)
                 .unset("nextRetryAt").unset("lastError"));
     }
 
     public boolean markFailure(Notification job, String error, Instant retryAt) {
-        var update = new Update().set("lastError", error).set("status", retryAt == null ? DeliveryStatus.FAILED : DeliveryStatus.RETRY);
+        var update = new Update().set("lastError", error).set("status", retryAt == null ? DeliveryStatusEnum.FAILED : DeliveryStatusEnum.RETRY);
         if (retryAt == null) update.unset("nextRetryAt"); else update.set("nextRetryAt", retryAt);
         return finish(job, update);
     }
 
     private boolean finish(Notification job, Update update) {
-        var query = Query.query(Criteria.where("_id").is(job.getId()).and("status").is(DeliveryStatus.PROCESSING)
+        var query = Query.query(Criteria.where("_id").is(job.getId()).and("status").is(DeliveryStatusEnum.PROCESSING)
                 .and("leaseToken").is(job.getLeaseToken()));
         return mongo.updateFirst(query, clearLease(update), Notification.class).getModifiedCount() == 1;
     }

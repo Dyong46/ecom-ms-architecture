@@ -1,6 +1,6 @@
 package com.duong.ecommerce.notification.payload.event.order;
 
-import com.duong.ecommerce.notification.enumtype.PaymentMethod;
+import com.duong.ecommerce.notification.entity.enumeration.PaymentMethodEnum;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 public record OrderConfirmation(
         String orderReference,
         BigDecimal totalAmount,
-        PaymentMethod paymentMethod,
+        PaymentMethodEnum paymentMethod,
         Customer customer,
         List<Product> products,
         String eventId

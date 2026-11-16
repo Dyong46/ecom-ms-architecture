@@ -1,7 +1,7 @@
 package com.duong.ecommerce.order.controller;
 
 import com.duong.ecommerce.order.entity.Order;
-import com.duong.ecommerce.order.enumtype.PaymentMethod;
+import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.order.mapper.OrderMapper;
 import com.duong.ecommerce.order.payload.response.OrderResponse;
 import com.duong.ecommerce.order.repository.OrderRepository;
@@ -69,7 +69,7 @@ class OrderPaginationTest {
     void returnsRequestedPageAndMetadata() throws Exception {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
-                List.of(new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethod.CREDIT_CARD, "customer-1")), pageable, 45));
+                List.of(new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1")), pageable, 45));
 
         mvc.perform(get("/api/v1/orders").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -109,7 +109,7 @@ class OrderPaginationTest {
     void repositoryQueryIsPagedAndMappingPreservesTotals() {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         var entity = mock(Order.class);
-        var response = new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethod.CREDIT_CARD, "customer-1");
+        var response = new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1");
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity), pageable, 45));
         when(mapper.fromOrder(entity)).thenReturn(response);
 

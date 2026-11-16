@@ -73,7 +73,7 @@ contexts; do not import the Basic Auth interceptor into the application context.
 The library uses OpenFeign, Micrometer integration, Jackson annotations and
 validation annotations. It does not depend on application modules, web-module,
 common-module, JPA or Spring OAuth2 Client. Providers retain their own API DTOs
-and domain models; the proxy PaymentMethod is a transport enum mapped by name
+and domain models; the proxy PaymentMethodEnum is a transport enum mapped by name
 from Order's domain enum. Kafka events remain owned by applications.
 
 ## Central Config Server settings

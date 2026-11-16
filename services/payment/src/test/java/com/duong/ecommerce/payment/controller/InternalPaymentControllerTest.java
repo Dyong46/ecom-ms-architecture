@@ -1,6 +1,6 @@
 package com.duong.ecommerce.payment.controller;
 
-import com.duong.ecommerce.payment.enumtype.PaymentMethod;
+import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.payment.payload.request.Customer;
 import com.duong.ecommerce.payment.payload.request.PaymentRequest;
 import com.duong.ecommerce.payment.service.PaymentService;
@@ -19,7 +19,7 @@ class InternalPaymentControllerTest {
     @Test
     void internalPaymentAcceptsProxyWireContractAndReusesExistingService() throws Exception {
         var service = mock(PaymentService.class);
-        var expected = new PaymentRequest(null, new BigDecimal("20.00"), PaymentMethod.PAYPAL, 7, "ORDER-7",
+        var expected = new PaymentRequest(null, new BigDecimal("20.00"), PaymentMethodEnum.PAYPAL, 7, "ORDER-7",
                 new Customer("c1", "Ada", "Lovelace", "ada@example.test"));
         when(service.createPayment(expected)).thenReturn(42);
         var mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(service)).build();

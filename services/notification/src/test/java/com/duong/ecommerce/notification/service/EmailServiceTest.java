@@ -1,6 +1,6 @@
 package com.duong.ecommerce.notification.service;
 
-import com.duong.ecommerce.notification.enumtype.EmailTemplates;
+import com.duong.ecommerce.notification.entity.enumeration.EmailTemplatesEnum;
 
 import com.duong.ecommerce.notification.payload.event.order.Product;
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ class EmailServiceTest {
         var message = service.buildPaymentSuccessEmail("ada@example.test", "Ada <Test>", new BigDecimal("20.00"), "ORDER-7");
         assertThat(message.senderAddress()).isEqualTo("shop@example.test");
         assertThat(message.receivers()).containsExactly("ada@example.test");
-        assertThat(message.subject()).isEqualTo(EmailTemplates.PAYMENT_CONFIRMATION.getSubject());
+        assertThat(message.subject()).isEqualTo(EmailTemplatesEnum.PAYMENT_CONFIRMATION.getSubject());
         assertThat(message.html()).isTrue();
         assertThat(message.content()).contains("Ada &lt;Test&gt;", "20.00", "ORDER-7")
                 .doesNotContain("${customerName}");
@@ -41,7 +41,7 @@ class EmailServiceTest {
     void rendersOrderProductsInNotification() throws Exception {
         var message = service.buildOrderConfirmationEmail("ada@example.test", "Ada", new BigDecimal("20.00"), "ORDER-7",
                 List.of(new Product(1, "Keyboard", "", new BigDecimal("10.00"), 2)));
-        assertThat(message.subject()).isEqualTo(EmailTemplates.ORDER_CONFIRMATION.getSubject());
+        assertThat(message.subject()).isEqualTo(EmailTemplatesEnum.ORDER_CONFIRMATION.getSubject());
         assertThat(message.content()).contains("Keyboard", "ORDER-7", "20.00");
     }
 

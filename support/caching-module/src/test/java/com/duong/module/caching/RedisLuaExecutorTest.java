@@ -1,7 +1,7 @@
 package com.duong.module.caching;
 
 import com.duong.module.caching.core.CacheKeys;
-import com.duong.module.caching.core.CacheScope;
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
 import com.duong.module.caching.lua.RedisLuaExecutor;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,15 +14,15 @@ class RedisLuaExecutorTest {
     void relatedKeysShareHashTagAndRemainIsolatedByOwnerGroupAndDataFormat() {
         var order = new CacheKeys(CachingModuleTest.defaults(), "order-service");
         var payment = new CacheKeys(CachingModuleTest.defaults(), "payment-service");
-        var first = order.luaKey(CacheScope.SERVICE, "counters", "ORDER-1", "first");
-        var second = order.luaKey(CacheScope.SERVICE, "counters", "ORDER-1", "second");
+        var first = order.luaKey(CacheScopeEnum.SERVICE, "counters", "ORDER-1", "first");
+        var second = order.luaKey(CacheScopeEnum.SERVICE, "counters", "ORDER-1", "second");
         String firstTag = first.substring(first.indexOf('{'), first.indexOf('}') + 1);
         assertThat(second).contains(firstTag).isNotEqualTo(first);
-        assertThat(first).isNotEqualTo(payment.luaKey(CacheScope.SERVICE, "counters", "ORDER-1", "first"))
-                .isNotEqualTo(order.luaKey(CacheScope.SERVICE, "counters", "ORDER-2", "first"))
-                .isNotEqualTo(order.jsonKey(CacheScope.SERVICE, "counters", "first"));
-        assertThat(order.luaKey(CacheScope.GLOBAL, "counters", "ORDER-1", "first"))
-                .isEqualTo(payment.luaKey(CacheScope.GLOBAL, "counters", "ORDER-1", "first"));
+        assertThat(first).isNotEqualTo(payment.luaKey(CacheScopeEnum.SERVICE, "counters", "ORDER-1", "first"))
+                .isNotEqualTo(order.luaKey(CacheScopeEnum.SERVICE, "counters", "ORDER-2", "first"))
+                .isNotEqualTo(order.jsonKey(CacheScopeEnum.SERVICE, "counters", "first"));
+        assertThat(order.luaKey(CacheScopeEnum.GLOBAL, "counters", "ORDER-1", "first"))
+                .isEqualTo(payment.luaKey(CacheScopeEnum.GLOBAL, "counters", "ORDER-1", "first"));
     }
 
     @Test
@@ -32,7 +32,7 @@ class RedisLuaExecutorTest {
         assertThatThrownBy(() -> RedisLuaExecutor.loadScript("redis/missing.lua", Long.class))
                 .isInstanceOf(IllegalArgumentException.class);
         var script = RedisLuaExecutor.loadScript("redis/increment-if-below.lua", Long.class);
-        assertThatThrownBy(() -> executor.execute(script, CacheScope.SERVICE, "counters", "group", List.of(), "1", "5000"))
+        assertThatThrownBy(() -> executor.execute(script, CacheScopeEnum.SERVICE, "counters", "group", List.of(), "1", "5000"))
                 .isInstanceOf(IllegalArgumentException.class);
         verifyNoInteractions(redis);
     }

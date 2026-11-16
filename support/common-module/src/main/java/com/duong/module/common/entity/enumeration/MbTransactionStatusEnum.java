@@ -1,4 +1,4 @@
-package com.duong.module.common.constant;
+package com.duong.module.common.entity.enumeration;
 
 import org.apache.commons.lang3.StringUtils;
 

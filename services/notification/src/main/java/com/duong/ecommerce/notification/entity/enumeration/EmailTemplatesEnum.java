@@ -1,9 +1,9 @@
-package com.duong.ecommerce.notification.enumtype;
+package com.duong.ecommerce.notification.entity.enumeration;
 
 import lombok.Getter;
 
 @Getter
-public enum EmailTemplates {
+public enum EmailTemplatesEnum {
 
     PAYMENT_CONFIRMATION("payment-confirmation.html", "Payment Successfully processed"),
     ORDER_CONFIRMATION("order-confirmation.html", "Order confirmation");
@@ -11,7 +11,7 @@ public enum EmailTemplates {
     private final String template;
     private final String subject;
 
-    EmailTemplates(String template, String subject) {
+    EmailTemplatesEnum(String template, String subject) {
         this.template = template;
         this.subject = subject;
     }

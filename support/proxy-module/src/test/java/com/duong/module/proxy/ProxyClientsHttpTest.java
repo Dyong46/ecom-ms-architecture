@@ -7,7 +7,7 @@ import com.duong.module.proxy.ecom.EcomAuthClient;
 import com.duong.module.proxy.customer.CustomerClient;
 import com.duong.module.proxy.customer.response.CustomerResponse;
 import com.duong.module.proxy.payment.PaymentClient;
-import com.duong.module.proxy.payment.enumtype.PaymentMethod;
+import com.duong.module.proxy.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.module.proxy.payment.request.PaymentRequest;
 import com.duong.module.proxy.product.ProductClient;
 import com.duong.module.proxy.product.request.PurchaseRequest;
@@ -161,7 +161,7 @@ class ProxyClientsHttpTest {
                 .run(ctx -> {
                     assertThat(ctx).hasNotFailed().doesNotHaveBean(EcomAuthClient.class);
                     ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer caller-token",
-                            new PaymentRequest(BigDecimal.TEN, PaymentMethod.PAYPAL, 7, "ORDER-7", null));
+                            new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "ORDER-7", null));
                     assertThat(calls).hasSize(1);
                     assertThat(calls.get(0).authorization()).isEqualTo("Bearer caller-token");
                 });
@@ -176,7 +176,7 @@ class ProxyClientsHttpTest {
             assertThat(products).hasSize(1);
             assertThat(products.get(0).price()).isEqualByComparingTo("10.00");
             assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", new PaymentRequest(
-                    new BigDecimal("20.00"), PaymentMethod.PAYPAL, 7, "ORDER-7", customer)).data()).isEqualTo(42);
+                    new BigDecimal("20.00"), PaymentMethodEnum.PAYPAL, 7, "ORDER-7", customer)).data()).isEqualTo(42);
             for (var call : calls) {
                 switch (call.path()) {
                     case "/internal/products/purchase" -> {
