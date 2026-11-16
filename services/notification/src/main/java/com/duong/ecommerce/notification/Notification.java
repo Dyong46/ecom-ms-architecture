@@ -19,7 +19,22 @@ public class Notification {
     @Id
     private String id;
 
+    // New jobs use eventId as Mongo _id, enforcing uniqueness without a secondary index.
+    private String eventId;
     private NotificationType type;
+    private DeliveryStatus status;
+    private int attemptCount;
+    private java.time.Instant nextRetryAt;
+    private java.time.Instant leaseUntil;
+    private String leaseToken;
+    private java.time.Instant submittedAt;
+    private java.time.Instant lastAttemptAt;
+    private String lastError;
+    private String senderAddress;
+    private String recipient;
+    private String subject;
+    private String content;
+    private boolean html;
 
     private LocalDateTime notificationDate;
 

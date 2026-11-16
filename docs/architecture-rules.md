@@ -20,7 +20,7 @@ not intermediate services.
 
 ## Mandatory rules
 
-1. Independent capability modules (`proxy`, `caching`, `kafka`, `logging`) must not depend
+1. Independent capability modules (`proxy`, `caching`, `kafka`, `logging`, `mail`) must not depend
    on each other or on application modules. Optional and test dependencies do not bypass this rule.
 2. No cross-capability imports, enabling annotations, reflection/bean lookups or configuration
    that implicitly wires another support capability. An interface inside proxy does not make
@@ -51,6 +51,12 @@ refactoring the existing foundation stack is outside this change.
 Any new relationship requires updating this decision with its reason and consumer impact,
 and reviewing the affected module dependencies. Do not silently add an exception.
 Reference folders ending in `-mau` are not production reactor modules.
+
+Notification now composes `mail-module` for SMTP transport and keeps business
+templates, rendering, Kafka handling and failure policy in the service. Mail has
+no dependency on other support capabilities or the foundation stack. See
+[Mail module decision](mail-module-design.md) and
+[Notification delivery decision](notification-delivery.md).
 
 ## OOP, SOLID and proportionate design
 

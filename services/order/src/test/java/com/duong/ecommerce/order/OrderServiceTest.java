@@ -87,6 +87,7 @@ class OrderServiceTest {
 
         var eventCaptor = ArgumentCaptor.forClass(OrderConfirmation.class);
         verify(orderProducer).sendOrderConfirmation(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().eventId()).isNotBlank();
         assertThat(eventCaptor.getValue().totalAmount()).isEqualByComparingTo("25.00");
     }
 

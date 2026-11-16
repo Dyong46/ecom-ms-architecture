@@ -18,6 +18,7 @@ jobs:
           - support/common-module
           - support/web-module
           - support/common-data-model
+          - support/mail-module
           - cloud/config-server
           - cloud/discovery
           - services/customer
@@ -49,6 +50,7 @@ jobs:
             support/common-module/pom.xml
             support/web-module/pom.xml
             support/common-data-model/pom.xml
+            support/mail-module/pom.xml
             ${{ matrix.module }}/pom.xml
 
       - name: Run tests

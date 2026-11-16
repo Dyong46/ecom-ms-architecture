@@ -19,6 +19,7 @@
     <module>caching-module</module>
     <module>proxy-module</module>
     <module>logging-module</module>
+    <module>mail-module</module>
     <module>common-module</module>
     <module>web-module</module>
     <module>common-data-model</module>

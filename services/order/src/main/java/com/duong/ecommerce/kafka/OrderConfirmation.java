@@ -12,6 +12,16 @@ public record OrderConfirmation(
         BigDecimal totalAmount,
         PaymentMethod paymentMethod,
         CustomerResponse customer,
-        List<PurchaseResponse> products
+        List<PurchaseResponse> products,
+        String eventId
 ) {
+    public OrderConfirmation(
+        String orderReference,
+        BigDecimal totalAmount,
+        PaymentMethod paymentMethod,
+        CustomerResponse customer,
+        List<PurchaseResponse> products
+    ) {
+        this(orderReference, totalAmount, paymentMethod, customer, products, java.util.UUID.randomUUID().toString());
+    }
 }

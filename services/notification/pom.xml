@@ -26,6 +26,16 @@
 		<url/>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.duong</groupId>
 			<artifactId>logging-module</artifactId>
@@ -40,8 +50,8 @@
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
+			<groupId>com.duong</groupId>
+			<artifactId>mail-module</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

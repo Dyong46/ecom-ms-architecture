@@ -284,6 +284,7 @@ does not complete a phase. See
 
 ## Documentation
 
+- [Order Creation and Asynchronous Email Flows (Vietnamese)](docs/order-and-notification-flow.md)
 - [Shared Kafka Module](support/kafka-module/README.md)
 
 - [Shared Caching Module (Redis and Memory)](support/caching-module/README.md)

@@ -8,6 +8,7 @@ public record PaymentConfirmation(
         PaymentMethod paymentMethod,
         String customerFirstname,
         String customerLastname,
-        String customerEmail
+        String customerEmail,
+        String eventId
 ) {
 }

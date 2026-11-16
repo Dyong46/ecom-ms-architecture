@@ -15,7 +15,11 @@ spring:
     mongodb:
       uri: mongodb://root:12345@localhost:27017/notification?authSource=admin
   kafka:
+    listener:
+      # Override shared RECORD mode: acknowledge only after the Mongo job is durable.
+      ack-mode: manual_immediate
     consumer:
+      enable-auto-commit: false
       # Historical value is ONE group ID; keep it to preserve committed offsets.
       group-id: ${NOTIFICATION_KAFKA_GROUP_ID:paymentGroup,orderGroup}
       properties:
