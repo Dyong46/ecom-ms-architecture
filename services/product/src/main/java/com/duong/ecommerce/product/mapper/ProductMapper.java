@@ -1,53 +1,35 @@
 package com.duong.ecommerce.product.mapper;
-
-import com.duong.ecommerce.product.entity.Product;
-import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
-import com.duong.ecommerce.product.payload.request.ProductRequest;
-import com.duong.ecommerce.product.payload.response.ProductResponse;
-
-import com.duong.ecommerce.product.category.entity.Category;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import java.util.Objects;
-import org.mapstruct.BeforeMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import com.duong.ecommerce.product.entity.*;
+import com.duong.ecommerce.product.payload.response.*;
+import com.duong.ecommerce.product.integration.search.SkuSearchDocument;
+import com.duong.ecommerce.product.integration.search.SkuAttributeDocument;
+import org.mapstruct.*;
+import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface ProductMapper {
+    @Mapping(target = "skuId", source = "id")
+    @Mapping(target = "spuId", source = "product.id")
+    @Mapping(target = "slug", source = "product.slug")
+    @Mapping(target = "skuTitle", source = "product.name")
+    @Mapping(target = "description", source = "product.description")
+    @Mapping(target = "skuPrice", source = "price")
+    @Mapping(target = "hasStock", expression = "java(variant.getStockQuantity() > 0)")
+    @Mapping(target = "attrs", source = "options")
+    SkuSearchDocument toSearchDocument(ProductVariant variant);
 
-    @Mapping(target = "category", source = "categoryId")
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
-    Product toProduct(@Valid ProductRequest request);
-
-    // Preserve the existing requirement that a response product has a category.
-    @Mapping(target = "categoryId", expression = "java(product.getCategory().getId())")
-    @Mapping(target = "categoryName", expression = "java(product.getCategory().getName())")
-    @Mapping(target = "categoryDescription", expression = "java(product.getCategory().getDescription())")
+    @Mapping(target = "attrId", source = "optionValue.option.id")
+    @Mapping(target = "attrName", source = "optionValue.option.name")
+    @Mapping(target = "attrValueId", source = "optionValue.id")
+    @Mapping(target = "attrValue", source = "optionValue.value")
+    SkuAttributeDocument toSearchAttribute(ProductVariantOptionValue selection);
     ProductResponse toProductResponse(Product product);
-
-    @Mapping(target = "productId", source = "product.id")
-    @Mapping(target = "quantity", source = "quantity")
-    ProductPurchaseResponse toProductPurchaseResponse(
-            Product product, @NotNull(message = "Quantity is mandatory") double quantity);
-
-    default Category toCategory(Integer categoryId) {
-        // Even a null ID previously produced a category reference, rather than null.
-        return Category.builder().id(categoryId).build();
-    }
-
-    @BeforeMapping
-    default void requireRequest(ProductRequest request) {
-        Objects.requireNonNull(request, "request");
-    }
-
-    @BeforeMapping
-    default void requireProduct(Product product) {
-        Objects.requireNonNull(product, "product");
-    }
+    VariantResponse toVariantResponse(ProductVariant variant);
+    @Mapping(target = "optionId", source = "optionValue.option.id")
+    @Mapping(target = "optionName", source = "optionValue.option.name")
+    @Mapping(target = "optionValueId", source = "optionValue.id")
+    @Mapping(target = "value", source = "optionValue.value")
+    VariantOptionResponse toVariantOptionResponse(ProductVariantOptionValue selection);
+    OptionResponse toOptionResponse(Option option);
+    OptionValueResponse toOptionValueResponse(OptionValue value);
 }

@@ -40,7 +40,7 @@ class EmailServiceTest {
     @Test
     void rendersOrderProductsInNotification() throws Exception {
         var message = service.buildOrderConfirmationEmail("ada@example.test", "Ada", new BigDecimal("20.00"), "ORDER-7",
-                List.of(new Product(1, "Keyboard", "", new BigDecimal("10.00"), 2)));
+                List.of(new Product("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), new BigDecimal("10.00"), 2)));
         assertThat(message.subject()).isEqualTo(EmailTemplatesEnum.ORDER_CONFIRMATION.getSubject());
         assertThat(message.content()).contains("Keyboard", "ORDER-7", "20.00");
     }

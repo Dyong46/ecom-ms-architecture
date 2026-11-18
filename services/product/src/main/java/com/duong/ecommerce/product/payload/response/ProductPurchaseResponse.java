@@ -1,12 +1,5 @@
 package com.duong.ecommerce.product.payload.response;
-
 import java.math.BigDecimal;
-
-public record ProductPurchaseResponse(
-        Integer productId,
-        String name,
-        String description,
-        BigDecimal price,
-        double quantity
-) {
-}
+import java.util.Map;
+public record ProductPurchaseResponse(String productId, String skuId, String sku,
+        String name, String description, Map<String, String> options, BigDecimal price, int quantity) { }

@@ -80,6 +80,19 @@ no dependency on other support capabilities or the foundation stack. See
 [Mail module decision](mail-module-design.md) and
 [Notification delivery decision](notification-delivery.md).
 
+Product search uses Elasticsearch directly inside Product, with one document per
+SKU and results grouped by SPU. After-commit updates include SKU/stock changes and
+option cascade deletion; explicit reindex remains the recovery mechanism. The owner selected
+this simpler scope in place of the earlier shared-module/outbox direction. No new
+support module or Kafka dependency is introduced for search. See
+[Product search design](product-search-design.md) for behavior and accepted limitations.
+
+Product now owns the five-table SPU/SKU catalog with UUID strings, hard cascade
+deletion and service-level variant validation. Purchases use SKU IDs and integer
+quantities; Order stores immutable purchase snapshots. See
+[Product catalog decision](product-catalog-design.md) for the accepted clean-data
+baseline, contracts and deletion trade-offs.
+
 ## OOP, SOLID and proportionate design
 
 Top-level enums use the `Enum` suffix and live under `entity.enumeration` within

@@ -52,7 +52,7 @@ class NotificationKafkaContractTest {
                         var order = deserializer.deserialize("order-topic", orderHeaders, """
                                 {"eventId":"order-event-1","orderReference":"ORDER-1","totalAmount":100,"paymentMethod":"PAYPAL",
                                  "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"},
-                                 "products":[{"productId":1,"name":"Keyboard","description":"","price":50,"quantity":2}]}
+                                 "products":[{"productId":"00000000-0000-4000-8000-000000000065","skuId":"00000000-0000-4000-8000-000000000001","sku":"SKU-1","options":{},"name":"Keyboard","description":"","price":50,"quantity":2}]}
                                 """.getBytes(StandardCharsets.UTF_8));
                         assertThat(order).isInstanceOf(OrderConfirmation.class);
                         assertThat(((OrderConfirmation) order).eventId()).isEqualTo("order-event-1");

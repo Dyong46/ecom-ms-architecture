@@ -1,30 +1,9 @@
 package com.duong.ecommerce.product.payload.request;
-
-import com.duong.ecommerce.product.category.entity.Category;
-import com.duong.ecommerce.product.entity.Product;
-
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-
-import java.math.BigDecimal;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.util.List;
 public record ProductRequest(
-        Integer id,
-
-        @NotNull(message = "Product name is required")
-        String name,
-
-        @NotNull(message = "Product description is required")
+        @NotBlank @Size(max = 255) String name,
+        @NotBlank @Size(max = 255) String slug,
         String description,
-
-        @Positive(message = "Available quantity should be positive")
-        double availableQuantity,
-
-        @Positive(message = "Price should be positive")
-        BigDecimal price,
-
-        @NotNull(message = "Category id is required")
-        Integer categoryId
-) {
-
-}
+        @NotNull List<@NotNull @Valid VariantRequest> variants) { }

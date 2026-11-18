@@ -2,6 +2,16 @@ server:
   port: 8050
 
 spring:
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+    connection-timeout: 2s
+    socket-timeout: 5s
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/product
     username: product_user

@@ -67,7 +67,7 @@ class OrderServiceTest {
                 "ORDER-001",
                 PaymentMethodEnum.CREDIT_CARD,
                 "customer-1",
-                List.of(new PurchaseRequest(1, 2), new PurchaseRequest(2, 1))
+                List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2), new PurchaseRequest("00000000-0000-4000-8000-000000000002", 1))
         );
         var customer = new CustomerResponse(
                 "customer-1", "Ada", "Lovelace", "ada@example.com"
@@ -75,8 +75,8 @@ class OrderServiceTest {
 
         when(customerClient.findCustomerById("customer-1")).thenReturn(Optional.of(customer).map(value -> new ServiceResponse<>(value, null)));
         when(productClient.purchaseResponses(request.products())).thenReturn(new ServiceResponse<>(List.of(
-                new PurchaseResponse(1, "Keyboard", "", new BigDecimal("10.00"), 2),
-                new PurchaseResponse(2, "Mouse", "", new BigDecimal("5.00"), 1)
+                new PurchaseResponse("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), new BigDecimal("10.00"), 2),
+                new PurchaseResponse("00000000-0000-4000-8000-000000000066", "00000000-0000-4000-8000-000000000002", "SKU-2", "Mouse", "", java.util.Map.of(), new BigDecimal("5.00"), 1)
         ), null));
         when(repository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
@@ -88,6 +88,11 @@ class OrderServiceTest {
 
         var paymentCaptor = ArgumentCaptor.forClass(PaymentRequest.class);
         verify(paymentClient).requestOrderPayment(paymentCaptor.capture());
+        var lineCaptor = ArgumentCaptor.forClass(com.duong.ecommerce.order.orderline.payload.request.OrderLineRequest.class);
+        org.mockito.Mockito.verify(orderLineService, org.mockito.Mockito.times(2)).saveOrderLine(lineCaptor.capture());
+        assertThat(lineCaptor.getAllValues().get(0).skuId()).isEqualTo(request.products().get(0).skuId());
+        assertThat(lineCaptor.getAllValues().get(0).sku()).isEqualTo("SKU-1");
+        assertThat(lineCaptor.getAllValues().get(0).unitPrice()).isEqualByComparingTo("10.00");
         assertThat(paymentCaptor.getValue().amount()).isEqualByComparingTo("25.00");
         assertThat(paymentCaptor.getValue().paymentMethod().name()).isEqualTo(request.paymentMethod().name());
 
@@ -105,7 +110,7 @@ class OrderServiceTest {
                 "ORDER-002",
                 PaymentMethodEnum.CREDIT_CARD,
                 "customer-1",
-                List.of(new PurchaseRequest(1, 1))
+                List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 1))
         );
         when(customerClient.findCustomerById("customer-1")).thenReturn(Optional.of(
                 new CustomerResponse("customer-1", "Ada", "Lovelace", "ada@example.com")
@@ -122,10 +127,10 @@ class OrderServiceTest {
 
     private static List<PurchaseResponse> invalidPricingResponses() {
         return List.of(
-                new PurchaseResponse(1, "Keyboard", "", null, 1),
-                new PurchaseResponse(1, "Keyboard", "", new BigDecimal("-0.01"), 1),
-                new PurchaseResponse(1, "Keyboard", "", BigDecimal.TEN, 0),
-                new PurchaseResponse(1, "Keyboard", "", BigDecimal.TEN, -1)
+                new PurchaseResponse("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), null, 1),
+                new PurchaseResponse("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), new BigDecimal("-0.01"), 1),
+                new PurchaseResponse("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), BigDecimal.TEN, 0),
+                new PurchaseResponse("00000000-0000-4000-8000-000000000065", "00000000-0000-4000-8000-000000000001", "SKU-1", "Keyboard", "", java.util.Map.of(), BigDecimal.TEN, -1)
         );
     }
 }

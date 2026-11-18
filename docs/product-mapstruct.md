@@ -1,5 +1,8 @@
 # Product mapping decision
 
+Historical decision: Product fields and mapping described here are superseded by
+the accepted [SPU/SKU UUID catalog](product-catalog-design.md). MapStruct remains in use.
+
 Status: Accepted. Date: 2026-11-15. Decision owner: project owner.
 
 The owner selected Product as the first service to migrate from manual mapping to

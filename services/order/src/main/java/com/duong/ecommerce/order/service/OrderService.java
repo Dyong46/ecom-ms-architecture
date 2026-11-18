@@ -54,19 +54,24 @@ public class OrderService {
         var purchaseResponse = this.productClient.purchaseResponses(request.products());
         var purchaseProduct = purchaseResponse == null ? null : purchaseResponse.data();
         var totalAmount = calculateTotalAmount(purchaseProduct);
+        var requestedSkus = request.products().stream().collect(java.util.stream.Collectors.toMap(
+                PurchaseRequest::skuId, PurchaseRequest::quantity));
+        if (purchaseProduct.size() != requestedSkus.size()
+                || purchaseProduct.stream().map(com.duong.module.proxy.product.response.PurchaseResponse::skuId)
+                        .distinct().count() != purchaseProduct.size()
+                || purchaseProduct.stream().anyMatch(p -> p.skuId() == null || p.productId() == null
+                        || p.sku() == null || p.name() == null || p.options() == null
+                        || !java.util.Objects.equals(requestedSkus.get(p.skuId()), p.quantity()))) {
+            throw new BusinessException("Cannot create order:: Product service returned mismatched SKUs");
+        }
 
         var order = this.repository.save(mapper.toOrder(request, totalAmount));
 
         // persist order
-        for (PurchaseRequest purchaseRequest: request.products()) {
-            orderLineService.saveOrderLine(
-                    new OrderLineRequest(
-                            null,
-                            order.getId(),
-                            purchaseRequest.productId(),
-                            purchaseRequest.quantity()
-                    )
-            );
+        for (var purchased : purchaseProduct) {
+            orderLineService.saveOrderLine(new OrderLineRequest(null, order.getId(),
+                    purchased.productId(), purchased.skuId(), purchased.sku(), purchased.name(),
+                    java.util.Map.copyOf(purchased.options()), purchased.price(), purchased.quantity()));
         }
         // start payment process
         var paymentRequest = new PaymentRequest(

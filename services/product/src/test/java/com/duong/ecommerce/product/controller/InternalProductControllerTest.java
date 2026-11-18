@@ -36,16 +36,24 @@ class InternalProductControllerTest {
     void internalPurchaseAcceptsArrayWithoutUserTokenOrCsrfAndCallsExistingService() throws Exception {
         when(service.purchaseProducts(anyList())).thenReturn(List.of());
         mvc.perform(post("/internal/products/purchase").contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"productId\":1,\"quantity\":2}]"))
+                        .content("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":2}]"))
                 .andExpect(status().isOk());
-        verify(service).purchaseProducts(List.of(new ProductPurchaseRequest(1, 2)));
+        verify(service).purchaseProducts(List.of(new ProductPurchaseRequest("00000000-0000-4000-8000-000000000001", 2)));
         verifyNoInteractions(jwtDecoder);
     }
 
     @Test
     void internalPurchaseStillValidatesQuantity() throws Exception {
         mvc.perform(post("/internal/products/purchase").contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"productId\":1,\"quantity\":0}]"))
+                        .content("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":0}]"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void rejectsFractionalQuantity() throws Exception {
+        mvc.perform(post("/internal/products/purchase").contentType(MediaType.APPLICATION_JSON)
+                .content("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":1.5}]"))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(service);
     }
@@ -53,7 +61,7 @@ class InternalProductControllerTest {
     @Test
     void publicPurchaseIsNotOpenedByTheInternalRule() throws Exception {
         mvc.perform(post("/api/v1/products/purchase").contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"productId\":1,\"quantity\":2}]"))
+                        .content("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":2}]"))
                 .andExpect(status().is4xxClientError());
         verifyNoInteractions(service);
     }

@@ -1,15 +1,5 @@
 package com.duong.ecommerce.product.payload.response;
-
-import java.math.BigDecimal;
-
-public record ProductResponse(
-        Integer id,
-        String name,
-        String description,
-        double availableQuantity,
-        BigDecimal price,
-        Integer categoryId,
-        String categoryName,
-        String categoryDescription
-) {
-}
+import java.time.LocalDateTime;
+import java.util.List;
+public record ProductResponse(String id, String name, String slug, String description,
+        LocalDateTime createdAt, LocalDateTime updatedAt, List<VariantResponse> variants) { }

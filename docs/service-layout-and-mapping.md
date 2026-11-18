@@ -40,7 +40,8 @@ Notification không có controller nghiệp vụ nên không tạo controller r�
 - **Customer:** giữ cấu trúc đã có và mapper MapStruct hiện tại.
 - **Product:** chuyển DTO vào `payload/request`, `payload/response`; đưa cấu hình,
   exception và application class vào package gốc `product`. Category nằm trong
-  `product/category/entity`.
+  `product/category/entity` trong phiên bản cũ; model SPU/SKU hiện tại được mô tả
+  trong [Product catalog](product-catalog-design.md).
 - **Order:** chia Order theo các chức năng trên. OrderLine được nhóm dưới
   `order/orderline`, tiếp tục chia `controller/service/repository/entity/mapper`
   và `payload/request`, `payload/response`. OAuth và lời gọi HTTP vẫn thuộc Order.
@@ -96,7 +97,7 @@ dụng thư viện cần cập nhật import và tên kiểu mới khi nâng phi
 | Mapper | Trách nhiệm và hành vi được giữ |
 | --- | --- |
 | `CustomerMapper` | Request/entity/response; giữ quy tắc null và tham chiếu Address |
-| `ProductMapper` | Request/entity/response/purchase response; tạo category reference, giữ audit và quy tắc null |
+| `ProductMapper` | SPU/SKU/option entities sang response DTO và search document theo [Product catalog](product-catalog-design.md) |
 | `OrderMapper` | Nhận tổng tiền đã tính; map `totalAmount` thành `amount` trong response; không gán audit hoặc order lines |
 | `OrderLineMapper` | Map `orderId` thành Order reference, kể cả ID null; giữ product ID và số lượng |
 | `PaymentMapper` | Request/entity/response; không gán audit khi tạo; giữ tên component `Id` hiện có trong response |
@@ -169,3 +170,6 @@ Xem thêm [quy tắc kiến trúc](architecture-rules.md),
 [luồng tạo đơn và gửi email](order-and-notification-flow.md),
 [thiết kế giao nhận Notification](notification-delivery.md) và
 [quyết định MapStruct ban đầu](product-mapstruct.md).
+
+Cập nhật SPU/SKU ngày 2026-11-18 thay thế Category và các mapper Product cũ;
+OrderLine hiện lưu snapshot mua hàng. Xem [quyết định catalog](product-catalog-design.md).

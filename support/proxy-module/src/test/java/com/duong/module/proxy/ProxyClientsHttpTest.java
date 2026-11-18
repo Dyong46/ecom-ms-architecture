@@ -85,7 +85,7 @@ class ProxyClientsHttpTest {
                 }
                 case "/internal/products/purchase" -> {
                     status = productStatus;
-                    body = status == 200 ? "[{\"productId\":1,\"name\":\"Keyboard\",\"description\":\"\",\"price\":10.00,\"quantity\":2}]"
+                    body = status == 200 ? "[{\"productId\":\"00000000-0000-4000-8000-000000000065\",\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"sku\":\"SKU-1\",\"options\":{},\"name\":\"Keyboard\",\"description\":\"\",\"price\":10.00,\"quantity\":2}]"
                             : "{\"detail\":\"upstream failure\"}";
                     if (status == 503) { exchange.getResponseHeaders().set("Retry-After", "0"); }
                     if (status == 302) { exchange.getResponseHeaders().set("Location", "/unexpected-redirect"); }
@@ -172,7 +172,7 @@ class ProxyClientsHttpTest {
         allClients().run(ctx -> {
             assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class);
             var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow().data();
-            var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2))).data();
+            var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))).data();
             assertThat(products).hasSize(1);
             assertThat(products.get(0).price()).isEqualByComparingTo("10.00");
             assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", new PaymentRequest(
@@ -182,7 +182,7 @@ class ProxyClientsHttpTest {
                     case "/internal/products/purchase" -> {
                         assertThat(call.method()).isEqualTo("POST");
                         assertThat(call.authorization()).isNull();
-                        assertThat(mapper.readTree(call.body())).isEqualTo(mapper.readTree("[{\"productId\":1,\"quantity\":2.0}]"));
+                        assertThat(mapper.readTree(call.body())).isEqualTo(mapper.readTree("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":2}]"));
                     }
                     case "/internal/customers/c1" -> assertThat(call.authorization()).isNull();
                     case "/internal/payments" -> assertThat(call.authorization()).isEqualTo("Bearer service-token");
@@ -201,7 +201,7 @@ class ProxyClientsHttpTest {
     void exposesUpstreamStatusAndDoesNotRetryPurchaseEvenWithRetryAfter() {
         productStatus = 503;
         allClients().run(ctx -> {
-            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2))))
+            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
                     .isInstanceOf(FeignException.class)
                     .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(503));
             assertThat(calls.stream().filter(c -> c.path().equals("/internal/products/purchase"))).hasSize(1);
@@ -238,7 +238,7 @@ class ProxyClientsHttpTest {
     void doesNotFollowInternalPurchaseRedirects() {
         productStatus = 302;
         allClients().run(ctx -> {
-            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest(1, 2))))
+            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
                     .isInstanceOf(FeignException.class)
                     .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(302));
             assertThat(calls.stream().map(Call::path)).containsExactly("/internal/products/purchase");

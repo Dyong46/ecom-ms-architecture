@@ -1,37 +1,30 @@
 package com.duong.ecommerce.product.entity;
 
-import com.duong.module.data.model.entity.BaseEntity;
-
-import com.duong.ecommerce.product.category.entity.Category;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.math.BigDecimal;
-
-@AllArgsConstructor
-@NoArgsConstructor
-@lombok.experimental.SuperBuilder
-@Getter
-@Setter
 @Entity
-@org.hibernate.annotations.SQLDelete(sql = "UPDATE product SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-@org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
-public class Product extends BaseEntity<Integer> {
-
-    @Id
-    @GeneratedValue
-    private Integer id;
-
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Product {
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36, updatable = false)
+    private String id;
+    @Column(nullable = false, length = 255)
     private String name;
-
+    @Column(nullable = false, unique = true, length = 255)
+    private String slug;
+    @Column(columnDefinition = "text")
     private String description;
-
-    private double availableQuantity;
-
-    private BigDecimal price;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"products", "hibernateLazyInitializer", "handler"})
-    private Category category;
+    @CreationTimestamp @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @UpdateTimestamp @Column(nullable = false)
+    private LocalDateTime updatedAt;
+    @Builder.Default
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants = new ArrayList<>();
 }

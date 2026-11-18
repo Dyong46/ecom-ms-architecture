@@ -1,12 +1,5 @@
 package com.duong.module.proxy.product.response;
-
 import java.math.BigDecimal;
-
-public record PurchaseResponse(
-    Integer productId,
-    String name,
-    String description,
-    BigDecimal price,
-    double quantity
-) {
-}
+import java.util.Map;
+public record PurchaseResponse(String productId, String skuId, String sku,
+        String name, String description, Map<String, String> options, BigDecimal price, int quantity) { }

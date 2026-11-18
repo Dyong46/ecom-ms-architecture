@@ -1,6 +1,7 @@
 package com.duong.ecommerce.product.controller;
 
 import com.duong.ecommerce.product.entity.Product;
+import com.duong.ecommerce.product.payload.response.ProductResponse;
 import com.duong.ecommerce.product.mapper.ProductMapper;
 import com.duong.ecommerce.product.repository.ProductRepository;
 import com.duong.ecommerce.product.service.ProductService;
@@ -33,6 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductPaginationTest {
     @Mock private ProductRepository repository;
     @Mock private ProductMapper mapper;
+    @Mock private com.duong.ecommerce.product.repository.ProductVariantRepository variants;
+    @Mock private com.duong.ecommerce.product.repository.OptionValueRepository values;
+    @Mock private org.springframework.context.ApplicationEventPublisher events;
     @InjectMocks private ProductService actualService;
 
     private ProductService service;
@@ -67,7 +71,7 @@ class ProductPaginationTest {
     void returnsRequestedPageAndMetadata() throws Exception {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
-                List.of(Product.builder().id(1).name("Keyboard").build()), pageable, 45));
+                List.of(new ProductResponse("00000000-0000-4000-8000-000000000001", "Keyboard", "keyboard", null, null, null, List.of())), pageable, 45));
 
         mvc.perform(get("/api/v1/products").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -109,9 +113,11 @@ class ProductPaginationTest {
         var entity = mock(Product.class);
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity), pageable, 45));
 
+        var response = new ProductResponse("00000000-0000-4000-8000-000000000001", "Keyboard", "keyboard", null, null, null, List.of());
+        when(mapper.toProductResponse(entity)).thenReturn(response);
         var result = actualService.findAll(pageable);
 
-        assertThat(result.getContent()).containsExactly(entity);
+        assertThat(result.getContent()).containsExactly(response);
         assertThat(result.getTotalElements()).isEqualTo(45);
         assertThat(result.getPageable()).isEqualTo(pageable);
         verify(repository).findAll(pageable);

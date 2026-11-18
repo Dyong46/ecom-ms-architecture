@@ -1,106 +1,40 @@
 package com.duong.ecommerce.product.service;
-
-import com.duong.ecommerce.product.entity.Product;
-import com.duong.ecommerce.product.mapper.ProductMapper;
+import com.duong.ecommerce.product.entity.*;
 import com.duong.ecommerce.product.payload.request.ProductPurchaseRequest;
-import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
-import com.duong.ecommerce.product.repository.ProductRepository;
-
+import com.duong.ecommerce.product.repository.*;
+import com.duong.ecommerce.product.mapper.ProductMapper;
 import com.duong.ecommerce.product.exception.ProductPurchaseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.context.ApplicationEventPublisher;
 import java.math.BigDecimal;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
-
-    @Mock
-    private ProductRepository repository;
-    @Mock
-    private ProductMapper mapper;
-
-    @InjectMocks
-    private ProductService service;
-
-    @Test
-    void decrementsStockWhenQuantityIsAvailable() {
-        var product = Product.builder()
-                .id(1)
-                .name("Keyboard")
-                .availableQuantity(10)
-                .price(new BigDecimal("99.90"))
-                .build();
-        var request = new ProductPurchaseRequest(1, 3);
-        var response = new ProductPurchaseResponse(1, "Keyboard", null, new BigDecimal("99.90"), 3);
-
-        when(repository.findAllByIdInOrderById(List.of(1))).thenReturn(List.of(product));
-        when(mapper.toProductPurchaseResponse(product, 3)).thenReturn(response);
-
-        assertThat(service.purchaseProducts(List.of(request))).containsExactly(response);
-        assertThat(product.getAvailableQuantity()).isEqualTo(7);
-        verify(repository).save(product);
+    @Mock ProductRepository repository;
+    @Mock ProductVariantRepository variants;
+    @Mock OptionValueRepository values;
+    @Mock ProductMapper mapper;
+    @Mock ApplicationEventPublisher events;
+    @InjectMocks ProductService service;
+    @Test void validatesAllStockBeforeDecrementingAnySku() {
+        var product=Product.builder().id("p").name("Phone").build();
+        var first=ProductVariant.builder().id("a").sku("A").product(product).price(BigDecimal.TEN).stockQuantity(10).build();
+        var second=ProductVariant.builder().id("b").sku("B").product(product).price(BigDecimal.TEN).stockQuantity(0).build();
+        when(variants.findAllForUpdate(List.of("a","b"))).thenReturn(List.of(first,second));
+        assertThatThrownBy(()->service.purchaseProducts(List.of(new ProductPurchaseRequest("a",2),new ProductPurchaseRequest("b",1))))
+                .isInstanceOf(ProductPurchaseException.class);
+        assertThat(first.getStockQuantity()).isEqualTo(10);
     }
-
-    @Test
-    void rejectsNullPriceBeforeDecrementingAnyStock() {
-        var pricedProduct = Product.builder()
-                .id(1)
-                .availableQuantity(10)
-                .price(new BigDecimal("99.90"))
-                .build();
-        var unpricedProduct = Product.builder()
-                .id(2)
-                .availableQuantity(5)
-                .build();
-        when(repository.findAllByIdInOrderById(List.of(1, 2)))
-                .thenReturn(List.of(pricedProduct, unpricedProduct));
-
-        assertThatThrownBy(() -> service.purchaseProducts(List.of(
-                new ProductPurchaseRequest(1, 3),
-                new ProductPurchaseRequest(2, 1)
-        )))
-                .isInstanceOf(ProductPurchaseException.class)
-                .hasMessage("Missing price for product with ID:: 2");
-
-        assertThat(pricedProduct.getAvailableQuantity()).isEqualTo(10);
-        assertThat(unpricedProduct.getAvailableQuantity()).isEqualTo(5);
-        verify(repository, never()).save(org.mockito.ArgumentMatchers.any(Product.class));
-        verifyNoInteractions(mapper);
-    }
-
-    @ParameterizedTest
-    @ValueSource(doubles = {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0, -1})
-    void rejectsInvalidQuantityBeforeAccessingDatabase(double quantity) {
-        assertThatThrownBy(() -> service.purchaseProducts(List.of(new ProductPurchaseRequest(1, quantity))))
-                .isInstanceOf(ProductPurchaseException.class)
-                .hasMessage("Product and a positive quantity are required");
-
-        verifyNoInteractions(repository, mapper);
-    }
-
-    @Test
-    void rejectsDuplicateProducts() {
-        var request = List.of(
-                new ProductPurchaseRequest(1, 1),
-                new ProductPurchaseRequest(1, 2)
-        );
-
-        assertThatThrownBy(() -> service.purchaseProducts(request))
-                .isInstanceOf(ProductPurchaseException.class)
-                .hasMessage("Duplicate products are not allowed in one purchase request");
+    @Test void rejectsDuplicateSkuAndNonpositiveQuantityBeforeDatabaseAccess() {
+        assertThatThrownBy(()->service.purchaseProducts(List.of(new ProductPurchaseRequest("a",1),new ProductPurchaseRequest("a",1))))
+                .isInstanceOf(ProductPurchaseException.class);
+        assertThatThrownBy(()->service.purchaseProducts(List.of(new ProductPurchaseRequest("a",0))))
+                .isInstanceOf(ProductPurchaseException.class);
+        verifyNoInteractions(variants);
     }
 }

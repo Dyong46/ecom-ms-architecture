@@ -70,7 +70,10 @@
         </thead>
         <tbody>
         <tr th:each="product : ${products}">
-            <td th:text="${product.name}"></td>
+            <td><span th:text="${product.name}"></span>
+                <small th:text="${product.sku}"></small>
+                <span th:each="selection : ${product.options}" th:text="${selection.key + ': ' + selection.value}"></span>
+            </td>
             <td th:text="${product.quantity}"></td>
             <td th:text="${product.price}"></td>
         </tr>
