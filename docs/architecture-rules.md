@@ -1,6 +1,6 @@
 # Architecture rules: module boundaries and design decisions
 
-Status: Accepted. Date: 2026-11-15. Decision owner: project owner.
+Status: Accepted. Date: 2026-11-15. Updated: 2026-11-18. Decision owner: project owner.
 
 ## Ownership and dependency direction
 
@@ -18,17 +18,34 @@ Order service
 The runtime calls all execute inside the consuming service. Support modules are libraries,
 not intermediate services.
 
+Dependencies are evaluated by module responsibility and architectural direction. There is
+no blanket prohibition on one support module depending on another.
+
+| Module role | Responsibility | Dependency guidance |
+| --- | --- | --- |
+| Business service | Product, Order, Customer and their application workflows | May compose support modules and shared contracts |
+| Infrastructure module | HTTP, Kafka, Redis, Elasticsearch and other technical capabilities | May use libraries, abstractions and other support modules when justified by its technical responsibility; must not depend on application modules |
+| Shared contract/API | DTOs, interfaces and event contracts | Keep dependencies minimal; must not depend on application implementations |
+| Common utilities | General exceptions and helpers | Must not depend on business or infrastructure modules |
+
+For example, `product-service → elasticsearch-module` and `product-service → kafka-module`
+fit these roles. `elasticsearch-module → kafka-module` is not automatically wrong: it needs
+a concrete reusable technical purpose and an explicit assessment of direction, coupling and
+consumer impact. Product-specific event handling and indexing orchestration belong in
+Product. `kafka-module → product-service` reverses the allowed direction.
+
 ## Mandatory rules
 
-1. Independent capability modules (`proxy`, `caching`, `kafka`, `logging`, `mail`) must not depend
-   on each other or on application modules. Optional and test dependencies do not bypass this rule.
-2. No cross-capability imports, enabling annotations, reflection/bean lookups or configuration
-   that implicitly wires another support capability. An interface inside proxy does not make
-   a Redis implementation inside proxy independent of caching.
-3. Proxy owns HTTP contracts, serialization and transport settings. Its OAuth client only
+1. Module dependencies must follow the responsibilities and direction described above, avoid
+   cycles and have a clear purpose. Support-to-support dependencies are allowed when justified;
+   infrastructure and shared modules must not depend on application modules.
+2. Review direct, transitive, optional and test dependencies, imports, enabling annotations,
+   reflection/bean lookups and configuration against the same rules. An interface or runtime
+   lookup does not remove the actual dependency. Wiring other modules must be explicit.
+3. In the current proxy/caching design, proxy owns HTTP contracts, serialization and transport settings. Its OAuth client only
    performs the requested HTTP exchange. PaymentClient receives Authorization explicitly.
    It must not fetch/cache tokens, read Redis or decide which identity an application uses.
-4. Caching owns storage, serialization, namespaces, TTL and reusable expiry validation.
+4. In that design, caching owns storage, serialization, namespaces, TTL and reusable expiry validation.
    It must not call OAuth/HTTP, attach headers or decide application fallback behavior.
 5. A consuming service owns cache-aside flow, token identity, cache-miss handling, refresh,
    fallback, outbound credential choice, business retry/idempotency and transaction boundaries.
@@ -40,16 +57,21 @@ not intermediate services.
 8. A new shared workflow needs an explicit architecture decision and a separate abstraction
    justified by actual consumers. Do not move it into an unrelated capability to reduce duplication.
 
+Rules 3–5 record the current proxy/caching and service ownership decisions. They do not
+establish a general ban on support-to-support dependencies. Changes to those decisions
+follow the decision process below.
+
 ## Existing foundation dependencies
 
 The repository already has `web-module → common-module` and
 `common-data-model → web-module/common-module` (including a transitive common dependency).
-These are recorded legacy foundation relationships, not a claim that every support module is
-already fully independent. This change fixes proxy/caching and prevents new relationships;
-refactoring the existing foundation stack is outside this change.
+These are recorded legacy foundation relationships to preserve within this scope. They do
+not imply a ban on new support relationships; each new dependency is evaluated by role,
+direction and purpose. Refactoring the existing foundation stack is outside this change.
 
-Any new relationship requires updating this decision with its reason and consumer impact,
-and reviewing the affected module dependencies. Do not silently add an exception.
+Any new relationship requires a relevant design decision recording its reason, direction,
+coupling and consumer impact, and a review of the affected module dependencies. Follow the
+owner-choice process below rather than silently adding a relationship.
 Reference folders ending in `-mau` are not production reactor modules.
 
 Notification now composes `mail-module` for SMTP transport and keeps business
@@ -87,8 +109,9 @@ pattern to every feature:
   simpler approach is insufficient and what maintenance cost it adds. Pattern names alone
   do not justify a design. Do not copy a reference project's architecture without checking
   this project's requirements and constraints.
-- Removing duplication must not move business policy out of its service or reconnect
-  independent support capabilities. Some small duplication is an acceptable trade-off.
+- Removing duplication must not move business policy out of its service or introduce
+  dependencies without a justified technical responsibility and valid architectural direction.
+  Some small duplication is an acceptable trade-off.
 
 ## Clarification and owner choice before implementation
 
@@ -130,6 +153,13 @@ were sent. Keep data-mutating tests isolated from live services.
 ## Decision and trade-offs
 
 Previously proxy composed Redis caching and OAuth token acquisition. That reduced application
-code but coupled independent capabilities and hid policy in a transport library. Composition
-now belongs to Order. Other services may need a small equivalent composition layer. That cost
-keeps infrastructure modules reusable and makes each service's policy visible and testable.
+code but hid application policy in a transport library. The accepted design places this
+composition in Order. Other services may need a small equivalent composition layer. That
+cost keeps the current infrastructure modules reusable and makes each service's policy
+visible and testable.
+
+The 2026-11-18 revision replaces the blanket ban on dependencies between support capabilities
+with responsibility- and direction-based review, as requested by the project owner. This
+allows justified reusable infrastructure dependencies while retaining explicit ownership,
+acyclic dependencies and review of coupling and consumer impact. It does not by itself
+change the current proxy/caching implementation or authorize a new concrete dependency.
