@@ -246,6 +246,31 @@ Mỗi service đã được triển khai có Maven Wrapper và có thể đượ
 Các secret theo môi trường, chẳng hạn OAuth2 client secret, phải được cung cấp từ môi
 trường local và không được commit vào repository.
 
+### Mở Swagger UI của các service
+
+Sau khi chạy Config Server và Discovery, chạy API Gateway với profile `local`.
+Từ thư mục gốc repo, build Gateway cùng các module mà nó dùng rồi chạy JAR.
+
+```sh
+./cloud/api-gateway/mvnw -pl cloud/api-gateway -am -DskipTests package
+java -jar cloud/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=local
+```
+
+Nếu chạy Gateway từ IDE, chọn profile `local` cho cấu hình chạy ứng dụng.
+Mở trang tương ứng với API muốn thử.
+
+| Service | Swagger UI | File OpenAPI |
+| --- | --- | --- |
+| Product | [`/docs/product`](http://localhost:8222/docs/product) | [openapi.yaml](openapi.yaml) |
+| Customer | [`/docs/customer`](http://localhost:8222/docs/customer) | [customer.yaml](docs/openapi/customer.yaml) |
+| Order và Order Line | [`/docs/order`](http://localhost:8222/docs/order) | [order.yaml](docs/openapi/order.yaml) |
+| Payment | [`/docs/payment`](http://localhost:8222/docs/payment) | [payment.yaml](docs/openapi/payment.yaml) |
+
+**Try it out** gửi request qua Gateway. Với API có biểu tượng khóa, bấm
+**Authorize** và dán access token Keycloak. Để thử search public của Product,
+chạy Product và Elasticsearch bằng profile Compose `search`. Xem
+[hướng dẫn nạp catalog mẫu](scripts/README.md#nạp-qua-api).
+
 ## Testing và Continuous Integration
 
 Repository có unit test, web-layer test, application-context test và PostgreSQL

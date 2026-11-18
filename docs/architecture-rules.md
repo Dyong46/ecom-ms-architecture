@@ -93,6 +93,14 @@ quantities; Order stores immutable purchase snapshots. See
 [Product catalog decision](product-catalog-design.md) for the accepted clean-data
 baseline, contracts and deletion trade-offs.
 
+The Gateway serves Swagger UI and handwritten OpenAPI contracts for
+[Product](../openapi.yaml), [Customer](openapi/customer.yaml),
+[Order](openapi/order.yaml) and [Payment](openapi/payment.yaml) under
+`/docs/{service}` in its `local` profile. Each contract describes client
+routes and their authentication at the edge. The Gateway uses a Swagger UI
+WebJar for local browser assets. Update the handwritten contract when a client
+route or payload changes.
+
 ## OOP, SOLID and proportionate design
 
 Top-level enums use the `Enum` suffix and live under `entity.enumeration` within

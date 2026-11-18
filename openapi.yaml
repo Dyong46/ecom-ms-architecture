@@ -1,0 +1,893 @@
+openapi: 3.0.3
+info:
+  title: Product API qua Gateway
+  version: '1.0.0'
+  description: |
+    API dành cho client làm việc với Product
+servers:
+  - url: /
+    description: Gateway đang phục vụ trang Swagger UI
+  - url: http://localhost:8222
+    description: Gateway local khi mở spec bằng công cụ riêng
+tags:
+  - name: Catalog
+    description: Danh sách và chi tiết SPU, quản lý biến thể SKU.
+  - name: Search
+    description: Tìm và lọc SKU, gộp kết quả theo SPU.
+  - name: Options
+    description: Quản lý thuộc tính và giá trị của biến thể.
+  - name: Purchase
+    description: Mua theo SKU và giảm tồn kho.
+security:
+  - bearerAuth: []
+paths:
+  /api/public/v1/products:
+    get:
+      tags: [Catalog]
+      operationId: listProducts
+      summary: Liệt kê sản phẩm
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: name
+          in: query
+          description: Lọc danh sách PostgreSQL theo tên sản phẩm.
+          schema:
+            type: string
+          example: Nova N1
+      responses:
+        '200':
+          description: Trang SPU gồm các biến thể của từng sản phẩm.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              content:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/public/v1/products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      tags: [Catalog]
+      operationId: getProduct
+      summary: Xem chi tiết SPU và các SKU
+      security: []
+      responses:
+        '200':
+          description: Chi tiết sản phẩm đọc từ catalog.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/public/v1/products/search:
+    get:
+      tags: [Search]
+      operationId: searchProducts
+      summary: Tìm theo tên sản phẩm, mã SKU hoặc thuộc tính
+      security: []
+      description: |
+        Tìm theo tên/mô tả SPU hoặc mã SKU. Có thể gõ `Điện thoại Nova N1`,
+        `NOVA N1`, `N1 Nova` hoặc thử lỗi gõ `Nvoa N1`. Với mã
+        `demo-phone-01-03`, nhánh khớp mã dùng toàn bộ chuỗi và bỏ qua hoa
+        thường ASCII. Index hiện tại chưa cấu hình autocomplete hay chuẩn hóa dấu.
+
+        Gửi mỗi bộ lọc dưới dạng `options[i].name` và `options[i].value` với
+        chỉ số liên tiếp từ 0 đến 19. Swagger liệt kê hai cặp đầu để thử màu
+        và dung lượng. Có thể gửi thêm cặp theo cùng cú pháp khi gọi trực tiếp.
+        Tên và giá trị khớp chính xác, phân biệt hoa thường và dấu. Tất cả cặp
+        lọc và điều kiện tồn kho phải khớp cùng một SKU.
+
+        Kết quả trả một SKU khớp cho mỗi SPU. `total_elements` đếm SPU.
+        Cửa sổ phân trang giới hạn ở `page * size <= 10000`.
+        Tồn kho trên search có thể trễ trong lúc đồng bộ và được kiểm tra lại khi mua.
+
+        Ví dụ với catalog mẫu đã nạp:
+
+        ```sh
+        curl --get 'http://localhost:8222/api/public/v1/products/search' \
+          --data-urlencode 'q=Nova N1' \
+          --data-urlencode 'options[0].name=Màu sắc' \
+          --data-urlencode 'options[0].value=Đen' \
+          --data-urlencode 'options[1].name=Dung lượng' \
+          --data-urlencode 'options[1].value=512GB' \
+          --data-urlencode 'hasStock=true'
+        ```
+      parameters:
+        - name: q
+          in: query
+          description: Bỏ qua hoặc để trống để duyệt các SKU thỏa bộ lọc.
+          schema:
+            type: string
+            maxLength: 200
+          examples:
+            fullName:
+              summary: Tên đầy đủ
+              value: Điện thoại Nova N1
+            shortName:
+              summary: Tên rút gọn hoặc đảo thứ tự
+              value: N1 Nova
+            typo:
+              summary: Gõ nhầm thứ tự hai ký tự
+              value: Nvoa N1
+            sku:
+              summary: Mã SKU
+              value: demo-phone-01-03
+        - name: hasStock
+          in: query
+          description: True lấy SKU còn hàng, false lấy SKU hết hàng. Bỏ qua để lấy cả hai.
+          schema:
+            type: boolean
+        - name: 'options[0].name'
+          in: query
+          description: Tên thuộc tính thứ nhất. Gửi kèm options[0].value.
+          schema:
+            $ref: '#/components/schemas/OptionText'
+          example: Màu sắc
+        - name: 'options[0].value'
+          in: query
+          description: Giá trị của thuộc tính thứ nhất.
+          schema:
+            $ref: '#/components/schemas/OptionText'
+          example: Đen
+        - name: 'options[1].name'
+          in: query
+          description: Tên thuộc tính thứ hai. Gửi kèm options[1].value và điền đủ cặp thứ nhất.
+          schema:
+            $ref: '#/components/schemas/OptionText'
+          example: Dung lượng
+        - name: 'options[1].value'
+          in: query
+          description: Giá trị của thuộc tính thứ hai.
+          schema:
+            $ref: '#/components/schemas/OptionText'
+          example: 512GB
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Trang SKU đại diện. Nếu không có SKU khớp, content là mảng rỗng.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              content:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/SearchHit'
+              examples:
+                matchingSku:
+                  summary: Nova N1 Đen 512GB trong catalog mẫu
+                  value:
+                    data:
+                      content:
+                        - skuId: 00000000-0000-4000-8000-000000000002
+                          spuId: 00000000-0000-4000-8000-000000000001
+                          sku: DEMO-PHONE-01-03
+                          slug: demo-dien-thoai-nova-n1
+                          skuTitle: Điện thoại Nova N1
+                          description: Điện thoại Nova N1 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.
+                          skuPrice: 7990000
+                          stockQuantity: 45
+                          hasStock: true
+                          attrs:
+                            - attrId: 00000000-0000-4000-8000-000000000003
+                              attrName: Màu sắc
+                              attrValueId: 00000000-0000-4000-8000-000000000004
+                              attrValue: Đen
+                            - attrId: 00000000-0000-4000-8000-000000000005
+                              attrName: Dung lượng
+                              attrValueId: 00000000-0000-4000-8000-000000000006
+                              attrValue: 512GB
+                            - attrId: 00000000-0000-4000-8000-000000000007
+                              attrName: RAM
+                              attrValueId: 00000000-0000-4000-8000-000000000008
+                              attrValue: 12GB
+                      page_info:
+                        number: 1
+                        size: 20
+                        number_of_elements: 1
+                        total_elements: 1
+                        total_pages: 1
+                        is_first: true
+                        is_last: true
+                    request_id: null
+                noMatch:
+                  summary: Không có biến thể khớp bộ lọc
+                  value:
+                    data:
+                      content: []
+                      page_info:
+                        number: 1
+                        size: 20
+                        number_of_elements: 0
+                        total_elements: 0
+                        total_pages: 0
+                        is_first: true
+                        is_last: true
+                    request_id: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          description: Xử lý tìm kiếm thất bại, chẳng hạn khi Product không truy cập được Elasticsearch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/products:
+    post:
+      tags: [Catalog]
+      operationId: createProduct
+      summary: Tạo SPU cùng các biến thể ban đầu
+      description: Có thể gửi variants rỗng. Nếu chọn thuộc tính, tạo giá trị option trước và dùng UUID trả về.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+            example:
+              name: Điện thoại Nova N1
+              slug: nova-n1
+              description: Điện thoại có nhiều cấu hình.
+              variants:
+                - sku: NOVA-N1-DEFAULT
+                  price: 7990000
+                  stockQuantity: 10
+                  optionValueIds: []
+      responses:
+        '200':
+          $ref: '#/components/responses/IdResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    delete:
+      tags: [Catalog]
+      operationId: deleteProduct
+      summary: Xóa SPU và các SKU thuộc SPU
+      responses:
+        '204':
+          description: Đã xóa. Phản hồi không có body.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/products/{productId}/variants:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    post:
+      tags: [Catalog]
+      operationId: addVariant
+      summary: Thêm một SKU vào SPU
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantInput'
+            example:
+              sku: NOVA-N1-BLACK-512
+              price: 7990000
+              stockQuantity: 10
+              optionValueIds:
+                - 00000000-0000-4000-8000-000000000004
+                - 00000000-0000-4000-8000-000000000006
+      responses:
+        '200':
+          $ref: '#/components/responses/IdResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/products/{productId}/variants/{skuId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+      - name: skuId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+    delete:
+      tags: [Catalog]
+      operationId: deleteVariant
+      summary: Xóa một SKU thuộc SPU
+      responses:
+        '204':
+          description: Đã xóa. Phản hồi không có body.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/products/purchase:
+    post:
+      tags: [Purchase]
+      operationId: purchaseProducts
+      summary: Mua các SKU theo số lượng yêu cầu
+      description: |
+        Gửi mảng SKU, mỗi SKU chỉ xuất hiện một lần. Product kiểm tra toàn bộ
+        yêu cầu trước khi trừ kho trong cùng giao dịch PostgreSQL. SKU hết hàng,
+        SKU không tồn tại hoặc số lượng vượt tồn làm cả yêu cầu bị từ chối.
+        Mỗi lần gọi thành công có thể giảm tồn kho. Không có khóa idempotency.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/PurchaseInput'
+            example:
+              - skuId: 00000000-0000-4000-8000-000000000002
+                quantity: 1
+      responses:
+        '200':
+          description: Các SKU đã mua, gồm giá đơn vị và số lượng thực hiện.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PurchaseLine'
+        '400':
+          description: Yêu cầu sai hoặc ít nhất một SKU không thể mua, ví dụ do thiếu tồn kho.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                data:
+                  error_code: INVALID_INPUT_DATA
+                  extra_data:
+                    message: 'Insufficient stock quantity for SKU: 00000000-0000-4000-8000-000000000002'
+                request_id: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/product-options:
+    get:
+      tags: [Options]
+      operationId: listOptions
+      summary: Liệt kê thuộc tính và các giá trị
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Trang thuộc tính kèm danh sách giá trị.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              content:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Option'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Options]
+      operationId: createOption
+      summary: Tạo thuộc tính cho SKU
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  $ref: '#/components/schemas/OptionText'
+            example:
+              name: Màu sắc
+      responses:
+        '200':
+          $ref: '#/components/responses/IdResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/product-options/{optionId}:
+    parameters:
+      - $ref: '#/components/parameters/OptionId'
+    delete:
+      tags: [Options]
+      operationId: deleteOption
+      summary: Xóa thuộc tính
+      description: Xóa cả các giá trị và liên kết đã chọn. Các SKU đã dùng thuộc tính này vẫn tồn tại.
+      responses:
+        '204':
+          description: Đã xóa. Phản hồi không có body.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/product-options/{optionId}/values:
+    parameters:
+      - $ref: '#/components/parameters/OptionId'
+    post:
+      tags: [Options]
+      operationId: createOptionValue
+      summary: Thêm giá trị cho thuộc tính
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionValueInput'
+            example:
+              value: Đen
+              synonyms: [Black]
+      responses:
+        '200':
+          $ref: '#/components/responses/IdResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/product-options/{optionId}/values/{valueId}:
+    parameters:
+      - $ref: '#/components/parameters/OptionId'
+      - name: valueId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+    delete:
+      tags: [Options]
+      operationId: deleteOptionValue
+      summary: Xóa giá trị của thuộc tính
+      description: Bỏ giá trị đã chọn khỏi các SKU liên quan. Các SKU vẫn tồn tại.
+      responses:
+        '204':
+          description: Đã xóa. Phản hồi không có body.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token Keycloak dùng cho các API cần đăng nhập.
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Số trang, bắt đầu từ 1.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 1
+    Size:
+      name: size
+      in: query
+      description: Số phần tử tối đa trên một trang.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      description: UUID của SPU.
+      schema:
+        $ref: '#/components/schemas/Id'
+    OptionId:
+      name: optionId
+      in: path
+      required: true
+      description: UUID của thuộc tính.
+      schema:
+        $ref: '#/components/schemas/Id'
+  responses:
+    IdResult:
+      description: Tạo thành công. Data chứa UUID của tài nguyên mới.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Id'
+          example:
+            data: 00000000-0000-4000-8000-000000000001
+            request_id: null
+    BadRequest:
+      description: Tham số, JSON hoặc dữ liệu nghiệp vụ không hợp lệ.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Gateway yêu cầu access token hợp lệ.
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+          example: Bearer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/GatewayProblem'
+          example:
+            type: about:blank
+            title: Unauthorized
+            status: 401
+            detail: Unauthorized
+            instance: /api/v1/products
+    NotFound:
+      description: Tài nguyên không tồn tại hoặc không thuộc tài nguyên cha đã chỉ định.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Trùng slug, mã SKU, tổ hợp thuộc tính hoặc tên/giá trị option.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    Id:
+      type: string
+      format: uuid
+    OptionText:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: '\S'
+    CatalogText:
+      type: string
+      minLength: 1
+      maxLength: 255
+      pattern: '\S'
+    Price:
+      type: number
+      minimum: 0
+      maximum: 9999999999.99
+      multipleOf: 0.01
+    Quantity:
+      type: integer
+      format: int32
+      minimum: 0
+      maximum: 2147483647
+    Description:
+      type: string
+      nullable: true
+    LocalTimestamp:
+      type: string
+      description: Ngày giờ địa phương ISO 8601, không kèm offset múi giờ.
+      example: '2026-11-18T10:30:00'
+    Envelope:
+      type: object
+      required: [data, request_id]
+      properties:
+        data: {}
+        request_id:
+          type: string
+          nullable: true
+          description: Trace ID của yêu cầu nếu có.
+    Page:
+      type: object
+      required: [content, page_info]
+      properties:
+        content:
+          type: array
+          items: {}
+        page_info:
+          $ref: '#/components/schemas/PageInfo'
+    PageInfo:
+      type: object
+      required: [number, size, number_of_elements, total_elements, total_pages, is_first, is_last]
+      properties:
+        number:
+          type: integer
+          minimum: 1
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        number_of_elements:
+          type: integer
+          minimum: 0
+        total_elements:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Tổng số phần tử khớp. Search đếm SPU.
+        total_pages:
+          type: integer
+          minimum: 0
+        is_first:
+          type: boolean
+        is_last:
+          type: boolean
+    ProductInput:
+      type: object
+      required: [name, slug, variants]
+      properties:
+        name:
+          $ref: '#/components/schemas/CatalogText'
+        slug:
+          $ref: '#/components/schemas/CatalogText'
+        description:
+          $ref: '#/components/schemas/Description'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantInput'
+    VariantInput:
+      type: object
+      required: [sku, price, optionValueIds]
+      properties:
+        sku:
+          $ref: '#/components/schemas/CatalogText'
+        price:
+          $ref: '#/components/schemas/Price'
+        stockQuantity:
+          allOf:
+            - $ref: '#/components/schemas/Quantity'
+          default: 0
+        optionValueIds:
+          type: array
+          uniqueItems: true
+          description: Chọn tối đa một giá trị cho mỗi thuộc tính. Mảng rỗng tạo SKU mặc định.
+          items:
+            $ref: '#/components/schemas/Id'
+    Product:
+      type: object
+      required: [id, name, slug, description, createdAt, updatedAt, variants]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+        createdAt:
+          $ref: '#/components/schemas/LocalTimestamp'
+        updatedAt:
+          $ref: '#/components/schemas/LocalTimestamp'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Variant'
+    Variant:
+      type: object
+      required: [id, sku, price, stockQuantity, options]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        sku:
+          type: string
+        price:
+          $ref: '#/components/schemas/Price'
+        stockQuantity:
+          $ref: '#/components/schemas/Quantity'
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantOption'
+    VariantOption:
+      type: object
+      required: [optionId, optionName, optionValueId, value]
+      properties:
+        optionId:
+          $ref: '#/components/schemas/Id'
+        optionName:
+          type: string
+        optionValueId:
+          $ref: '#/components/schemas/Id'
+        value:
+          type: string
+    Option:
+      type: object
+      required: [id, name, values]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/OptionValue'
+    OptionValueInput:
+      type: object
+      required: [value]
+      properties:
+        value:
+          $ref: '#/components/schemas/OptionText'
+        synonyms:
+          description: Dữ liệu JSON tùy chọn. Search hiện chưa dùng trường này.
+          example: [Black]
+    OptionValue:
+      allOf:
+        - $ref: '#/components/schemas/OptionValueInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+    SearchHit:
+      type: object
+      required: [skuId, spuId, sku, slug, skuTitle, description, skuPrice, stockQuantity, hasStock, attrs]
+      properties:
+        skuId:
+          $ref: '#/components/schemas/Id'
+        spuId:
+          $ref: '#/components/schemas/Id'
+        sku:
+          type: string
+        slug:
+          type: string
+        skuTitle:
+          type: string
+          description: Tên SPU dùng chung cho các biến thể.
+        description:
+          $ref: '#/components/schemas/Description'
+        skuPrice:
+          $ref: '#/components/schemas/Price'
+        stockQuantity:
+          $ref: '#/components/schemas/Quantity'
+        hasStock:
+          type: boolean
+          description: Tồn kho trên index lớn hơn 0.
+        attrs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchAttribute'
+    SearchAttribute:
+      type: object
+      required: [attrId, attrName, attrValueId, attrValue]
+      properties:
+        attrId:
+          $ref: '#/components/schemas/Id'
+        attrName:
+          type: string
+        attrValueId:
+          $ref: '#/components/schemas/Id'
+        attrValue:
+          type: string
+    PurchaseInput:
+      type: object
+      required: [skuId, quantity]
+      properties:
+        skuId:
+          $ref: '#/components/schemas/Id'
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2147483647
+    PurchaseLine:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseInput'
+        - type: object
+          required: [productId, sku, name, description, options, price]
+          properties:
+            productId:
+              $ref: '#/components/schemas/Id'
+            sku:
+              type: string
+            name:
+              type: string
+            description:
+              $ref: '#/components/schemas/Description'
+            options:
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                Màu sắc: Đen
+                Dung lượng: 512GB
+            price:
+              $ref: '#/components/schemas/Price'
+    ApiError:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [error_code, extra_data]
+              properties:
+                error_code:
+                  type: string
+                extra_data:
+                  type: object
+                  required: [message]
+                  properties:
+                    message:
+                      type: string
+                    errors:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    details: {}
+    GatewayProblem:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
