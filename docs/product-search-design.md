@@ -2,6 +2,8 @@
 
 Status: Accepted. Date: 2026-11-18. Decision owner: project owner.
 
+For the end-to-end walkthrough, see the [SPU/SKU Elasticsearch guide (Vietnamese)](product-search-guide.vi.md).
+
 ## Decision and scope
 
 The owner selected an Elasticsearch document per SKU and search results grouped

@@ -284,6 +284,7 @@ does not complete a phase. See
 
 ## Documentation
 
+- [SPU/SKU Product Search with Elasticsearch (Vietnamese)](docs/product-search-guide.vi.md)
 - [Service Package Layout and MapStruct (Vietnamese)](docs/service-layout-and-mapping.md)
 - [Order Creation and Asynchronous Email Flows (Vietnamese)](docs/order-and-notification-flow.md)
 - [Shared Kafka Module](support/kafka-module/README.md)

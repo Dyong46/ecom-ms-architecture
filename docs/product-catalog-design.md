@@ -18,6 +18,9 @@ Kafka, outbox, generic search facade or inventory service is added for this work
 
 ## Data model
 
+See the [five-table ER diagram](product-search-guide.vi.md#sơ-đồ-bảng-postgresql)
+for the physical PostgreSQL relationships and how they feed the search index.
+
 ```text
 Product (SPU) → ProductVariant (SKU) → ProductVariantOptionValue
                                              ↓
