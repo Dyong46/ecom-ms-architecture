@@ -9,6 +9,16 @@ public record OrderResponse(
         String reference,
         BigDecimal amount,
         PaymentMethodEnum paymentMethod,
-        String customerId
+        String customerId,
+        String customerFullName,
+        String customerEmail,
+        String recipientFullName,
+        String recipientPhone,
+        ShippingAddressResponse shippingAddress,
+        String deliveryNote,
+        BigDecimal itemsSubtotal,
+        BigDecimal shippingFee,
+        String currencyCode,
+        com.duong.ecommerce.order.entity.enumeration.OrderCreationStatusEnum creationStatus
 ) {
 }

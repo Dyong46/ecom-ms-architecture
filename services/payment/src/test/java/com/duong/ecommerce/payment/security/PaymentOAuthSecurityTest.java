@@ -1,9 +1,7 @@
 package com.duong.ecommerce.payment.security;
 
-import com.duong.ecommerce.payment.controller.InternalPaymentController;
-import com.duong.ecommerce.payment.service.PaymentService;
-
 import com.duong.ecommerce.payment.config.PaymentSecurityConfig;
+import com.duong.ecommerce.payment.controller.InternalPaymentController;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -13,10 +11,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.security.KeyPair;
@@ -26,8 +24,10 @@ import java.time.Instant;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = InternalPaymentController.class,
         properties = "spring.cloud.config.enabled=false")
@@ -40,28 +40,29 @@ class PaymentOAuthSecurityTest {
             "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"}}
             """;
     @Autowired MockMvc mvc;
-    @MockBean PaymentService service;
+    @MockBean
+    com.duong.ecommerce.payment.service.PaymentCreationService service;
 
     @Test
     void requiresBearerTokenBeforeExecutingPayment() throws Exception {
-        mvc.perform(post("/internal/payments").contentType(MediaType.APPLICATION_JSON).content(BODY))
+        mvc.perform(post("/internal/payments").header("Idempotency-Key", "test-key").contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(service);
     }
 
     @Test
     void acceptsSignedEcomTokenWithoutCsrfAndExecutesPayment() throws Exception {
-        when(service.createPayment(any())).thenReturn(42);
-        mvc.perform(post("/internal/payments").header("Authorization", "Bearer " + token(KEY, ISSUER, "ecom-services", 300))
+        when(service.create(org.mockito.ArgumentMatchers.eq("test-key"), any())).thenReturn(42);
+        mvc.perform(post("/internal/payments").header("Idempotency-Key", "test-key").header("Authorization", "Bearer " + token(KEY, ISSUER, "ecom-services", 300))
                         .contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data").value(42));
-        verify(service).createPayment(any());
+        verify(service).create(org.mockito.ArgumentMatchers.eq("test-key"), any());
     }
 
     @Test
     void rejectsAnotherClientAndMissingClientClaim() throws Exception {
         for (String client : new String[]{"micro-services-api", ""}) {
-            mvc.perform(post("/internal/payments").header("Authorization", "Bearer " + token(KEY, ISSUER, client, 300))
+            mvc.perform(post("/internal/payments").header("Idempotency-Key", "test-key").header("Authorization", "Bearer " + token(KEY, ISSUER, client, 300))
                             .contentType(MediaType.APPLICATION_JSON).content(BODY))
                     .andExpect(status().isForbidden());
         }
@@ -74,7 +75,7 @@ class PaymentOAuthSecurityTest {
                 token(KEY, ISSUER, "ecom-services", -120),
                 token(KEY, "https://wrong-issuer.test", "ecom-services", 300), "invalid-token"};
         for (String token : invalid) {
-            mvc.perform(post("/internal/payments").header("Authorization", "Bearer " + token)
+            mvc.perform(post("/internal/payments").header("Idempotency-Key", "test-key").header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON).content(BODY))
                     .andExpect(status().isUnauthorized());
         }

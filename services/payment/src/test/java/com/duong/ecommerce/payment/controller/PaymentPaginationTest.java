@@ -6,7 +6,6 @@ import com.duong.ecommerce.payment.mapper.PaymentMapper;
 import com.duong.ecommerce.payment.payload.response.PaymentResponse;
 import com.duong.ecommerce.payment.repository.PaymentRepository;
 import com.duong.ecommerce.payment.service.PaymentService;
-
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ class PaymentPaginationTest {
     @BeforeEach
     void setUp() {
         service = mock(PaymentService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new PaymentController(service))
+        mvc = MockMvcBuilders.standaloneSetup(new PaymentController(service, mock(com.duong.ecommerce.payment.service.PaymentCreationService.class)))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 

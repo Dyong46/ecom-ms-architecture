@@ -153,3 +153,12 @@ Tests kiểm tra dữ liệu, validation trước khi gọi mạng, request HTTP
 phân trang, tái sử dụng option, xung đột, chạy lại không ghi đè stock, token hết hạn
 và tiếp tục sau một lần POST thất bại. HTTP server test chỉ chạy trên loopback với
 port ngẫu nhiên; không gọi Product thật hoặc thay đổi database của bạn.
+
+## Checkout idempotency verification
+
+`python3 scripts/test_checkout_idempotency.py` runs the three packaged Java services
+against disposable PostgreSQL, injects lost Product/Payment responses after commit,
+restarts Order and verifies recovery with no duplicate writes. It requires Docker,
+Java 17 and OpenSSL. Build jars first using the command in
+[checkout idempotency](../docs/checkout-idempotency-design.md). Existing service
+processes and databases are not used or reset.

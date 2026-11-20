@@ -48,8 +48,17 @@ paths:
         Dùng ID khách hàng có sẵn và UUID của từng SKU. Order gọi Product để kiểm
         tra và trừ tồn kho, tính tổng tiền theo giá ở Product, lưu đơn và gọi Payment
         để tạo bản ghi thanh toán. Không cần gọi thêm Payment cho cùng đơn.
-        Khi request lỗi ở bước sau, tồn kho đã trừ có thể chưa được hoàn.
-        Dùng mã reference duy nhất và kiểm tra trạng thái trước khi thử lại.
+        Order và snapshot được lưu ở trạng thái PROCESSING trước khi gọi Payment.
+        Retry cùng Idempotency-Key để tiếp tục cùng orderId; khi hoàn tất trả lại ID cũ.
+        Nếu Payment chưa hoàn tất, tồn kho đã trừ vẫn được giữ; chưa có reservation/hoàn kho.
+        Không đổi key để retry cùng reference.
+        Bắt buộc nhập người nhận và địa chỉ riêng; không sửa hồ sơ Customer.
+        Order lưu snapshot tên/email người mua từ Customer và thông tin SKU từ Product.
+        Currency hiện là VND, shippingFee luôn bằng 0; amount = itemsSubtotal + shippingFee.
+        ID tạo đơn do server cấp; id và các trường snapshot/giá trị tiền gửi thêm bị bỏ qua.
+        Fingerprint bỏ qua id và thứ tự SKU; tên người nhận, địa chỉ, số lượng và phương thức thanh toán phải giữ nguyên.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -60,10 +69,20 @@ paths:
               reference: DEMO-ORDER-001
               paymentMethod: VISA
               customerId: '673e1eb210c3c0aaec9afe01'
+              recipientFullName: Trần Bình
+              recipientPhone: '+84901234567'
+              shippingAddress:
+                addressLine1: 25 Nguyễn Huệ
+                ward: Phường Sài Gòn
+                city: Thành phố Hồ Chí Minh
+                countryCode: VN
+              deliveryNote: Gọi trước khi giao
               products:
                 - skuId: 00000000-0000-4000-8000-000000000002
                   quantity: 1
       responses:
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
         '200':
           description: Data chứa ID số nguyên của đơn vừa tạo.
           content:
@@ -108,6 +127,16 @@ paths:
                   amount: 7990000
                   paymentMethod: VISA
                   customerId: '673e1eb210c3c0aaec9afe01'
+                  customerFullName: An Nguyễn
+                  customerEmail: an.nguyen@example.test
+                  recipientFullName: Trần Bình
+                  recipientPhone: '+84901234567'
+                  shippingAddress: { addressLine1: 25 Nguyễn Huệ, addressLine2: null, ward: Phường Sài Gòn, city: Thành phố Hồ Chí Minh, postalCode: null, countryCode: VN }
+                  deliveryNote: Gọi trước khi giao
+                  itemsSubtotal: 7990000
+                  shippingFee: 0
+                  currencyCode: VND
+                  creationStatus: COMPLETED
                 request_id: null
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -145,6 +174,7 @@ paths:
                     options: {Màu sắc: Đen, Dung lượng: 512GB, RAM: 12GB}
                     unitPrice: 7990000
                     quantity: 1
+                    variantName: 'Dung lượng: 512GB / Màu sắc: Đen / RAM: 12GB'
                 request_id: null
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -157,6 +187,12 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Giữ nguyên key khi retry cùng thao tác. Key mới cho một thao tác mới; không tái sử dụng key với nội dung khác.
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._:-]{1,128}$' }
     Page:
       name: page
       in: query
@@ -173,6 +209,12 @@ components:
       required: true
       schema: {type: integer, format: int32}
   responses:
+    IdempotencyConflict:
+      description: Key đã dùng với nội dung khác hoặc request cùng key đang xử lý. Với request đang xử lý, retry cùng key sau đó. Order cũng từ chối reference đã gắn với key khác.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     Unauthorized:
       description: Gateway yêu cầu access token hợp lệ.
       headers:
@@ -258,19 +300,34 @@ components:
       enum: [PAYPAL, CREDIT_CARD, VISA, MASTER_CARD, BITCOIN]
     OrderInput:
       type: object
-      required: [reference, paymentMethod, customerId, products]
+      required: [ reference, paymentMethod, customerId, products, recipientFullName, recipientPhone, shippingAddress ]
       properties:
         id: {type: integer, format: int32, nullable: true, description: Bỏ qua khi tạo đơn mới.}
         reference: {type: string, minLength: 1, maxLength: 255, pattern: '\S'}
         paymentMethod:
           $ref: '#/components/schemas/PaymentMethod'
         customerId: {type: string, minLength: 1, pattern: '\S'}
+        recipientFullName: { type: string, minLength: 1, maxLength: 255, pattern: '\S' }
+        recipientPhone: { type: string, maxLength: 32, pattern: '^\+?[0-9][0-9 ()-]{5,30}$' }
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+        deliveryNote: { type: string, maxLength: 1000, nullable: true }
         products:
           type: array
           minItems: 1
           description: Mỗi SKU chỉ xuất hiện một lần.
           items:
             $ref: '#/components/schemas/PurchaseItem'
+    ShippingAddress:
+      type: object
+      required: [ addressLine1, ward, city, countryCode ]
+      properties:
+        addressLine1: { type: string, minLength: 1, maxLength: 255, pattern: '\S' }
+        addressLine2: { type: string, maxLength: 255, nullable: true }
+        ward: { type: string, minLength: 1, maxLength: 100, pattern: '\S' }
+        city: { type: string, minLength: 1, maxLength: 100, pattern: '\S' }
+        postalCode: { type: string, maxLength: 32, nullable: true }
+        countryCode: { type: string, pattern: '^[A-Z]{2}$' }
     PurchaseItem:
       type: object
       required: [skuId, quantity]
@@ -279,14 +336,27 @@ components:
         quantity: {type: integer, format: int32, minimum: 1}
     Order:
       type: object
-      required: [id, reference, amount, paymentMethod, customerId]
+      required: [ id, reference, amount, paymentMethod, customerId, creationStatus ]
       properties:
         id: {type: integer, format: int32}
         reference: {type: string}
         amount: {type: number, description: Tổng giá trị đơn do server tính.}
         paymentMethod:
           $ref: '#/components/schemas/PaymentMethod'
+        creationStatus: { type: string, enum: [ PROCESSING, COMPLETED ], description: Tiến trình tạo đơn; không phải trạng thái thu tiền hay giao hàng. }
         customerId: {type: string}
+        customerFullName: { type: string, nullable: true }
+        customerEmail: { type: string, nullable: true }
+        recipientFullName: { type: string, nullable: true }
+        recipientPhone: { type: string, nullable: true }
+        shippingAddress:
+          allOf:
+            - $ref: '#/components/schemas/ShippingAddress'
+          nullable: true
+        deliveryNote: { type: string, nullable: true }
+        itemsSubtotal: { type: number, nullable: true, description: Tổng đơn giá nhân số lượng các dòng hàng. }
+        shippingFee: { type: number, nullable: true, description: 'Phí ship, hiện luôn 0 với đơn mới.' }
+        currencyCode: { type: string, nullable: true, description: 'Hiện là VND với đơn mới. Trường snapshot mới có thể null ở đơn cũ.' }
     OrderLine:
       type: object
       required: [id, productId, skuId, sku, name, options, unitPrice, quantity]
@@ -301,3 +371,4 @@ components:
           additionalProperties: {type: string}
         unitPrice: {type: number, description: Giá một đơn vị tại thời điểm mua.}
         quantity: {type: integer, format: int32, minimum: 1}
+        variantName: { type: string, nullable: true, description: Nhãn variant tại thời điểm mua; SKU không có options dùng mã SKU. }

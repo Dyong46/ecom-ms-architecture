@@ -4,13 +4,15 @@ import com.duong.ecommerce.payment.entity.Payment;
 import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.payment.payload.request.PaymentRequest;
 import com.duong.ecommerce.payment.payload.response.PaymentResponse;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.assertj.core.api.Assertions.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 @SpringJUnitConfig(PaymentMapperImpl.class)
 class PaymentMapperTest {
@@ -19,8 +21,8 @@ class PaymentMapperTest {
     @Test
     void requestMappingLeavesAuditingToPersistence() {
         var payment = mapper.toPayment(new PaymentRequest(
-                4, new BigDecimal("99.98"), PaymentMethodEnum.PAYPAL, 9, "ORDER-9", null));
-        assertThat(payment.getId()).isEqualTo(4);
+                new BigDecimal("99.98"), PaymentMethodEnum.PAYPAL, 9, "ORDER-9", null));
+        assertThat(payment.getId()).isNull();
         assertThat(payment.getOrderId()).isEqualTo(9);
         assertThat(payment.getAmount()).isEqualByComparingTo("99.98");
         assertThat(payment.getPaymentMethod()).isEqualTo(PaymentMethodEnum.PAYPAL);

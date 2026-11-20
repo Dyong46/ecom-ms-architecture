@@ -256,3 +256,11 @@ by those tests and must match the deployment environment.
 When changing DTOs or method signatures, maintain compatibility or publish a new
 module version. The reference `support/proxy-modul-mau` directory is not part of
 the Maven reactor and remains reference material only.
+
+## Checkout idempotency headers
+
+ProductClient.purchaseResponses takes an explicit Idempotency-Key before the batch.
+PaymentClient.requestOrderPayment takes Authorization, Idempotency-Key and the request.
+Order derives stable downstream keys from its persisted operation ID. Proxy does not
+generate keys, cache results or retry purchases/payments implicitly. All consumers
+must supply a stable key for retries. See [checkout idempotency](../../docs/checkout-idempotency-design.md).

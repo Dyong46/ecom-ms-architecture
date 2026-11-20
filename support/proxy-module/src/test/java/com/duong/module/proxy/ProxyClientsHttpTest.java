@@ -1,11 +1,9 @@
 package com.duong.module.proxy;
 
-import com.duong.module.proxy.annotation.EnableProxyModule;
 import com.duong.module.proxy.annotation.EnableEcomAuth;
-import com.duong.module.proxy.ecom.EcomAuthClient;
-
+import com.duong.module.proxy.annotation.EnableProxyModule;
 import com.duong.module.proxy.customer.CustomerClient;
-import com.duong.module.proxy.customer.response.CustomerResponse;
+import com.duong.module.proxy.ecom.EcomAuthClient;
 import com.duong.module.proxy.payment.PaymentClient;
 import com.duong.module.proxy.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.module.proxy.payment.request.PaymentRequest;
@@ -50,8 +48,6 @@ class ProxyClientsHttpTest {
     private volatile long customerDelay;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    record Call(String path, String method, String authorization, String body) {}
-
     @BeforeEach
     void startDependencies() throws Exception {
         productStatus = 200;
@@ -66,7 +62,7 @@ class ProxyClientsHttpTest {
         server.createContext("/", exchange -> {
             String path = exchange.getRequestURI().getPath();
             calls.add(new Call(path, exchange.getRequestMethod(), exchange.getRequestHeaders().getFirst("Authorization"),
-                    new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8)));
+                    new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), exchange.getRequestHeaders().getFirst("Idempotency-Key")));
             String body;
             int status;
             switch (path) {
@@ -105,6 +101,20 @@ class ProxyClientsHttpTest {
         });
         server.start();
         base = "http://127.0.0.1:" + server.getAddress().getPort();
+    }
+
+    @Test
+    void paymentOnlyConsumerSuppliesItsOwnAuthorizationWithoutOAuthOrRedis() {
+        context().withUserConfiguration(PaymentOnly.class)
+                .withClassLoader(new FilteredClassLoader("com.duong.module.caching", "org.springframework.data.redis"))
+                .withPropertyValues("application.config.payment-url=" + base + "/internal/payments")
+                .run(ctx -> {
+                    assertThat(ctx).hasNotFailed().doesNotHaveBean(EcomAuthClient.class);
+                    ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer caller-token", "test-key",
+                            new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "ORDER-7", null));
+                    assertThat(calls).hasSize(1);
+                    assertThat(calls.get(0).authorization()).isEqualTo("Bearer caller-token");
+                });
     }
 
     @AfterEach
@@ -154,32 +164,19 @@ class ProxyClientsHttpTest {
     }
 
     @Test
-    void paymentOnlyConsumerSuppliesItsOwnAuthorizationWithoutOAuthOrRedis() {
-        context().withUserConfiguration(PaymentOnly.class)
-                .withClassLoader(new FilteredClassLoader("com.duong.module.caching", "org.springframework.data.redis"))
-                .withPropertyValues("application.config.payment-url=" + base + "/internal/payments")
-                .run(ctx -> {
-                    assertThat(ctx).hasNotFailed().doesNotHaveBean(EcomAuthClient.class);
-                    ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer caller-token",
-                            new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "ORDER-7", null));
-                    assertThat(calls).hasSize(1);
-                    assertThat(calls.get(0).authorization()).isEqualTo("Bearer caller-token");
-                });
-    }
-
-    @Test
     void preservesWireContractsWithOAuthOnlyForPayment() {
         allClients().run(ctx -> {
             assertThat(ctx).hasNotFailed().doesNotHaveBean(RequestInterceptor.class);
             var customer = ctx.getBean(CustomerClient.class).findCustomerById("c1").orElseThrow().data();
-            var products = ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))).data();
+            var products = ctx.getBean(ProductClient.class).purchaseResponses("test-key", List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))).data();
             assertThat(products).hasSize(1);
             assertThat(products.get(0).price()).isEqualByComparingTo("10.00");
-            assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", new PaymentRequest(
+            assertThat(ctx.getBean(PaymentClient.class).requestOrderPayment("Bearer service-token", "test-key", new PaymentRequest(
                     new BigDecimal("20.00"), PaymentMethodEnum.PAYPAL, 7, "ORDER-7", customer)).data()).isEqualTo(42);
             for (var call : calls) {
                 switch (call.path()) {
                     case "/internal/products/purchase" -> {
+                        assertThat(call.idempotencyKey()).isEqualTo("test-key");
                         assertThat(call.method()).isEqualTo("POST");
                         assertThat(call.authorization()).isNull();
                         assertThat(mapper.readTree(call.body())).isEqualTo(mapper.readTree("[{\"skuId\":\"00000000-0000-4000-8000-000000000001\",\"quantity\":2}]"));
@@ -190,6 +187,7 @@ class ProxyClientsHttpTest {
                 }
             }
             var payment = calls.stream().filter(c -> c.path().equals("/internal/payments")).findFirst().orElseThrow();
+            assertThat(payment.idempotencyKey()).isEqualTo("test-key");
             assertThat(mapper.readTree(payment.body())).isEqualTo(mapper.readTree("""
                     {"amount":20.00,"paymentMethod":"PAYPAL","orderId":7,"orderReference":"ORDER-7",
                     "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"}}
@@ -201,10 +199,21 @@ class ProxyClientsHttpTest {
     void exposesUpstreamStatusAndDoesNotRetryPurchaseEvenWithRetryAfter() {
         productStatus = 503;
         allClients().run(ctx -> {
-            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
+            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses("test-key", List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
                     .isInstanceOf(FeignException.class)
                     .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(503));
             assertThat(calls.stream().filter(c -> c.path().equals("/internal/products/purchase"))).hasSize(1);
+        });
+    }
+
+    @Test
+    void doesNotFollowInternalPurchaseRedirects() {
+        productStatus = 302;
+        allClients().run(ctx -> {
+            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses("test-key", List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
+                    .isInstanceOf(FeignException.class)
+                    .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(302));
+            assertThat(calls.stream().map(Call::path)).containsExactly("/internal/products/purchase");
         });
     }
 
@@ -234,15 +243,7 @@ class ProxyClientsHttpTest {
         });
     }
 
-    @Test
-    void doesNotFollowInternalPurchaseRedirects() {
-        productStatus = 302;
-        allClients().run(ctx -> {
-            assertThatThrownBy(() -> ctx.getBean(ProductClient.class).purchaseResponses(List.of(new PurchaseRequest("00000000-0000-4000-8000-000000000001", 2))))
-                    .isInstanceOf(FeignException.class)
-                    .satisfies(ex -> assertThat(((FeignException) ex).status()).isEqualTo(302));
-            assertThat(calls.stream().map(Call::path)).containsExactly("/internal/products/purchase");
-        });
+    record Call(String path, String method, String authorization, String body, String idempotencyKey) {
     }
 
     @Test

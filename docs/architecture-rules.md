@@ -93,6 +93,17 @@ quantities; Order stores immutable purchase snapshots. See
 [Product catalog decision](product-catalog-design.md) for the accepted clean-data
 baseline, contracts and deletion trade-offs.
 
+Order also records buyer and delivery snapshots, with explicit recipient/address
+input independent of the Customer profile. Its current currency is VND and shipping
+fee is a zero placeholder; discounts and taxes remain deferred. See
+[Order snapshots](order-snapshot-design.md) for the accepted scope and migration behavior.
+
+Checkout uses PostgreSQL idempotency ledgers owned by Order, Product and Payment.
+Order commits a PROCESSING snapshot before Payment and resumes it with stable
+operation keys; completion records COMPLETED. Proxy only transports the header.
+Reservation and stock return remain deferred. See
+[Checkout idempotency](checkout-idempotency-design.md) for transaction and replay limits.
+
 The Gateway serves Swagger UI and handwritten OpenAPI contracts for
 [Product](../openapi.yaml), [Customer](openapi/customer.yaml),
 [Order](openapi/order.yaml) and [Payment](openapi/payment.yaml) under

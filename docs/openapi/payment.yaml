@@ -67,6 +67,12 @@ paths:
         xác nhận việc tạo bản ghi, chưa xác nhận thu tiền từ nhà cung cấp.
         Một orderId chỉ có một Payment. Khi tạo đơn qua Order, Order đã gọi tạo
         Payment cho đơn đó. Chỉ dùng thao tác này cho đơn chưa có bản ghi.
+        ID do DB cấp, không nhận từ request. Các trường không thuộc contract (kể cả id)
+        bị bỏ qua. Amount cho phép 0, không nhận số âm hoặc quá 2 chữ số thập phân.
+        Cùng Idempotency-Key và cùng nội dung trả lại Payment ID đã lưu, không tạo bản ghi hay phát event lần nữa.
+        Các giá trị amount tương đương như 25 và 25.00 có cùng fingerprint.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -84,6 +90,8 @@ paths:
                 lastname: Nguyễn
                 email: an.nguyen@example.test
       responses:
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
         '200':
           description: Data chứa ID số nguyên của bản ghi vừa tạo.
           content:
@@ -110,6 +118,12 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Giữ nguyên key khi retry cùng thao tác. Key mới cho một thao tác mới; không tái sử dụng key với nội dung khác.
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._:-]{1,128}$' }
     Page:
       name: page
       in: query
@@ -121,6 +135,12 @@ components:
       description: Số phần tử trên một trang.
       schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 20}
   responses:
+    IdempotencyConflict:
+      description: Key đã dùng với nội dung khác hoặc request cùng key đang xử lý. Với request đang xử lý, retry cùng key sau đó. Order cũng từ chối reference đã gắn với key khác.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     Unauthorized:
       description: Gateway yêu cầu access token hợp lệ.
       headers:
@@ -202,25 +222,26 @@ components:
       type: object
       required: [amount, paymentMethod, orderId, customer]
       properties:
-        id: {type: integer, format: int32, nullable: true, description: Bỏ qua khi tạo bản ghi mới.}
-        amount: {type: number, description: Số tiền ghi nhận.}
+        amount: { type: number, minimum: 0, multipleOf: 0.01, description: 'Số tiền ghi nhận, tối đa 36 chữ số phần nguyên và 2 chữ số thập phân.' }
         paymentMethod:
           $ref: '#/components/schemas/PaymentMethod'
-        orderId: {type: integer, format: int32}
+        orderId: { type: integer, format: int32, minimum: 1 }
         orderReference:
           type: string
           nullable: true
+          maxLength: 255
           description: Mã tham chiếu đơn gửi trong sự kiện xác nhận.
         customer:
           $ref: '#/components/schemas/PaymentCustomer'
     PaymentCustomer:
       type: object
       description: Hồ sơ khách hàng dùng cho sự kiện xác nhận.
+      required: [ firstname, lastname, email ]
       properties:
         id: {type: string, nullable: true}
-        firstname: {type: string, nullable: true}
-        lastname: {type: string, nullable: true}
-        email: {type: string, nullable: true}
+        firstname: { type: string, minLength: 1, pattern: '\S' }
+        lastname: { type: string, minLength: 1, pattern: '\S' }
+        email: { type: string, format: email, minLength: 1, pattern: '\S' }
     Payment:
       type: object
       required: [Id, orderId, amount, paymentMethod, createDate, lastModifiedDate]

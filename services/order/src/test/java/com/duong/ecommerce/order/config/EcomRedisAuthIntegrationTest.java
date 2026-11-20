@@ -1,17 +1,13 @@
 package com.duong.ecommerce.order.config;
 
-import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
-
-import com.duong.module.caching.core.*;
-import com.duong.ecommerce.order.config.OrderOAuthConfiguration;
 import com.duong.ecommerce.order.integration.OrderPaymentGateway;
+import com.duong.ecommerce.order.integration.oauth.EcomTokenService;
+import com.duong.module.caching.core.*;
+import com.duong.module.caching.entity.enumeration.CacheScopeEnum;
 import com.duong.module.proxy.annotation.EnableProxyModule;
 import com.duong.module.proxy.payment.PaymentClient;
-import com.duong.module.proxy.payment.request.PaymentRequest;
 import com.duong.module.proxy.payment.entity.enumeration.PaymentMethodEnum;
-import java.math.BigDecimal;
-import org.springframework.context.annotation.Import;
-import com.duong.ecommerce.order.integration.oauth.EcomTokenService;
+import com.duong.module.proxy.payment.request.PaymentRequest;
 import com.sun.net.httpserver.HttpServer;
 import feign.FeignException;
 import org.junit.jupiter.api.AfterEach;
@@ -24,9 +20,11 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConf
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -35,7 +33,8 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @EnabledIfEnvironmentVariable(named = "CACHE_TEST_REDIS_PORT", matches = "[0-9]+")
 class EcomRedisAuthIntegrationTest {
@@ -150,12 +149,12 @@ class EcomRedisAuthIntegrationTest {
         context().run(ctx -> {
             var gateway = ctx.getBean(OrderPaymentGateway.class);
             var request = new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "fixture-order", null);
-            assertThat(gateway.requestOrderPayment(request)).isEqualTo(42);
-            assertThat(gateway.requestOrderPayment(request)).isEqualTo(42);
+            assertThat(gateway.requestOrderPayment("test-key", request)).isEqualTo(42);
+            assertThat(gateway.requestOrderPayment("test-key", request)).isEqualTo(42);
             assertThat(requests).hasValue(1);
             assertThat(paymentAuthorization).isEqualTo("Bearer fixture-token-1");
             paymentStatus = 401;
-            assertThatThrownBy(() -> gateway.requestOrderPayment(request)).isInstanceOf(FeignException.Unauthorized.class);
+            assertThatThrownBy(() -> gateway.requestOrderPayment("test-key", request)).isInstanceOf(FeignException.Unauthorized.class);
             assertThat(paymentRequests).hasValue(3);
             assertThat(requests).hasValue(1);
         });
@@ -166,7 +165,7 @@ class EcomRedisAuthIntegrationTest {
         authStatus = 401;
         context().run(ctx -> {
             var request = new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "fixture-order", null);
-            assertThatThrownBy(() -> ctx.getBean(OrderPaymentGateway.class).requestOrderPayment(request))
+            assertThatThrownBy(() -> ctx.getBean(OrderPaymentGateway.class).requestOrderPayment("test-key", request))
                     .isInstanceOf(FeignException.Unauthorized.class);
             assertThat(requests).hasValue(1);
             assertThat(paymentRequests).hasValue(0);

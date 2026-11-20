@@ -1,11 +1,10 @@
 package com.duong.ecommerce.product.controller;
 
 import com.duong.ecommerce.product.entity.Product;
-import com.duong.ecommerce.product.payload.response.ProductResponse;
 import com.duong.ecommerce.product.mapper.ProductMapper;
+import com.duong.ecommerce.product.payload.response.ProductResponse;
 import com.duong.ecommerce.product.repository.ProductRepository;
 import com.duong.ecommerce.product.service.ProductService;
-
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,7 @@ class ProductPaginationTest {
     @BeforeEach
     void setUp() {
         service = mock(ProductService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new ProductController(service))
+        mvc = MockMvcBuilders.standaloneSetup(new ProductController(service, mock(com.duong.ecommerce.product.service.ProductPurchaseService.class)))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 

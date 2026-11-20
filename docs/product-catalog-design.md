@@ -91,9 +91,10 @@ name, options as JSONB, unit price and integer quantity. There are no cross-serv
 foreign keys. Notification uses the same snapshot wire shape and renders SKU and
 selected options in confirmation email.
 
-This does not add distributed rollback, reservations or purchase idempotency. The
-existing behavior of stock reduction before Order/Payment completion remains;
-transactional outbox/saga/reservation work remains separate.
+Follow-up: [Checkout idempotency](checkout-idempotency-design.md) adds durable
+purchase replay through a required Idempotency-Key. Distributed rollback and
+reservations remain deferred: stock may remain deducted before Order/Payment
+completion. Transactional outbox/saga/reservation work remains separate.
 
 ## API usage
 

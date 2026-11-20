@@ -345,7 +345,11 @@ paths:
         Gửi mảng SKU, mỗi SKU chỉ xuất hiện một lần. Product kiểm tra toàn bộ
         yêu cầu trước khi trừ kho trong cùng giao dịch PostgreSQL. SKU hết hàng,
         SKU không tồn tại hoặc số lượng vượt tồn làm cả yêu cầu bị từ chối.
-        Mỗi lần gọi thành công có thể giảm tồn kho. Không có khóa idempotency.
+        Bắt buộc Idempotency-Key. Retry cùng key và cùng nội dung trả snapshot đã lưu,
+        không trừ kho thêm, kể cả khi giá/catalog đã thay đổi. Thứ tự SKU không đổi fingerprint.
+        Key khác được xem là thao tác mua khác.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -359,6 +363,8 @@ paths:
               - skuId: 00000000-0000-4000-8000-000000000002
                 quantity: 1
       responses:
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
         '200':
           description: Các SKU đã mua, gồm giá đơn vị và số lượng thực hiện.
           content:
@@ -514,6 +520,12 @@ components:
       bearerFormat: JWT
       description: Access token Keycloak dùng cho các API cần đăng nhập.
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Giữ nguyên key khi retry cùng thao tác. Key mới cho một thao tác mới; không tái sử dụng key với nội dung khác.
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._:-]{1,128}$' }
     Page:
       name: page
       in: query
@@ -548,6 +560,12 @@ components:
       schema:
         $ref: '#/components/schemas/Id'
   responses:
+    IdempotencyConflict:
+      description: Key đã dùng với nội dung khác hoặc request cùng key đang xử lý. Với request đang xử lý, retry cùng key sau đó. Order cũng từ chối reference đã gắn với key khác.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     IdResult:
       description: Tạo thành công. Data chứa UUID của tài nguyên mới.
       content:

@@ -6,7 +6,6 @@ import com.duong.ecommerce.order.mapper.OrderMapper;
 import com.duong.ecommerce.order.payload.response.OrderResponse;
 import com.duong.ecommerce.order.repository.OrderRepository;
 import com.duong.ecommerce.order.service.OrderService;
-
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ class OrderPaginationTest {
     @BeforeEach
     void setUp() {
         service = mock(OrderService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new OrderController(service))
+        mvc = MockMvcBuilders.standaloneSetup(new OrderController(service, mock(com.duong.ecommerce.order.service.OrderCheckoutService.class)))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
@@ -69,7 +68,7 @@ class OrderPaginationTest {
     void returnsRequestedPageAndMetadata() throws Exception {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
-                List.of(new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1")), pageable, 45));
+                List.of(new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1", null, null, null, null, null, null, null, null, null, null)), pageable, 45));
 
         mvc.perform(get("/api/v1/orders").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
@@ -109,7 +108,7 @@ class OrderPaginationTest {
     void repositoryQueryIsPagedAndMappingPreservesTotals() {
         var pageable = PageRequest.of(1, 10, Sort.by("id").ascending());
         var entity = mock(Order.class);
-        var response = new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1");
+        var response = new OrderResponse(1, "ORDER-1", java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, "customer-1", null, null, null, null, null, null, null, null, null, null);
         when(repository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(entity), pageable, 45));
         when(mapper.fromOrder(entity)).thenReturn(response);
 

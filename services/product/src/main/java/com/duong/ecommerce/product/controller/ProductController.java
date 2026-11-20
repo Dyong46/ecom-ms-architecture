@@ -1,19 +1,25 @@
 package com.duong.ecommerce.product.controller;
 
-import com.duong.ecommerce.product.payload.request.*;
-import com.duong.ecommerce.product.payload.response.*;
+import com.duong.ecommerce.product.payload.request.ProductPurchaseBatchRequest;
+import com.duong.ecommerce.product.payload.request.ProductRequest;
+import com.duong.ecommerce.product.payload.request.VariantRequest;
+import com.duong.ecommerce.product.payload.response.ProductPurchaseResponse;
+import com.duong.ecommerce.product.payload.response.ProductResponse;
 import com.duong.ecommerce.product.service.ProductService;
 import com.duong.module.web.payload.filter.PaginationRequest;
-import com.duong.module.web.payload.response.*;
+import com.duong.module.web.payload.response.BaseResponse;
+import com.duong.module.web.payload.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController @RequestMapping("/api/v1/products") @RequiredArgsConstructor
 public class ProductController {
     private final ProductService service;
+    private final com.duong.ecommerce.product.service.ProductPurchaseService purchases;
     @PostMapping
     public BaseResponse<String> create(@RequestBody @Valid ProductRequest request) {
         return BaseResponse.of(service.createProduct(request));
@@ -43,8 +49,9 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/purchase")
-    public BaseResponse<List<ProductPurchaseResponse>> purchaseProduct(@RequestBody @Valid ProductPurchaseBatchRequest request) {
-        return BaseResponse.of(service.purchaseProducts(request.products()));
+    public BaseResponse<List<ProductPurchaseResponse>> purchaseProduct(@RequestHeader("Idempotency-Key") String key,
+                                                                       @RequestBody @Valid ProductPurchaseBatchRequest request) {
+        return BaseResponse.of(purchases.purchase(key, request.products()));
     }
     private record ProductFilter(String nameLk) { }
 }

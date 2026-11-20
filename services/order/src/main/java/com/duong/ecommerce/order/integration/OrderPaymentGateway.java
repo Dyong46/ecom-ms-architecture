@@ -1,7 +1,5 @@
 package com.duong.ecommerce.order.integration;
 
-import com.duong.ecommerce.order.entity.Order;
-
 import com.duong.ecommerce.order.integration.oauth.EcomTokenService;
 import com.duong.module.proxy.payment.PaymentClient;
 import com.duong.module.proxy.payment.request.PaymentRequest;
@@ -18,9 +16,9 @@ public class OrderPaymentGateway {
         this.payments = payments;
     }
 
-    public Integer requestOrderPayment(PaymentRequest request) {
+    public Integer requestOrderPayment(String key, PaymentRequest request) {
         String token = tokens.getAccessToken();
-        var response = payments.requestOrderPayment("Bearer " + token, request);
+        var response = payments.requestOrderPayment("Bearer " + token, key, request);
         return response == null ? null : response.data();
     }
 }

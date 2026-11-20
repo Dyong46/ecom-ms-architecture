@@ -1,7 +1,6 @@
 package com.duong.ecommerce.order.entity;
 
 import com.duong.ecommerce.order.entity.enumeration.PaymentMethodEnum;
-
 import com.duong.ecommerce.order.orderline.entity.OrderLine;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,14 +28,47 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Builder.Default
+    @Enumerated(STRING)
+    @Column(nullable = false, length = 16)
+    private com.duong.ecommerce.order.entity.enumeration.OrderCreationStatusEnum creationStatus =
+            com.duong.ecommerce.order.entity.enumeration.OrderCreationStatusEnum.PROCESSING;
+
     private String reference;
 
     private BigDecimal totalAmount;
+
+    @Column(precision = 38, scale = 2)
+    private BigDecimal itemsSubtotal;
+
+    @Column(precision = 38, scale = 2)
+    private BigDecimal shippingFee;
+
+    @Column(length = 3)
+    private String currencyCode;
 
     @Enumerated(STRING)
     private PaymentMethodEnum paymentMethod;
 
     private String customerId;
+
+    @Column(length = 511)
+    private String customerFullName;
+
+    @Column(length = 255)
+    private String customerEmail;
+
+    @Column(length = 255)
+    private String recipientFullName;
+
+    @Column(length = 32)
+    private String recipientPhone;
+
+    @Embedded
+    private ShippingAddress shippingAddress;
+
+    @Column(length = 1000)
+    private String deliveryNote;
 
     @OneToMany(mappedBy = "order")
     private List<OrderLine> orderLines;
