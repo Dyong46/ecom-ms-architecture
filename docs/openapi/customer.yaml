@@ -69,6 +69,8 @@ paths:
                       data:
                         type: string
               example: {data: '673e1eb210c3c0aaec9afe01', request_id: null}
+        '409':
+          $ref: '#/components/responses/Conflict'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -97,6 +99,8 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/Accepted'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -210,6 +214,12 @@ components:
             $ref: '#/components/schemas/ApiError'
     NotFound:
       description: Không tìm thấy tài nguyên theo ID.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Email đã được sử dụng trong một hồ sơ khác (kể cả hồ sơ đánh dấu đã xóa). So sánh theo giá trị lưu, có phân biệt hoa/thường.
       content:
         application/json:
           schema:

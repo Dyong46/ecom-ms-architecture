@@ -1,11 +1,10 @@
 package com.duong.ecommerce.customer.controller;
 
-import com.duong.ecommerce.customer.payload.response.CustomerResponse;
 import com.duong.ecommerce.customer.entity.Customer;
 import com.duong.ecommerce.customer.mapper.CustomerMapper;
+import com.duong.ecommerce.customer.payload.response.CustomerResponse;
 import com.duong.ecommerce.customer.repository.CustomerRepository;
 import com.duong.ecommerce.customer.service.CustomerService;
-
 import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +31,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class CustomerPaginationTest {
+    @Test
+    void duplicateCustomerReturnsConflictWithoutDatabaseDetails() throws Exception {
+        when(service.createCustomer(org.mockito.ArgumentMatchers.any()))
+                .thenThrow(new com.duong.module.common.exception.ConflictException(
+                        "Customer conflicts with an existing record"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"firstname\":\"Ada\",\"lastname\":\"Lovelace\",\"email\":\"ada@example.test\",\"address\":{}}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.data.extra_data.message")
+                        .value("Customer conflicts with an existing record"));
+    }
+
     @Test
     void createdCustomerIdUsesJsonEnvelopeInsteadOfRawString() throws Exception {
         when(service.createCustomer(org.mockito.ArgumentMatchers.any())).thenReturn("customer-1");

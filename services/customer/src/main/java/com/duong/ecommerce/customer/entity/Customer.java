@@ -1,16 +1,21 @@
 package com.duong.ecommerce.customer.entity;
 
-import lombok.*;
+import com.duong.module.mongo.model.entity.BaseSoftDeletableMongoDocument;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Getter
 @Setter
 @Document
-public class Customer {
+public class Customer extends BaseSoftDeletableMongoDocument {
 
     @Id
     private String id;

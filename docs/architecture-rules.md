@@ -103,6 +103,11 @@ route or payload changes.
 
 ## OOP, SOLID and proportionate design
 
+Customer uses the separate `mongo-data-model` library for Mongo document auditing.
+It depends on Spring Data MongoDB, not the JPA-oriented `common-data-model`.
+Auditing activation, identity resolution and deletion policy remain consumer-owned.
+See [Mongo data model decision](mongo-data-model-design.md).
+
 Top-level enums use the `Enum` suffix and live under `entity.enumeration` within
 their owning service or support capability. Keep enum ownership and module
 boundaries intact. See [Service layout and mapping](service-layout-and-mapping.md)

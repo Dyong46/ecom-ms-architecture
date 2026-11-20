@@ -1,19 +1,18 @@
 package com.duong.ecommerce.customer.service;
 
-import com.duong.ecommerce.customer.payload.request.CustomerRequest;
-import com.duong.ecommerce.customer.payload.response.CustomerResponse;
 import com.duong.ecommerce.customer.entity.Customer;
 import com.duong.ecommerce.customer.mapper.CustomerMapper;
+import com.duong.ecommerce.customer.payload.request.CustomerRequest;
+import com.duong.ecommerce.customer.payload.response.CustomerResponse;
 import com.duong.ecommerce.customer.repository.CustomerRepository;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.duong.module.common.exception.ConflictException;
 import com.duong.module.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 
 import static java.lang.String.format;
 
@@ -25,7 +24,7 @@ public class CustomerService {
     private final CustomerMapper mapper;
 
     public String createCustomer(CustomerRequest request) {
-        var customer = repository.save(mapper.toCustomer(request));
+        var customer = saveCustomer(mapper.toCustomer(request));
         return customer.getId();
     }
 
@@ -35,7 +34,16 @@ public class CustomerService {
         ));
 
         mergerCustomer(customer, request);
-        repository.save(customer);
+        saveCustomer(customer);
+    }
+
+    private Customer saveCustomer(Customer customer) {
+        try {
+            return repository.save(customer);
+        } catch (DuplicateKeyException exception) {
+            // Do not expose MongoDB's duplicate-key payload (which includes customer data).
+            throw new ConflictException("Customer conflicts with an existing record");
+        }
     }
 
     private void mergerCustomer(Customer customer, CustomerRequest request) {
