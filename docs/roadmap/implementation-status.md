@@ -15,7 +15,7 @@ operation still requires environment-specific validation.
 - [x] PostgreSQL and MongoDB persistence.
 - [x] Flyway migrations for transactional relational services.
 - [x] Database pagination for list APIs.
-- [x] Problem Details error responses.
+- [x] Customer, Product, Order and Payment use the [shared MVC error envelope](../api-conventions.md#error-envelope). Gateway and Spring Security handle errors at their own boundaries.
 - [x] GitHub Actions verification for repository modules.
 
 ## Correctness and testing
@@ -28,15 +28,17 @@ operation still requires environment-specific validation.
 - [ ] Kafka integration and event-contract tests.
 - [ ] End-to-end checkout flow tests.
 
+Documentation cleanup decision: the owner excluded the standalone checkout idempotency script. Do not create, restore or replace it. Document retry and replay in the [checkout design](../checkout-idempotency-design.md) and use existing Maven tests for module verification.
+
 ## Distributed workflow
 
 - [ ] Independent `inventory-service`.
 - [ ] Order state machine.
 - [ ] Inventory reservation and expiration.
 - [ ] Saga compensation.
-- [ ] Transactional Outbox.
-- [ ] Consumer Inbox and deduplication.
-- [ ] HTTP idempotency keys.
+- [x] Payment settlement uses a [transactional outbox](../stripe-sandbox-design.md).
+- [x] Payment deduplicates signed Stripe webhooks in a durable inbox.
+- [x] Order, Product and Payment persist [checkout idempotency keys](../checkout-idempotency-design.md).
 
 ## Reliability and operations
 
@@ -44,7 +46,7 @@ operation still requires environment-specific validation.
 - [ ] Resilience4j bounded retry, circuit breakers, and dependency isolation.
 - [ ] DLQ and replay procedure.
 - [ ] OpenTelemetry context propagation across HTTP and Kafka.
-- [ ] Prometheus/Grafana dashboards and alerts.
+- [x] [Local monitoring stack, dashboards and Kafka alerts](../monitoring.md).
 - [ ] Structured, correlated logs across services.
 - [ ] Verified backup and restore drills.
 - [ ] Measured SLI/SLO.

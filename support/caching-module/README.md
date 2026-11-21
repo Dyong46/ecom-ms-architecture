@@ -1,8 +1,6 @@
 # Caching Module
 
 `com.duong:caching-module:1.0.0` là thư viện dùng chung, không phải service chạy riêng.
-Module tham khảo `support/caching-module-mau`, giữ cách chia scope và đóng gói cache,
-nhưng không mang DTO thẻ/vé, credential hoặc tên key nghiệp vụ MB vào Ecom.
 
 Module đã vào Maven reactor và dependency management. Order đã thêm dependency
 và bật `@EnableCachingModule` trong `OrderOAuthConfiguration` của Order.

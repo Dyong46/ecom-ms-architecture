@@ -5,7 +5,7 @@ Status: Accepted. Date: 2026-11-20. Decision owner: project owner.
 ## Decision and options
 
 The owner selected persistent idempotency across Order -> Product -> Payment.
-Reservation, stock return, payment-provider state and authorization remain deferred.
+Reservation and stock return remain deferred. Provider settlement and authorization have separate scopes.
 A successful response lost in transit must not cause another stock decrement or
 Payment insert. Redis is not the source of idempotency truth.
 
@@ -23,8 +23,8 @@ including their internal counterparts. Keys contain 1-128 ASCII letters, digits,
 dot, underscore, colon or hyphen. Generate a UUID per operation and retain it across
 retries/restarts. Missing/malformed keys return 400 before mutation.
 
-Product public/internal entry points share one operation ledger; Payment only
-exposes `/internal/payments`, protected by its machine-token rule.
+Product public/internal entry points share one operation ledger; Payment creation uses
+`POST /internal/payments`, protected by its machine-token rule.
 Keys are globally scoped to that operation in that service. Identity/tenant-scoped
 keys require the deferred authorization design. Idempotency does not authorize
 access. Use unguessable keys; do not log keys or snapshot contents.
@@ -85,7 +85,7 @@ separate decision. Bindings currently remain indefinitely.
 Order creation notifications are sent after local commit and are not re-emitted
 on successful replay. Order creation still has no transactional outbox: a crash
 between commit and publish can lose that event. Payment settlement now uses its
-own transactional outbox (see the Stripe extension below). Neither path claims
+own [transactional outbox](stripe-sandbox-design.md#flow-and-ownership). Neither path claims
 exactly-once Kafka/email delivery. Failed checkout can retain deducted stock and a PROCESSING
 Order indefinitely. No reservation, refund, cancellation or stock return is added.
 
@@ -105,25 +105,10 @@ PostgreSQL tests cover replay, payload mismatch, concurrent NOWAIT locking, roll
 retained bindings, decimal normalization and stable drafts. Proxy HTTP tests verify
 header propagation without implicit retry/interceptors.
 
-After packaging, run the isolated HTTP scenario:
+Run the existing module tests from the repository root with Java 17 and Docker:
 
 ```sh
-./services/order/mvnw -o -pl services/order,services/product,services/payment -am package -DskipTests
-python3 scripts/test_checkout_idempotency.py
+./services/order/mvnw -f pom.xml -pl services/order,services/product,services/payment -am test
 ```
 
-The script runs three real services on ephemeral loopback ports against disposable
-PostgreSQL. Customer/OAuth use local fixtures. HTTP proxies return 504 only after
-real Product/Payment commits. It changes the catalog price, restarts the Order JVM,
-retries the same key and verifies one order, one payment, one stock decrement and
-preserved price. Existing service databases, Kafka, Redis and Elasticsearch are
-not used. Kafka delivery itself is not tested.
-
-## Stripe sandbox extension (2026-11-21)
-
-See [Stripe sandbox checkout](stripe-sandbox-design.md) for the current payment
-lifecycle. Creation success does not prove settlement: positive VND payments use
-Hosted Checkout and settle only after verified webhook/reconciliation. Zero VND
-settles locally. Success events are now written transactionally to an outbox.
-Private checkout lookup/retry APIs and the Gateway-routed signed webhook are
-described in the updated Payment and Order OpenAPI contracts.
+Retrying order creation resumes the same operation. Starting another provider payment attempt is a separate action with its own key and eligibility rules. See [Stripe recovery and limits](stripe-sandbox-design.md#recovery-and-limits).

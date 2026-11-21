@@ -148,38 +148,7 @@ Chủ project chọn envelope riêng theo mẫu MB Bank, độc lập với lự
 phân loại exception. Quyết định này thay thế định dạng Problem Details trước đây
 cho các lỗi do handler MVC chung của bốn service nêu trên xử lý.
 
-```http
-HTTP/1.1 404 Not Found
-Content-Type: application/json
-```
-
-```json
-{
-  "data": {
-    "error_code": "NOT_FOUND",
-    "extra_data": {
-      "message": "Product not found"
-    }
-  },
-  "request_id": null
-}
-```
-
-- HTTP status giữ ý nghĩa thật của lỗi, không trả 200 cho mọi trường hợp.
-- `extra_data.message` lấy từ exception đã phân loại đối với lỗi dự kiến 4xx.
-  Lỗi 5xx trả message cố định an toàn, bỏ details và không xuất debug info.
-- Validation dùng `extra_data.errors`: map từ tên field tới message; không trả
-  rejected value. Malformed JSON dùng message an toàn, không echo request body.
-- Nếu exception chưa đặt mã cụ thể, dùng mã theo nhóm, ví dụ `INVALID_INPUT_DATA`,
-  `NOT_FOUND`, `CONFLICT`; lỗi server dùng `UNKNOWN`.
-- Có thể gọi `.errorCode("PRODUCT_OUT_OF_STOCK")` trên exception nền khi client
-  cần phân biệt nghiệp vụ. Dữ liệu do service chủ động cung cấp qua `.extraData(...)`
-  được đặt trong `extra_data.details` đối với lỗi 4xx. Service phải bảo đảm dữ liệu
-  đó có thể công khai; không truyền object nội bộ hoặc thông tin xác thực.
-- `request_id` dùng trace ID hiện có từ MDC; có thể là null khi không có tracing.
-- Sau lần chuyển handler lỗi, chủ project đã chọn bọc rõ response thành công
-  bằng `BaseResponse` tại controller. Xem [API conventions](api-conventions.md)
-  để biết contract cho response đơn, phân trang, 202 và 204.
+Đối với lỗi nghiệp vụ 4xx, service có thể dùng `.errorCode("PRODUCT_OUT_OF_STOCK")` và chỉ đưa dữ liệu an toàn vào `.extraData(...)`. Caller đọc mã lỗi, chi tiết validation và request ID theo [contract lỗi MVC](api-conventions.md#error-envelope).
 
 `WebModuleConfig` import trực tiếp handler chung, không component-scan toàn module
 và không tự bật CORS hoặc ModelMapper. Handler kế thừa xử lý lỗi MVC của Spring,

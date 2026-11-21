@@ -29,7 +29,7 @@ Proxy has no dependency on caching-module or Redis. See the mandatory
 | --- | --- | --- |
 | CustomerClient | GET `/internal/customers/{customer-id}` | Private network |
 | ProductClient | POST `/internal/products/purchase` | Private network |
-| PaymentClient | POST `/internal/payments` | JWT from `ecom-services` + private network |
+| PaymentClient | Create, lookup and retry under `/internal/payments` | JWT from `ecom-services` + private network |
 
 Internal controllers delegate to existing CustomerService, ProductService and
 PaymentService. They do not duplicate business logic. Product keeps the existing
@@ -186,45 +186,7 @@ Order explicitly depends on both independent libraries. `@EnableEcomAuth` regist
 only HTTP transport; it does not register a token/cache service. The old combined
 `@EnableEcomRedisAuth` annotation and Payment OAuth interceptor have been removed.
 
-Order checks Redis first; on a miss it requests a machine token via EcomAuthClient,
-validates the response and stores it via AccessTokenCache. Expiry is measured from
-before the HTTP request, with the cache's 30-second margin. OrderPaymentGateway
-passes `Bearer <token>` explicitly to PaymentClient; credentials are not forwarded
-to Customer or Product.
-
-Order's current policy on cache read errors or corrupt JSON is to request a fresh
-token. Cache write errors do not discard a freshly acquired token. Errors log only
-the exception type. OAuth errors propagate and prevent the Payment request. There
-is no anonymous fallback, automatic Payment retry or extra local token cache.
-Repeated Redis failures can increase Keycloak traffic. Refresh is synchronized
-inside one process, with no distributed refresh lock between instances.
-
-Identity includes issuer, client ID and requested scope under a global
-namespace/environment. Credential rotation may require evicting that entry; a valid
-cached token can mask invalid credentials until the next acquisition.
-
-Local runtime settings for Order:
-
-```dotenv
-REDIS_HOST=localhost
-REDIS_PORT=6379
-CACHE_NAMESPACE=ecom
-APP_ENV=local
-ECOM_OAUTH_CLIENT_ID=ecom-services
-ECOM_OAUTH_CLIENT_SECRET=<runtime secret>
-```
-
-Start Redis using `docker compose --profile caching up -d redis`. Reload Maven,
-rebuild and restart Order. Keep the existing Keycloak and Payment setup from the
-[OAuth guide](../../docs/ecom-oauth-setup.md). Redis receives a token after an OAuth
-integration actually requests one. Inspect keys/TTL without printing token values:
-
-```bash
-docker compose --profile caching exec -T redis redis-cli --scan --pattern 'ecom:local:v1:global:json:oauth-tokens:*'
-```
-
-Use `redis-cli TTL <key>` through the same container to check expiry. Redis cache
-values contain access tokens; keep credentials and cached values out of logs.
+Order supplies the machine token to PaymentClient. Its Redis fallback, expiry and rotation policy and the local verification commands are in the [Order OAuth guide](../../docs/ecom-oauth-setup.md#order--payment-qua-oauth2).
 
 ## Build, restart and verify
 
@@ -254,8 +216,7 @@ Real Keycloak credentials and production network isolation are not established
 by those tests and must match the deployment environment.
 
 When changing DTOs or method signatures, maintain compatibility or publish a new
-module version. The reference `support/proxy-modul-mau` directory is not part of
-the Maven reactor and remains reference material only.
+module version.
 
 ## Checkout idempotency headers
 

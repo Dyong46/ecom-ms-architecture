@@ -38,7 +38,7 @@ Hoặc chỉ định file JSON khác:
 python3 scripts/import_products.py /duong/dan/products.json --dry-run
 ```
 
-Dry run kiểm tra toàn bộ file và in thống kê, không cần token và không gọi HTTP.
+`--dry-run` kiểm tra dữ liệu trong file JSON và in số Product, số SKU, khoảng tồn kho và số Product theo nhóm. Lệnh dừng trước bước xác thực và gọi API, nên không ghi dữ liệu.
 Script kiểm tra slug/mã SKU duy nhất, 3–10 biến thể mỗi Product, tổ hợp không trùng,
 cùng bộ thuộc tính trong mỗi SPU, giá hợp lệ với decimal(12,2), tồn kho 1–100 và
 JSON không có key bị lặp. Không bắt buộc file tùy chỉnh phải có đúng 50 Product.
@@ -46,7 +46,7 @@ JSON không có key bị lặp. Không bắt buộc file tùy chỉnh phải có
 ## Nạp qua API
 
 1. Database Product phải được khởi tạo theo schema SPU/SKU mới. Nếu còn database
-   cũ, làm theo phần khởi tạo trong [thiết kế catalog](../docs/product-catalog-design.md).
+   cũ, làm theo phần khởi tạo trong [thiết kế catalog](../services/product/product-catalog-design.md).
 2. Khởi động Product và các dependency của nó, bao gồm PostgreSQL, Config Server
    và Elasticsearch. URL mặc định của importer là `http://localhost:8050`.
 3. Chuẩn bị Keycloak access token có quyền gọi API ghi Product/Option.
@@ -115,7 +115,7 @@ Authorization: Bearer <access-token>
 
 Reindex hiện trả số SKU đã nạp vào `products_v2` (323 SKU cho file mẫu), còn
 search gộp kết quả theo SPU. Tạm dừng ghi catalog và mua hàng trong lúc reindex theo
-[thiết kế search](../docs/product-search-design.md). Importer không tự reindex.
+[thiết kế search](../services/product/product-search-design.md). Importer không tự reindex.
 
 ## Định dạng JSON
 
@@ -142,23 +142,3 @@ UUID cứng. Ví dụ trích một Product (cần tối thiểu 3 SKU trong mỗ
 
 Tên option/value phân biệt hoa thường theo dữ liệu hiện tại. Script tái sử dụng
 OptionValue đã có mà không thay đổi synonyms của nó.
-
-## Kiểm thử
-
-```sh
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts -p 'test_*.py' -v
-```
-
-Tests kiểm tra dữ liệu, validation trước khi gọi mạng, request HTTP và UUID mapping,
-phân trang, tái sử dụng option, xung đột, chạy lại không ghi đè stock, token hết hạn
-và tiếp tục sau một lần POST thất bại. HTTP server test chỉ chạy trên loopback với
-port ngẫu nhiên; không gọi Product thật hoặc thay đổi database của bạn.
-
-## Checkout idempotency verification
-
-`python3 scripts/test_checkout_idempotency.py` runs the three packaged Java services
-against disposable PostgreSQL, injects lost Product/Payment responses after commit,
-restarts Order and verifies recovery with no duplicate writes. It requires Docker,
-Java 17 and OpenSSL. Build jars first using the command in
-[checkout idempotency](../docs/checkout-idempotency-design.md). Existing service
-processes and databases are not used or reset.

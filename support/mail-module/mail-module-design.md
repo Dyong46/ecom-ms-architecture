@@ -51,7 +51,7 @@ Credentials remain runtime `spring.mail.*` configuration, outside source code.
 ## Compatibility and limits
 
 Notification now uses durable MongoDB email jobs and a worker as described in
-[Notification delivery](notification-delivery.md), accepted by the owner after the
+[Notification delivery](../../services/notification/notification-delivery.md), accepted by the owner after the
 initial transport extraction. `SENT` records SMTP acceptance only. Retry, leases,
 event identity and delivery state belong to Notification; the mail library still
 propagates failures without retrying. The worker calls SMTP synchronously and the

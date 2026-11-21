@@ -95,7 +95,7 @@ public class OrderOAuthConfiguration {
 ```
 
 `OrderPaymentGateway` gọi `EcomTokenService.getAccessToken()` rồi truyền
-`Authorization: Bearer <access token>` vào `PaymentClient.requestOrderPayment(header, request)`.
+`Authorization: Bearer <access token>` vào `PaymentClient.requestOrderPayment(authorization, key, request)`.
 Proxy chỉ gửi HTTP; caching chỉ đọc/ghi Redis. Hai module không phụ thuộc nhau.
 Order sở hữu cache-aside, fallback và quyết định dùng credential nào.
 Xem [rules kiến trúc](architecture-rules.md).
@@ -148,17 +148,23 @@ Payment → kiểm tra chữ ký JWT, issuer, thời hạn và azp=ecom-services
 - Token bị thiếu/không hợp lệ: Payment trả `401`; token hợp lệ thuộc client khác:
   `403`. Token endpoint lỗi: Order dừng lời gọi Payment, không fallback anonymous
   và không tự retry thanh toán. Token được cache đến gần lúc hết hạn.
-- Payment chỉ có POST/GET `/internal/payments`, đều yêu cầu machine token của client được phép. API `/api/v1/payments`
-  đã bỏ; Gateway không publish Payment.
-  Gateway vẫn chặn internal; service ports phải ở mạng riêng.
+- Gateway chặn API nghiệp vụ `/internal/payments`. Stripe gửi webhook qua Gateway đến Payment để kiểm tra chữ ký. [Ranh giới API Payment](payment-internal-api-design.md)
 
 Khởi động Redis local bằng `docker compose --profile caching up -d redis`.
 Order đọc `REDIS_HOST`/`REDIS_PORT` (mặc định localhost/6379), `CACHE_NAMESPACE`
-(mặc định ecom) và `APP_ENV` (mặc định local) từ cấu hình chung. Các consumer cần
-cùng namespace/môi trường để chia sẻ token. Redis lỗi sẽ khiến lớp điều phối trong Order lấy token
-mới từ Keycloak; Keycloak lỗi vẫn dừng lời gọi Payment. Cache trừ margin 30 giây
-khỏi thời hạn token và kiểm tra expiry khi đọc. Xem
-[hành vi cache và fallback](../support/proxy-module/README.md#order-owns-token-caching-and-outbound-policy).
+(mặc định ecom) và `APP_ENV` (mặc định local). Cache key gồm issuer, client ID và scope trong namespace của môi trường.
+
+Order kiểm tra Redis trước. Cache miss, lỗi đọc hoặc JSON hỏng khiến Order lấy token mới từ Keycloak.
+Order tính expiry từ trước khi gọi HTTP; cache áp dụng margin 30 giây. Nếu ghi Redis lỗi,
+Order vẫn dùng token vừa lấy. Refresh được đồng bộ trong từng tiến trình, nên nhiều instance
+vẫn có thể cùng gọi Keycloak. Sau khi đổi secret, token cũ có thể che lỗi cấu hình cho đến
+lần cấp mới; khi cần, evict đúng key của danh tính đó.
+
+Kiểm tra key rồi dùng `redis-cli TTL <key>` trong cùng container để xem thời hạn mà không in token:
+
+```sh
+docker compose --profile caching exec -T redis redis-cli --scan --pattern 'ecom:local:v1:global:json:oauth-tokens:*'
+```
 
 Sau khi reload Maven/rebuild, restart **Config Server → Payment → Order**; Keycloak
 phải chạy khi thực hiện request. Nếu trước đó override `PAYMENT_SERVICE_URL`, bảo

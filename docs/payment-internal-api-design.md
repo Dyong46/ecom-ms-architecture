@@ -15,7 +15,7 @@ The remaining security chain permits only explicit health/info/Prometheus/error
 paths and denies other paths, so the removed URLs cannot bypass the internal rule.
 Pagination, validation, response envelopes and idempotency behavior are preserved.
 The internal-only route change itself needed no storage migration or new module
-dependency; the later Stripe extension below adds lifecycle tables and its SDK.
+dependency; the [Stripe implementation](stripe-sandbox-design.md) adds lifecycle tables and its SDK.
 
 ## Gateway and documentation
 
@@ -39,8 +39,7 @@ building to apply route/resource changes; Order's existing internal client stays
 
 Tests cover POST/GET machine authentication, wrong-client denial, rejection of old
 public paths, internal pagination/validation, Gateway webhook forwarding and
-internal-path rejection, and removal of client Swagger Payment. The isolated checkout HTTP script uses authenticated internal
-GET for readiness and continues exercising real Order -> Product -> Payment calls.
+internal-path rejection, and removal of client Swagger Payment.
 
 ## Development verification workflow
 
@@ -67,11 +66,4 @@ verify integration. Choose the paths needed to cover the change; all three are n
 mandatory for every small change. Keep dev/test credentials and data separate from
 production, without adding a public route for manual testing.
 
-## Stripe sandbox extension (2026-11-21)
-
-See [Stripe sandbox checkout](stripe-sandbox-design.md) for the current payment
-lifecycle. Creation success does not prove settlement: positive VND payments use
-Hosted Checkout and settle only after verified webhook/reconciliation. Zero VND
-settles locally. Success events are now written transactionally to an outbox.
-Private checkout lookup/retry APIs and the Gateway-routed signed webhook are
-described in the updated Payment and Order OpenAPI contracts.
+For the private lookup and retry operations, see the [Payment contract](openapi/payment.yaml). For settlement and provider failure handling, see the [Stripe design](stripe-sandbox-design.md#recovery-and-limits).

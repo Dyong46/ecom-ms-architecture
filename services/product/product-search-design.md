@@ -52,8 +52,8 @@ GET /api/v1/products/search?q=DEMO-PHONE-01-01
 Public GET retains the existing read-access policy. `q` is optional, maximum 200
 characters; absent/blank means browse all matching SKUs before grouping. Nonblank
 queries use AND token matching with AUTO fuzziness over SPU name/description,
-plus an exact ASCII case-insensitive SKU-code clause. Exact SKU-code matches are
-boosted. No autocomplete, substring SKU search, custom Vietnamese accent folding
+with a title boost of 3, plus an exact ASCII case-insensitive SKU-code clause
+with a boost of 5. No autocomplete, substring SKU search, custom Vietnamese accent folding
 or synonym analyzer is configured.
 
 Attribute filters use indexed query parameters. For example, from a shell:

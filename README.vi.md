@@ -2,323 +2,58 @@
 
 [English](README.md) | [Tiếng Việt](README.vi.md)
 
-Một nền tảng thương mại điện tử được xây dựng dưới dạng hệ thống phân tán dựa trên
-microservices và được thiết kế để phát triển theo hướng sẵn sàng cho môi trường
-production. Hệ thống bao gồm quản lý customer, product catalog, inventory, order,
-payment và notification. Kiến trúc tập trung vào service boundary rõ ràng, quyền sở
-hữu dữ liệu độc lập, giao tiếp tin cậy, phục hồi lỗi, bảo mật, observability và khả
-năng mở rộng.
+Đây là backend thương mại điện tử dùng Java 17, Spring Boot và Spring Cloud. Hệ thống dùng một đơn hàng thật trong môi trường sandbox để minh họa ba vấn đề của microservices: ai sở hữu dữ liệu, retry thế nào khi lời gọi HTTP bị ngắt và khi nào có thể xác nhận khách đã trả tiền.
 
-## Mục tiêu dự án
+[Chạy hệ thống](#chạy-các-service-ở-local) · [Thử checkout sandbox](docs/stripe-sandbox-design.md#local-sandbox-verification) · [Tìm tài liệu theo service](docs/README.md#implemented)
 
-- Xây dựng kiến trúc microservices rõ ràng quanh một domain e-commerce nhỏ.
-- Xác định rõ quyền sở hữu dữ liệu và trách nhiệm của từng service.
-- Tìm hiểu giao tiếp đồng bộ và bất đồng bộ giữa các service.
-- Áp dụng các pattern của hệ thống phân tán thông qua những tình huống nghiệp vụ có
-  thể quan sát và kiểm chứng.
-- Bổ sung dần testing, security, resilience, operation và deployment.
-- Ghi lại các quyết định thiết kế, trade-off và bài học trong quá trình phát triển.
+## Tìm đúng nơi để sửa
 
-## Yêu cầu chức năng
-
-Ở mức tổng quan, hệ thống hỗ trợ:
-
-- Quản lý hồ sơ và địa chỉ khách hàng.
-- Quản lý danh mục, category và giá sản phẩm từ phía server.
-- Quản lý tồn kho, số lượng khả dụng và inventory reservation.
-- Tạo order và theo dõi vòng đời của order.
-- Xử lý và lưu thông tin payment.
-- Phát order event và payment event.
-- Gửi email notification từ các event bất đồng bộ.
-- Cung cấp một điểm truy cập tập trung thông qua API Gateway.
-
-Behavior chi tiết, API contract, cách xử lý failure và Non-Functional Requirements
-được mô tả trong từng topic triển khai tại
-[`docs/distributed-systems`](docs/distributed-systems/README.md).
-
-## Kiến trúc hệ thống
-
-Hệ thống được phân chia theo business capability. Mỗi service sở hữu domain logic và
-dữ liệu của mình; không service nào ghi trực tiếp vào database của service khác.
-
-```text
-                         +-------------------+
-                         |   Config Server   |
-                         +---------+---------+
-                                   |
-Client --> API Gateway ------------+--> Customer Service
-              |                    +--> Product Service
-              |                    +--> Inventory Service
-              |                    +--> Order Service
-              |                    +--> Payment Service
-              |                    +--> Notification Service
-              |
-              +--> Service Discovery
-
-Order / Payment Services --> Kafka --> Notification Service
-```
-
-### Business services
-
-| Service | Trách nhiệm |
+| Thư mục | Trách nhiệm |
 | --- | --- |
-| `customer-service` | Hồ sơ, thông tin liên hệ và địa chỉ khách hàng |
-| `product-service` | Danh mục, category, mô tả và giá sản phẩm |
-| `inventory-service` | Tồn kho, reservation, confirm, release và expiration |
-| `order-service` | Vòng đời order và điều phối checkout workflow |
-| `payment-service` | Xử lý payment và lưu payment record |
-| `notification-service` | Gửi email và lưu lịch sử notification từ event bất đồng bộ |
+| `services/customer`, `services/product` | Customer lưu hồ sơ trong MongoDB. Product sở hữu catalog SPU/SKU, giá và tồn kho trong PostgreSQL, đồng bộ chỉ mục tìm kiếm sang Elasticsearch. |
+| `services/order`, `services/payment` | Order điều phối checkout và lưu snapshot. Payment quản lý lần thanh toán, xác minh webhook Stripe và phát kết quả qua Kafka. |
+| `services/notification` | Nhận sự kiện, lưu email job trong MongoDB và gửi SMTP. |
+| `cloud/` | Config Server cấp cấu hình, Eureka đăng ký service, API Gateway nhận request từ client. |
+| `support/` | Các thư viện Java được nhúng vào ứng dụng, gồm HTTP client, cache, Kafka, mail và data model dùng chung. |
 
-### Platform services
+## Theo dấu một đơn hàng
 
-| Service | Trách nhiệm |
-| --- | --- |
-| `api-gateway` | Điểm truy cập bên ngoài, routing và bảo mật tại biên hệ thống |
-| `config-server` | Quản lý cấu hình ứng dụng tập trung |
-| `discovery` | Đăng ký và tìm kiếm service bằng Eureka |
+1. Client gửi `POST /api/v1/orders` kèm `Idempotency-Key`. Order đọc Customer, gọi Product để mua SKU theo giá phía server rồi lưu snapshot của đơn.
+2. Order gọi API nội bộ của Payment bằng machine token. Client nhận Order ID và gọi `GET /api/v1/orders/{orderId}/payment` để lấy link Stripe. Lần tạo đơn có thể đã hoàn tất trong khi khách vẫn chưa trả tiền.
+3. Với đơn có thu tiền, Stripe gửi webhook qua Gateway. Payment xác minh chữ ký, ghi kết quả và sự kiện thành công vào outbox. Order nhận sự kiện qua Kafka để cập nhật trạng thái thanh toán. Notification xử lý email riêng.
 
-Product và Inventory là hai domain responsibility độc lập:
+Product hiện trừ tồn khi mua SKU. Reservation có thời hạn và Saga hoàn kho là các chủ đề dự kiến. [Checkout và idempotency](docs/checkout-idempotency-design.md) · [Thiết kế Stripe](docs/stripe-sandbox-design.md)
 
-```text
-Product Service   -> sản phẩm là gì và có giá bao nhiêu
-Inventory Service -> còn bao nhiêu hàng và số hàng đó có đang được giữ hay không
+## Chạy các service ở local
+
+Cần JDK 17 và Docker Compose. Chạy các lệnh từ thư mục gốc repo. Để thử catalog trước, bật profile Elasticsearch:
+
+```sh
+docker compose --profile search up -d
 ```
 
-## Luồng nghiệp vụ chính
+1. Import `pom.xml` gốc vào IDE. Khởi động lần lượt Config Server, Discovery, Product và API Gateway. Chọn Spring profile `local` cho Gateway để mở Swagger.
+2. Chờ Product xuất hiện trong [Eureka](http://localhost:8761), rồi đọc danh sách sản phẩm qua Gateway:
 
-Workflow chính được giữ ở mức dễ hiểu:
+   ```sh
+   curl -i 'http://localhost:8222/api/public/v1/products?page=1&size=5'
+   ```
 
-```text
-Tạo order
-  -> kiểm tra customer
-  -> reserve inventory
-  -> xử lý payment
-  -> confirm inventory và order
-  -> phát notification event
-```
+   Kết quả mong đợi là HTTP 200 và danh sách trong `data.content`. Danh sách rỗng là hợp lệ với database mới. Để có SKU thử checkout, dùng [hướng dẫn nạp catalog mẫu](scripts/README.md). Nếu cần khách hàng để đặt đơn, xem [cách seed Customer local](scripts/customer-data.md).
+3. Để chạy checkout, bật Redis bằng `docker compose --profile caching up -d redis`, cấu hình `ECOM_OAUTH_CLIENT_SECRET` cho Order rồi khởi động Customer, Payment, Order và Notification. Dùng thư mục gốc repo làm working directory nếu nạp file cấu hình local của Order và Payment. [Thiết lập Keycloak](docs/ecom-oauth-setup.md) · [Thử thanh toán Stripe và chuyển tiếp webhook](docs/stripe-sandbox-design.md#local-sandbox-verification)
 
-Compensation flow chính:
+Swagger qua Gateway: [Product](http://localhost:8222/docs/product) · [Customer](http://localhost:8222/docs/customer) · [Order](http://localhost:8222/docs/order)
 
-```text
-Payment thất bại
-  -> release inventory
-  -> cancel order
-```
+## Build và test
 
-Flow này là nền tảng để triển khai Order state machine, inventory reservation, Saga
-compensation, Transactional Outbox, idempotency, retry, DLQ và distributed tracing.
+Docker cần chạy để Testcontainers có thể tạo PostgreSQL cho các bài test tích hợp.
 
-## Công nghệ sử dụng
+```sh
+# Kiểm tra Order cùng các module phụ thuộc
+./services/order/mvnw -f pom.xml -pl services/order -am --batch-mode verify
 
-### Backend
-
-- Java 17
-- Spring Boot 3
-- Spring Cloud Config, Gateway, OpenFeign và Netflix Eureka
-- Spring Data JPA và Spring Data MongoDB
-- Maven multi-module build
-
-### Database và migration
-
-- PostgreSQL cho dữ liệu giao dịch
-- MongoDB cho dữ liệu customer và notification
-- Flyway cho relational database migration
-
-### Giao tiếp và messaging
-
-- REST cho giao tiếp đồng bộ giữa các service
-- Apache Kafka cho event bất đồng bộ
-- Zookeeper cho Kafka trong môi trường local hiện tại
-
-### Security
-
-- OAuth 2.0 Resource Server
-- JWT
-- Keycloak cho identity và access management ở môi trường local
-
-### Testing
-
-- JUnit 5
-- Mockito
-- Spring Boot Test
-- Testcontainers với PostgreSQL
-
-### Observability
-
-- Spring Boot Actuator
-- Micrometer Tracing
-- Zipkin
-
-### Build và hạ tầng local
-
-- GitHub Actions
-- Docker Compose
-- MailDev để kiểm thử email ở local
-
-### Công nghệ định hướng phát triển
-
-- Redis cho caching, rate limiting và các coordination use case đã được benchmark
-- Elasticsearch cho product search và indexing
-- Resilience4j cho retry, circuit breaker, rate limiter và bulkhead
-- OpenTelemetry để chuẩn hóa trace và telemetry instrumentation
-- Prometheus và Grafana cho metric, dashboard và alert
-- Schema Registry để quản lý Kafka event contract có version
-- Kubernetes và Helm cho deployment, configuration và release management
-- k6 hoặc Gatling cho load test và capacity test có thể lặp lại
-
-## Cấu trúc repository
-
-```text
-.
-├── cloud/                  # API Gateway và các component hướng ra bên ngoài
-├── services/               # Business service và platform service
-├── support/                # Các Java module dùng chung
-├── docs/                   # Tài liệu thiết kế, roadmap và triển khai
-├── diagrams/               # Sơ đồ kiến trúc và domain
-├── docker/                 # Khởi tạo hạ tầng local
-├── docker-compose.yml      # PostgreSQL, MongoDB, Kafka và công cụ hỗ trợ ở local
-└── pom.xml                 # Maven parent và reactor ở root
-```
-
-## Sơ đồ kiến trúc
-
-### Kiến trúc hệ thống
-
-![System Architecture](diagrams/diagram.png)
-
-### Sơ đồ domain
-
-![Domain Diagram](diagrams/domain_diagram.png)
-
-Các sơ đồ sẽ tiếp tục thay đổi khi service boundary và các topic được hoàn thiện. Khi
-sơ đồ cũ khác với thiết kế hiện tại, quy tắc về quyền sở hữu service trong tài liệu
-viết được xem là source of truth.
-
-## Bắt đầu sử dụng
-
-### Yêu cầu môi trường
-
-- Java 17
-- Docker với Docker Compose
-- Git
-
-### Khởi động hạ tầng local
-
-Từ thư mục root của repository:
-
-```bash
-docker compose up -d
-```
-
-Lệnh này khởi động PostgreSQL, MongoDB, Kafka, Zookeeper, Zipkin, Keycloak và MailDev.
-Credential trong `docker-compose.yml` chỉ được sử dụng cho môi trường development local.
-
-### Build và test repository
-
-```bash
+# Kiểm tra toàn bộ repo
 ./services/order/mvnw -f pom.xml --batch-mode verify
 ```
 
-Để build và test một module cùng các dependency của nó:
-
-```bash
-./services/order/mvnw -f pom.xml \
-  -pl services/product \
-  -am \
-  --batch-mode verify
-```
-
-### Chạy các service ở local
-
-Khởi động ứng dụng theo thứ tự:
-
-1. `config-server`
-2. `discovery`
-3. Các business service
-4. `api-gateway`
-
-Mỗi service đã được triển khai có Maven Wrapper và có thể được chạy từ thư mục của nó:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Các secret theo môi trường, chẳng hạn OAuth2 client secret, phải được cung cấp từ môi
-trường local và không được commit vào repository.
-
-### Mở Swagger UI của các service
-
-Sau khi chạy Config Server và Discovery, chạy API Gateway với profile `local`.
-Từ thư mục gốc repo, build Gateway cùng các module mà nó dùng rồi chạy JAR.
-
-```sh
-./cloud/api-gateway/mvnw -pl cloud/api-gateway -am -DskipTests package
-java -jar cloud/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar --spring.profiles.active=local
-```
-
-Nếu chạy Gateway từ IDE, chọn profile `local` cho cấu hình chạy ứng dụng.
-Mở trang tương ứng với API muốn thử.
-
-| Service | Swagger UI | File OpenAPI |
-| --- | --- | --- |
-| Product | [`/docs/product`](http://localhost:8222/docs/product) | [openapi.yaml](openapi.yaml) |
-| Customer | [`/docs/customer`](http://localhost:8222/docs/customer) | [customer.yaml](docs/openapi/customer.yaml) |
-| Order và Order Line | [`/docs/order`](http://localhost:8222/docs/order) | [order.yaml](docs/openapi/order.yaml) |
-
-Payment chỉ có API nội bộ `/internal/payments`, yêu cầu machine token. Contract
-nội bộ nằm trong [payment.yaml](docs/openapi/payment.yaml); webhook POST `/webhooks/stripe` đi qua Gateway, còn API internal không được public và không có Swagger Payment cho client.
-
-**Try it out** gửi request qua Gateway. Với API có biểu tượng khóa, bấm
-**Authorize** và dán access token Keycloak. Để thử search public của Product,
-chạy Product và Elasticsearch bằng profile Compose `search`. Xem
-[hướng dẫn nạp catalog mẫu](scripts/README.md#nạp-qua-api).
-
-## Testing và Continuous Integration
-
-Repository có unit test, web-layer test, application-context test và PostgreSQL
-integration test. Các inventory concurrency test sử dụng PostgreSQL container thật để
-kiểm chứng database locking và stock constraint.
-
-GitHub Actions chạy Maven verification cho business, platform và support module khi
-push hoặc tạo pull request. Branch rule của repository nên yêu cầu các check này phải
-thành công trước khi code được merge vào default branch.
-
-Xem checklist triển khai hiện tại tại
-[`docs/roadmap/implementation-status.md`](docs/roadmap/implementation-status.md).
-
-## Lộ trình phát triển
-
-Quá trình phát triển được chia thành các giai đoạn theo thứ tự phụ thuộc:
-
-1. **Tính đúng đắn của nghiệp vụ:** Order state machine, inventory reservation,
-   Saga compensation, Outbox, Inbox và idempotency.
-2. **Event contract:** Schema Registry, Kafka schema có version, compatibility policy
-   và kiểm tra contract trong CI.
-3. **Khả năng phục hồi:** timeout, bounded retry, circuit breaker và bulkhead bằng
-   Resilience4j; bổ sung DLQ và quy trình replay.
-4. **Observability:** OpenTelemetry xuyên suốt HTTP và Kafka, Prometheus metric,
-   Grafana dashboard và alert, SLI/SLO cùng runbook vận hành.
-5. **Bảo mật và bảo vệ dữ liệu:** authorization ở từng service, secret management,
-   TLS, backup và restore đã được kiểm chứng.
-6. **Hiệu năng và mở rộng:** kịch bản k6 hoặc Gatling có thể lặp lại, capacity
-   baseline; chỉ thêm Redis, search, partitioning hoặc sharding dựa trên số liệu.
-7. **Deployment và delivery:** Kubernetes, Helm, cấu hình theo môi trường, health
-   probe, autoscaling, release verification và rollback.
-
-Mỗi giai đoạn xác định capability và bằng chứng hoàn thành; chỉ cài thêm công nghệ
-không có nghĩa là giai đoạn đã hoàn tất. Xem chi tiết tại
-[`docs/roadmap/feature-roadmap.md`](docs/roadmap/feature-roadmap.md).
-
-## Tài liệu
-
-- [Tìm kiếm sản phẩm SPU/SKU với Elasticsearch](docs/product-search-guide.vi.md)
-- [Cấu trúc package và MapStruct](docs/service-layout-and-mapping.md)
-- [Luồng tạo đơn hàng và gửi email bất đồng bộ](docs/order-and-notification-flow.md)
-- [HTTP client dùng chung (Proxy Module)](support/proxy-module/README.md)
-- [Thiết lập Prometheus và Grafana local](docs/monitoring.md)
-- [Lộ trình học Distributed Systems](docs/distributed-systems/README.md)
-- [Mẫu tài liệu cho một topic](docs/distributed-systems/TOPIC_TEMPLATE.md)
-- [Quy ước API](docs/api-conventions.md)
-- [Lộ trình phát triển tính năng](docs/roadmap/feature-roadmap.md)
-- [Trạng thái triển khai](docs/roadmap/implementation-status.md)
-- [Thiết kế Authentication và Authorization](docs/authentication-authorization-design.md)
+[Tra cứu tài liệu theo tác vụ](docs/README.md) · [Hiện trạng triển khai](docs/roadmap/implementation-status.md) · [Lộ trình học distributed systems](docs/distributed-systems/README.md)

@@ -1,25 +1,24 @@
 # Mongo data model
 
-`BaseMongoDocument` supplies `Instant` creation/modification timestamps and String
-creator/modifier metadata using Spring Data auditing annotations. Document classes
-own their IDs. Lombok subclasses using builders should use `@SuperBuilder`.
+This module keeps Spring Data MongoDB auditing separate from the JPA foundation.
+A separate Maven artifact lets Mongo consumers use the shared metadata without
+inheriting Hibernate or JPA. Each service owns its document IDs, connection and migrations.
 
-Consumers explicitly enable `@EnableMongoAuditing`, own the MongoDB starter and
-connection settings, and supply `AuditorAware<String>` when a trusted principal
-is available. Without an auditor provider, user fields remain unset. This module
-does not scan components or enable auditing automatically.
+## Audit metadata
 
-No dependency on `common-data-model`, JPA, Hibernate, other support modules or
-applications is introduced. Mongo library versions follow the root Boot BOM.
+Consumers explicitly enable Mongo auditing. Spring Data callbacks populate
+`createdAt` and `updatedAt` on entity saves. Raw and bulk writes must maintain
+audit fields explicitly. Only a trusted service-side identity may populate
+`createdBy` and `updatedBy` through `AuditorAware<String>`. Customer currently
+leaves actors unset and ignores audit and deletion fields in request mapping.
 
-Auditing applies through Spring Data entity lifecycle callbacks; raw/bulk updates
-must manage their audit metadata explicitly. Existing documents are not backfilled.
-`BaseSoftDeletableMongoDocument` extends the audit base with optional `deletedAt`
-and `deletedBy`. `markDeleted(Instant, String)` records the first deletion only;
-the consumer supplies the time and trusted actor (nullable if unknown). `restore()`
-clears both fields and `isDeleted()` derives the state without persisting a flag.
-These methods only change in-memory metadata. They do not save, filter queries,
-intercept repository deletion, authorize restoration, or enforce retention.
-Soft-delete/restore workflows, purgeAt, retention and purge belong to the consumer.
+## Compatibility and deletion
 
-See [the accepted design](../../docs/mongo-data-model-design.md).
+Existing documents remain readable with missing audit fields and receive no
+historical backfill. In `BaseSoftDeletableMongoDocument`, a missing `deletedAt`
+means the document is active. Repeated `markDeleted` calls preserve the first
+timestamp and actor. `restore()` clears both fields in memory. The consumer owns
+persistence, query filtering, restore authorization and retention.
+
+Customer owns its Mongock baseline and unique email index, including the behavior
+for records carrying deletion metadata. [Customer persistence and migrations](../../services/customer/README.md)

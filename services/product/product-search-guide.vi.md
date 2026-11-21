@@ -92,8 +92,8 @@ erDiagram
 Để tạo catalog qua API, tạo option, thêm các giá trị rồi gửi `POST /api/v1/products`
 với danh sách `variants`, mỗi biến thể tham chiếu các UUID qua `optionValueIds`.
 Xem [payload tạo Product](product-catalog-design.md#api-usage) hoặc nạp catalog
-mẫu bằng [script import](../scripts/README.md#nạp-qua-api). Schema đầy đủ nằm trong
-[migration Flyway](../services/product/src/main/resources/db/migration/V1__init_catalog_schema.sql).
+mẫu bằng [script import](../../scripts/README.md#nạp-qua-api). Schema đầy đủ nằm trong
+[migration Flyway](src/main/resources/db/migration/V1__init_catalog_schema.sql).
 
 ## 3. Cấu hình Elasticsearch ở local
 
@@ -104,14 +104,14 @@ docker compose --profile search up -d elasticsearch
 curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=30s'
 ```
 
-[docker-compose.yml](../docker-compose.yml) chạy Elasticsearch **8.13.4** ở chế độ
+[docker-compose.yml](../../docker-compose.yml) chạy Elasticsearch **8.13.4** ở chế độ
 single node, dùng heap 512 MB và volume `elasticsearch`. Port `9200` chỉ bind vào
 `127.0.0.1`; xác thực Elasticsearch được tắt cho cấu hình local này.
 
 Khởi động Config Server, Discovery và Product theo
-[hướng dẫn chạy local](../README.vi.md#chạy-các-service-ở-local). Product chạy trên
+[hướng dẫn chạy local](../../README.vi.md#chạy-các-service-ở-local). Product chạy trên
 port `8050` và lấy cấu hình từ
-[`product-service.yml`](../cloud/config-server/src/main/resources/configurations/product-service.yml):
+[`product-service.yml`](../../cloud/config-server/src/main/resources/configurations/product-service.yml):
 
 | Thuộc tính Spring | Biến cấu hình | Mặc định |
 | --- | --- | --- |
@@ -128,7 +128,7 @@ Elasticsearch repositories được tắt.
 
 ## 4. Từ bảng catalog đến index `products_v2`
 
-[`ProductMapper`](../services/product/src/main/java/com/duong/ecommerce/product/mapper/ProductMapper.java)
+[`ProductMapper`](src/main/java/com/duong/ecommerce/product/mapper/ProductMapper.java)
 kết hợp dữ liệu từ SPU, SKU và các giá trị option mà SKU đó chọn. Tên/mô tả SPU
 được lặp trong các document SKU để Elasticsearch tìm theo nội dung sản phẩm và
 lọc biến thể trong cùng truy vấn.
@@ -144,8 +144,8 @@ lọc biến thể trong cùng truy vấn.
 | `attrs` | Các giá trị option của SKU | `nested`; `attrId`, `attrName`, `attrValueId`, `attrValue` đều là `keyword` |
 
 Mapping lấy từ
-[`SkuSearchDocument`](../services/product/src/main/java/com/duong/ecommerce/product/integration/search/SkuSearchDocument.java)
-và [`SkuAttributeDocument`](../services/product/src/main/java/com/duong/ecommerce/product/integration/search/SkuAttributeDocument.java).
+[`SkuSearchDocument`](src/main/java/com/duong/ecommerce/product/integration/search/SkuSearchDocument.java)
+và [`SkuAttributeDocument`](src/main/java/com/duong/ecommerce/product/integration/search/SkuAttributeDocument.java).
 Product tạo index cùng mapping khi lần đầu search, đồng bộ hoặc reindex mà index
 chưa tồn tại. Việc tạo index không tự nạp SKU có sẵn trong PostgreSQL.
 
@@ -201,46 +201,14 @@ nguyên nhân và chạy lại. Reindex giữ mapping hiện có và không đ�
 
 ## 5. Logic tìm kiếm theo SPU và SKU
 
-[`ProductSearchService`](../services/product/src/main/java/com/duong/ecommerce/product/service/ProductSearchService.java)
-thực hiện theo thứ tự:
-
-1. **Khớp nội dung SPU hoặc mã SKU.** Nếu `q` rỗng hoặc chỉ có khoảng trắng,
-   dùng `match_all`. Với `q` có nội dung, yêu cầu ít nhất một nhánh khớp:
-   - `multi_match` trên `skuTitle^3` và `description`, với `operator: AND` và
-     `fuzziness: AUTO`. Với mặc định `best_fields`, các token phải khớp trong
-     cùng một trường. Xem [multi-match trong Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/8.13/query-dsl-multi-match-query.html).
-   - `term` trên `sku`, khớp toàn bộ mã, không phân biệt hoa thường ASCII, với
-     `boost: 5`. Điểm boost ưu tiên mã khớp; API không tìm chuỗi con của mã.
-2. **Lọc trên từng SKU.** Mỗi cặp `options[i].name` và `options[i].value` tạo một
-   [truy vấn `nested`](https://www.elastic.co/guide/en/elasticsearch/reference/8.13/query-dsl-nested-query.html)
-   buộc tên và giá trị nằm trong cùng một phần tử `attrs`. Các cặp lọc được nối
-   bằng AND ở document SKU. Tên và giá trị phân biệt hoa thường và dấu.
-   `hasStock=true` chỉ lấy SKU còn hàng, `false` chỉ lấy SKU hết hàng, bỏ qua
-   tham số thì lấy cả hai.
-3. **Gộp các SKU khớp theo SPU.** Elasticsearch
-   [`collapse` theo `spuId`](https://www.elastic.co/guide/en/elasticsearch/reference/8.13/collapse-search-results.html)
-   lấy SKU đứng đầu mỗi nhóm theo `_score DESC, spuId ASC, skuId ASC`. SKU đại diện
-   không nhất thiết rẻ nhất hoặc có nhiều hàng nhất. Dùng `spuId` để mở trang chi
-   tiết và `skuId` để tham chiếu biến thể.
-4. **Đếm SPU cho phân trang.** `hits.total` của Elasticsearch tính theo SKU trước
-   khi gộp. API tính `data.page_info.total_elements` theo SPU bằng
-   [composite aggregation](https://www.elastic.co/guide/en/elasticsearch/reference/8.13/search-aggregations-bucket-composite-aggregation.html):
-   dùng cùng bộ điều kiện, đếm các bucket `spuId` theo lô 500 và tiếp tục bằng
-   `after_key`. Việc đếm tăng theo số SPU khớp; các request không dùng chung
-   snapshot nên kết quả có thể thay đổi nếu index được cập nhật trong lúc đếm.
-
-API nhận `page` từ 1 (mặc định 1), `size` từ 1 đến 100 (mặc định 20), và yêu cầu
-`page * size <= 10000`. `q` tối đa 200 ký tự; tối đa 20 cặp option, mỗi tên và
-giá trị không được để trống và tối đa 100 ký tự. Hiện chưa cấu hình autocomplete,
-chuẩn hóa dấu tiếng Việt hoặc đồng nghĩa cho search; `option_value.synonyms`
-không tham gia truy vấn.
+Đọc mỗi kết quả như một SKU khớp tất cả bộ lọc của bạn. Dùng `spuId` để mở sản phẩm và `skuId` để chọn biến thể. Nhiều SKU cùng khớp vẫn chỉ tạo một kết quả cho SPU đó; `total_elements` đếm số SPU. [Quy tắc xếp hạng và phân trang](product-search-design.md#results-ranking-and-pagination)
 
 ### Thử với catalog mẫu
 
 Sau khi nạp dữ liệu, chạy lần lượt các request theo tên và mã SKU. Trong mỗi
 phản hồi, tìm kết quả có `slug=demo-dien-thoai-nova-n1` rồi so sánh `spuId`.
 Request cuối cần trả đúng mã `DEMO-PHONE-01-03` cho Nova N1.
-[Hướng dẫn nạp dữ liệu mẫu](../scripts/README.md#nạp-qua-api)
+[Hướng dẫn nạp dữ liệu mẫu](../../scripts/README.md#nạp-qua-api)
 
 ```sh
 for query in 'Điện thoại Nova N1' 'NOVA N1' 'N1 Nova' 'Nvoa N1' 'demo-phone-01-03'
@@ -274,7 +242,7 @@ curl -fsS --get 'http://localhost:8050/api/v1/products/search' \
 
 Nếu mới nạp đủ dữ liệu mẫu vào catalog trống và đã đồng bộ, bỏ `q` cùng các bộ lọc
 sẽ cho `total_elements = 50` SPU, trong khi `products_v2/_count` trả 323 SKU.
-Xem [test tích hợp Elasticsearch](../services/product/src/test/java/com/duong/ecommerce/product/integration/ProductSearchIntegrationTest.java)
+Xem [test tích hợp Elasticsearch](src/test/java/com/duong/ecommerce/product/integration/ProductSearchIntegrationTest.java)
 để kiểm tra lọc cùng SKU, collapse, stock và reindex.
 
 ## 6. Vấn đề tồn đọng và hành vi chấp nhận
@@ -289,7 +257,7 @@ Xem [test tích hợp Elasticsearch](../services/product/src/test/java/com/duong
 **Với SKU cuối**, chấp nhận kết quả search có thể hiển thị tồn kho cũ trong lúc
 đồng bộ. Search cũng có thể đã tải kết quả trước khi người khác mua. Khi người
 thứ hai mua cùng SKU, Product khóa dòng SKU và kiểm tra tồn trong PostgreSQL.
-Nếu tồn đã về 0, Product từ chối giao dịch do hết hàng. [Luồng mua trong ProductService](../services/product/src/main/java/com/duong/ecommerce/product/service/ProductService.java)
+Nếu tồn đã về 0, Product từ chối giao dịch do hết hàng. [Luồng mua trong ProductService](src/main/java/com/duong/ecommerce/product/service/ProductService.java)
 
 **Độ trễ hiện tại chưa có số đo và chưa có SLA.** Listener chạy đồng bộ sau
 commit, nên thời gian hiển thị phụ thuộc vào bước đọc PostgreSQL, ghi Elasticsearch

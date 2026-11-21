@@ -3,7 +3,7 @@
 Status: Accepted. Date: 2026-11-16. Decision owner: project owner.
 
 The current package layout and compatibility rules for Kafka aliases and Mongo
-discriminators are documented in [Service layout and mapping](service-layout-and-mapping.md).
+discriminators are documented in [Service layout and mapping](../../docs/service-layout-and-mapping.md).
 
 ## Decision and scope
 

@@ -87,6 +87,8 @@ ownership, scope and future extension paths.
 ```
 
 HTTP status indicates the actual failure; content type is `application/json`.
+For classified 4xx errors, a service may supply its own code and public details in
+`data.extra_data.details`. Otherwise the handler uses the default code for the status.
 Messages for expected errors come from the classified exception. Unknown server
 errors use a safe fixed message. Rejected values and debugging details are omitted.
 This migration does not change responses created directly by security filters,

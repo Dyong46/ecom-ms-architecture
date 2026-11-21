@@ -147,10 +147,7 @@ With Bruno or Swagger:
    success event through the outbox. Negative/fractional VND is rejected.
 
 For deployed sandbox, register the public HTTPS Gateway URL ending in
-`/webhooks/stripe` on Stripe. The optional TLS proxy template at
-[`deploy/payment-webhooks/nginx.conf.template`](../deploy/payment-webhooks/nginx.conf.template)
-now targets Gateway using GATEWAY_UPSTREAM, never Payment directly. Existing
-load-balancer/ingress TLS termination can replace this template. Configure Stripe
+`/webhooks/stripe` on Stripe. Route HTTPS traffic through your deployment’s TLS ingress to Gateway. Configure Stripe
 to send checkout.session.completed, checkout.session.expired,
 checkout.session.async_payment_succeeded and checkout.session.async_payment_failed.
 This implementation expects snapshot events containing data.object. Keep the

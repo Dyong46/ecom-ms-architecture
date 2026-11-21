@@ -91,7 +91,7 @@ name, options as JSONB, unit price and integer quantity. There are no cross-serv
 foreign keys. Notification uses the same snapshot wire shape and renders SKU and
 selected options in confirmation email.
 
-Follow-up: [Checkout idempotency](checkout-idempotency-design.md) adds durable
+Follow-up: [Checkout idempotency](../../docs/checkout-idempotency-design.md) adds durable
 purchase replay through a required Idempotency-Key. Distributed rollback and
 reservations remain deferred: stock may remain deducted before Order/Payment
 completion. Transactional outbox/saga/reservation work remains separate.
@@ -99,7 +99,7 @@ completion. Transactional outbox/saga/reservation work remains separate.
 ## API usage
 
 For a ready-to-import sample catalog with 50 SPUs and 323 SKUs, see the
-[JSON importer and usage guide](../scripts/README.md). It uses these APIs and
+[JSON importer and usage guide](../../scripts/README.md). It uses these APIs and
 resolves named options to UUIDs without direct database writes.
 
 Existing Product read/write authentication rules remain. Option management requires

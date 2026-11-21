@@ -19,13 +19,12 @@ chuyển sang dependency này. Kafka broker chạy qua Docker Compose của proj
 
 Source mẫu cũng tạo AdminClient mà chưa đóng trong runner và bỏ qua future khi
 cập nhật partition. Module mới dùng lifecycle quản lý của Spring KafkaAdmin.
-Đánh giá này dựa trên source mẫu được cung cấp trong repository.
 
 ## Luồng đang sử dụng
 
 ```text
 OrderProducer → KafkaPublisher → order-topic → NotificationConsumer
-NotificationProducer (Payment) → KafkaPublisher → payment-topic → NotificationConsumer
+PaymentOutboxPublisher → KafkaPublisher → payment-topic → OrderPaymentEventConsumer / NotificationConsumer
 ```
 
 Tên topic mặc định và JSON payload được duy trì. Producer gửi object DTO để
@@ -148,11 +147,7 @@ Lỗi delivery bất đồng bộ cũng thể hiện trên future. `SafeProducer
 metadata topic/partition/error type khi broker gửi callback lỗi, giúp quan sát
 lỗi mà tránh đưa payload khách hàng và key vào log producer của module.
 
-OrderProducer và NotificationProducer trả lại delivery future. Caller hiện tại
-trong OrderService/PaymentService vẫn gửi bất đồng bộ và tiếp tục xử lý. Response
-HTTP thành công có thể xảy ra trước khi broker xác nhận. Muốn quyết định HTTP
-response theo delivery cần thay đổi nghiệp vụ gọi, còn đảm bảo DB và event cùng
-được lưu cần thiết kế transactional outbox hoặc cơ chế tương đương.
+Payment dùng delivery future để xác nhận gửi sự kiện từ outbox. Quy tắc ghi settlement, thử lại và xử lý sự kiện giao trùng thuộc Payment và consumer. [Luồng settlement](../../docs/stripe-sandbox-design.md#flow-and-ownership)
 
 ## Nhận sự kiện và consumer group
 
@@ -208,16 +203,9 @@ tắt. Các tên topic cần tồn tại trước khi consumer bắt đầu xử
 ## Phạm vi xử lý lỗi
 
 Consumer dùng `ErrorHandlingDeserializer` để đưa lỗi deserialize vào header cho
-listener container xử lý. Retry và recovery hiện dùng hành vi mặc định của Spring
-Kafka 3.2.3. Một số lỗi fatal có thể được recover ngay. Lỗi listener retryable dùng
-backoff mặc định chín lần retry, sau đó recoverer ghi log record và container có
-thể tiếp tục, commit offset theo policy.
+listener container xử lý. Service quyết định cách xử lý khi consumer lỗi. Notification dùng error handler riêng để thử lại khi chưa lưu được job.
 
-Đây là điểm cần cấu hình thêm khi triển khai nghiệp vụ đòi hỏi giữ lại sự kiện lỗi.
-Module hiện chưa có dead-letter topic/recoverer, retry nghiệp vụ, transactional
-outbox hoặc chống gửi email trùng. Handler Notification lưu dữ liệu rồi gửi email,
-retry/replay vẫn có thể tạo bản ghi hoặc gửi email trùng. Việc producer idempotent
-không giải quyết duplicate do handler hoặc replay.
+Module cung cấp transport. Payment sở hữu outbox; Notification lưu job theo `eventId` và quản lý retry SMTP. Kafka có thể giao lại sự kiện. [Delivery và retry email](../../services/notification/notification-delivery.md)
 
 Observation được bật cho template và listener. Khi service có Micrometer tracing
 và exporter tương ứng, Kafka instrumentation có thể tham gia trace. Consumer lag,
@@ -238,8 +226,7 @@ vào test resources. Context tests của các service kiểm tra wiring sau migr
 ./services/product/mvnw -f pom.xml -DskipTests package
 ```
 
-Build toàn reactor kiểm tra module và dependency của các service. Folder
-`support/kafka-module-mau` tiếp tục là tài liệu tham khảo ngoài Maven reactor.
+Build toàn reactor kiểm tra module và dependency của các service.
 
 Tham khảo tài liệu [Spring Boot Kafka](https://docs.spring.io/spring-boot/3.3/reference/messaging/kafka.html)
 và [Spring Kafka serialization](https://docs.spring.io/spring-kafka/reference/kafka/serdes.html).

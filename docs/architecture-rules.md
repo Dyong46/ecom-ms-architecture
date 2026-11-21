@@ -1,215 +1,42 @@
-# Architecture rules: module boundaries and design decisions
+# Architecture rules
 
-Status: Accepted. Date: 2026-11-15. Updated: 2026-11-18. Decision owner: project owner.
+Accepted by the project owner on 2026-11-15. Dependency direction revised on 2026-11-18.
 
 ## Ownership and dependency direction
 
-A service owns its business use cases and the composition of infrastructure capabilities.
-`support/` supplies reusable technical capabilities, without deciding application workflows.
+| Owner | Responsibility |
+| --- | --- |
+| Applications in `services/` and `cloud/` | Own workflows and compose support modules. Keep pricing, stock, payment eligibility, order state, compensation and transaction boundaries in the owning service. |
+| Infrastructure libraries in `support/` | Provide reusable technical capabilities. A support-to-support dependency requires a technical purpose, an approved decision and an acyclic dependency graph. Keep infrastructure independent of application modules. |
+| Shared contracts | Keep DTOs, interfaces and events independent of application modules, with minimal dependencies. |
+| Common utilities | Keep general helpers independent of business and infrastructure modules. |
 
-```text
-Order service
-  ├─ OrderPaymentGateway → PaymentClient [proxy-module] → Payment HTTP
-  └─ EcomTokenService
-       ├─ RedisEcomTokenCache → AccessTokenCache [caching-module] → Redis
-       └─ EcomAuthClient [proxy-module] → Keycloak HTTP
-```
+Preserve the foundation dependencies `web-module → common-module` and `common-data-model → web-module/common-module`, including the transitive common dependency. Directories ending in `-mau` contain reference code outside the production reactor.
 
-The runtime calls all execute inside the consuming service. Support modules are libraries,
-not intermediate services.
+Enable modules explicitly. Scope component scans to the intended beans. Supply secrets at runtime and keep tokens, secrets and cache values out of logs.
 
-Dependencies are evaluated by module responsibility and architectural direction. There is
-no blanket prohibition on one support module depending on another.
+## Current checkout boundary
 
-| Module role | Responsibility | Dependency guidance |
-| --- | --- | --- |
-| Business service | Product, Order, Customer and their application workflows | May compose support modules and shared contracts |
-| Infrastructure module | HTTP, Kafka, Redis, Elasticsearch and other technical capabilities | May use libraries, abstractions and other support modules when justified by its technical responsibility; must not depend on application modules |
-| Shared contract/API | DTOs, interfaces and event contracts | Keep dependencies minimal; must not depend on application implementations |
-| Common utilities | General exceptions and helpers | Must not depend on business or infrastructure modules |
+| Owner | Responsibility |
+| --- | --- |
+| Proxy module | HTTP contracts, serialization and transport settings. The OAuth client performs the requested exchange. The caller supplies the Authorization header to PaymentClient. |
+| Caching module | Storage, serialization, namespaces, TTL and expiry validation. |
+| Consuming service | Choose outbound identity and credentials. Compose token acquisition, cache hits and misses, refresh and fallback in integration or configuration code. Own business retries and idempotency. |
 
-For example, `product-service → elasticsearch-module` and `product-service → kafka-module`
-fit these roles. `elasticsearch-module → kafka-module` is not automatically wrong: it needs
-a concrete reusable technical purpose and an explicit assessment of direction, coupling and
-consumer impact. Product-specific event handling and indexing orchestration belong in
-Product. `kafka-module → product-service` reverses the allowed direction.
+Order accepts a small amount of adapter code to make its authentication and failure policies explicit and testable. Other support relationships follow the dependency rules above. [HTTP client design](../support/proxy-module/README.md) · [Cache design](../support/caching-module/README.md)
 
-## Mandatory rules
+## Changing the design
 
-1. Module dependencies must follow the responsibilities and direction described above, avoid
-   cycles and have a clear purpose. Support-to-support dependencies are allowed when justified;
-   infrastructure and shared modules must not depend on application modules.
-2. Review direct, transitive, optional and test dependencies, imports, enabling annotations,
-   reflection/bean lookups and configuration against the same rules. An interface or runtime
-   lookup does not remove the actual dependency. Wiring other modules must be explicit.
-3. In the current proxy/caching design, proxy owns HTTP contracts, serialization and transport settings. Its OAuth client only
-   performs the requested HTTP exchange. PaymentClient receives Authorization explicitly.
-   It must not fetch/cache tokens, read Redis or decide which identity an application uses.
-4. In that design, caching owns storage, serialization, namespaces, TTL and reusable expiry validation.
-   It must not call OAuth/HTTP, attach headers or decide application fallback behavior.
-5. A consuming service owns cache-aside flow, token identity, cache-miss handling, refresh,
-   fallback, outbound credential choice, business retry/idempotency and transaction boundaries.
-   Technical adapters composing modules belong in that service's integration/configuration packages.
-6. Keep business rules in their owning service: prices, stock changes, payment eligibility,
-   order state and compensation do not belong in shared helpers or generic DTO modules.
-7. Modules are enabled explicitly. No broad component scans or hidden side effects on every
-   consumer. Secrets remain runtime configuration; never log tokens, secrets or cache values.
-8. A new shared workflow needs an explicit architecture decision and a separate abstraction
-   justified by actual consumers. Do not move it into an unrelated capability to reduce duplication.
+A decision is material when it changes ownership, dependencies, public contracts, authentication, storage, cache or retry policy, failure behavior, consistency, transactions or deployment topology, or introduces a substantial abstraction.
 
-Rules 3–5 record the current proxy/caching and service ownership decisions. They do not
-establish a general ban on support-to-support dependencies. Changes to those decisions
-follow the decision process below.
+1. Read the relevant decision. State the problem, constraints and open assumptions. Ask about consumers, invariants or failure paths that could change the choice. [Decisions by topic](README.md)
+2. Explain viable options, including the current design when appropriate. Describe trade-offs in coupling, complexity, testing, operation and future changes. Recommend an option and wait for the owner's selection before implementing it.
+3. Record the choice, rationale, scope, assumptions and accepted trade-offs in the relevant design document. For a new module relationship, document its purpose, direction, coupling and consumer impact.
+4. Implement and test the selected behavior and failure paths. Reuse agreed decisions for routine work. Reopen a choice when new evidence changes its scope or trade-offs.
 
-## Existing foundation dependencies
+## Implementation and review
 
-The repository already has `web-module → common-module` and
-`common-data-model → web-module/common-module` (including a transitive common dependency).
-These are recorded legacy foundation relationships to preserve within this scope. They do
-not imply a ban on new support relationships; each new dependency is evaluated by role,
-direction and purpose. Refactoring the existing foundation stack is outside this change.
-
-Any new relationship requires a relevant design decision recording its reason, direction,
-coupling and consumer impact, and a review of the affected module dependencies. Follow the
-owner-choice process below rather than silently adding a relationship.
-Reference folders ending in `-mau` are not production reactor modules.
-
-Notification now composes `mail-module` for SMTP transport and keeps business
-templates, rendering, Kafka handling and failure policy in the service. Mail has
-no dependency on other support capabilities or the foundation stack. See
-[Mail module decision](mail-module-design.md) and
-[Notification delivery decision](notification-delivery.md).
-
-Product search uses Elasticsearch directly inside Product, with one document per
-SKU and results grouped by SPU. After-commit updates include SKU/stock changes and
-option cascade deletion; explicit reindex remains the recovery mechanism. The owner selected
-this simpler scope in place of the earlier shared-module/outbox direction. No new
-support module or Kafka dependency is introduced for search. See
-[Product search design](product-search-design.md) for behavior and accepted limitations.
-
-Product now owns the five-table SPU/SKU catalog with UUID strings, hard cascade
-deletion and service-level variant validation. Purchases use SKU IDs and integer
-quantities; Order stores immutable purchase snapshots. See
-[Product catalog decision](product-catalog-design.md) for the accepted clean-data
-baseline, contracts and deletion trade-offs.
-
-Order also records buyer and delivery snapshots, with explicit recipient/address
-input independent of the Customer profile. Its current currency is VND and shipping
-fee is a zero placeholder; discounts and taxes remain deferred. See
-[Order snapshots](order-snapshot-design.md) for the accepted scope and migration behavior.
-
-Checkout uses PostgreSQL idempotency ledgers owned by Order, Product and Payment.
-Order commits a PROCESSING snapshot before Payment and resumes it with stable
-operation keys; completion records COMPLETED. Proxy only transports the header.
-Reservation and stock return remain deferred. See
-[Checkout idempotency](checkout-idempotency-design.md) for transaction and replay limits.
-
-Payment now owns Stripe sandbox Hosted Checkout, durable PaymentAttempt recovery,
-a signature-verified webhook inbox and a transactional success-event outbox. Order
-projects settlement through a separate idempotent Kafka consumer. The owner
-updated the ingress decision: Gateway exposes POST `/webhooks/stripe` and forwards
-it to Payment, where signature verification remains. Internal Payment APIs remain
-private; Payment and Notification are no longer excluded from discovery routing. See [Stripe sandbox decision](stripe-sandbox-design.md) for the accepted
-VND/free-payment scope, dependency direction and recovery limits.
-
-The Gateway serves Swagger UI and handwritten OpenAPI contracts for
-[Product](../openapi.yaml), [Customer](openapi/customer.yaml),
-and [Order](openapi/order.yaml) under `/docs/{service}` in its `local` profile.
-Payment business APIs remain internal-only (POST/GET `/internal/payments`) and
-absent from client Swagger. Its signed Stripe webhook is explicitly routed through
-Gateway. Discovery routing includes Payment and Notification; the Gateway internal
-path boundary still blocks direct and discovery-prefixed `/internal/**` requests. Its
-[internal contract](openapi/payment.yaml) targets Payment directly; see
-[Payment internal API](payment-internal-api-design.md). The client contracts describe
-Gateway routes and their authentication at the edge. The Gateway uses a Swagger UI
-WebJar for local browser assets. Update the handwritten contract when a client
-route or payload changes.
-
-## OOP, SOLID and proportionate design
-
-Customer uses the separate `mongo-data-model` library for Mongo document auditing.
-It depends on Spring Data MongoDB, not the JPA-oriented `common-data-model`.
-Auditing activation, identity resolution and deletion policy remain consumer-owned.
-See [Mongo data model decision](mongo-data-model-design.md).
-
-Top-level enums use the `Enum` suffix and live under `entity.enumeration` within
-their owning service or support capability. Keep enum ownership and module
-boundaries intact. See [Service layout and mapping](service-layout-and-mapping.md)
-for the project naming convention and examples.
-
-The accepted exception-handling direction and optional future extensions are
-documented in [Exception handling design](exception-handling-design.md). It selects
-base exceptions with centralized HTTP handling; its implementation and response
-format must be distinguished from that architectural choice.
-
-Use these principles to solve concrete problems, not as a requirement to apply every
-pattern to every feature:
-
-- OOP: keep state and behavior with their owner, protect invariants through encapsulation,
-  and give classes cohesive responsibilities. Prefer composition when inheritance does not
-  represent a valid substitutable relationship.
-- SOLID: separate reasons to change (SRP); add extension points for demonstrated variation
-  (OCP); preserve behavioral contracts when substituting implementations (LSP); expose
-  focused consumer contracts (ISP); keep policy independent of infrastructure details where
-  the boundary warrants it (DIP). DIP does not require an interface for every class.
-- Favor high cohesion, low coupling, KISS and YAGNI. A concrete class or direct call can be
-  the appropriate design. Add abstractions when they clarify ownership, isolate a real
-  boundary or support an actual variation, not speculative future requirements.
-- Introduce a design pattern only with an explanation of the problem it solves, why the
-  simpler approach is insufficient and what maintenance cost it adds. Pattern names alone
-  do not justify a design. Do not copy a reference project's architecture without checking
-  this project's requirements and constraints.
-- Removing duplication must not move business policy out of its service or introduce
-  dependencies without a justified technical responsibility and valid architectural direction.
-  Some small duplication is an acceptable trade-off.
-
-## Clarification and owner choice before implementation
-
-A material decision changes module/service ownership or dependencies, public contracts,
-authentication, storage or cache policy, failure/retry behavior, consistency/transactions,
-deployment topology, or introduces a substantial pattern/abstraction. For these decisions:
-
-1. State the problem, known constraints and existing agreed decisions. Label unresolved
-   assumptions explicitly; do not treat missing information as agreement.
-2. Ask focused questions about requirements that can change the design: expected use cases,
-   consumers, business invariants, failure behavior and relevant operational constraints.
-   Read available project evidence first rather than asking the owner for facts in the repo.
-3. Present the viable options, usually two or three, with how each works and its effects on
-   ownership, coupling, complexity, testing, operation and future change. Include the simple
-   approach or keeping the current design when viable. Do not invent unsuitable options to
-   fill a quota; explain when constraints leave only one viable approach.
-4. Give a recommendation tied to the actual requirements, explicitly separate from the
-   owner's selection. Ask the owner to choose before implementing the dependent design.
-   While waiting, continue only work that does not commit to that choice. Silence or elapsed
-   time is not a choice.
-5. After selection, record the chosen option, rationale, accepted trade-offs, scope and any
-   explicitly accepted assumptions in the relevant design document or ADR. Implement and
-   verify the selected behavior, including material failure paths.
-
-Do not repeatedly ask for a decision already explicitly made by the owner. Routine naming,
-formatting and local implementation details within an agreed design can proceed. If new
-evidence requires a material departure from that design, explain it and ask a focused
-follow-up before making the departure. Do not silently change architecture as part of a fix.
-
-## Verification
-
-Review POM dependencies, Java references, configuration and reflective/dynamic bean lookups
-against these rules during code review. No dedicated boundary-check script is used.
-
-Test support transport/storage separately. Test the composed workflow in the service,
-including cache hit/miss, expiry, infrastructure failures and whether downstream operations
-were sent. Keep data-mutating tests isolated from live services.
-
-## Decision and trade-offs
-
-Previously proxy composed Redis caching and OAuth token acquisition. That reduced application
-code but hid application policy in a transport library. The accepted design places this
-composition in Order. Other services may need a small equivalent composition layer. That
-cost keeps the current infrastructure modules reusable and makes each service's policy
-visible and testable.
-
-The 2026-11-18 revision replaces the blanket ban on dependencies between support capabilities
-with responsibility- and direction-based review, as requested by the project owner. This
-allows justified reusable infrastructure dependencies while retaining explicit ownership,
-acyclic dependencies and review of coupling and consumer impact. It does not by itself
-change the current proxy/caching implementation or authorize a new concrete dependency.
+- Apply OOP and SOLID to keep responsibilities cohesive, invariants explicit and coupling low. Follow KISS and YAGNI. Justify a pattern with the problem it solves, the limits of the simpler solution and its maintenance cost. A shared workflow needs actual consumers and its own approved abstraction.
+- Keep top-level enums in the owner's `entity.enumeration` package with the `Enum` suffix. Update the handwritten OpenAPI contract when a client route or payload changes. [Service layout](service-layout-and-mapping.md) · [API contracts](README.md)
+- Review direct, transitive, optional and test dependencies in the POMs, plus Java imports, cross-module annotations, configuration, reflection and runtime bean lookups.
+- Test support transport and storage separately from the service workflow. For token caching, cover hits, misses, expiry, infrastructure failures and whether a downstream call occurred. Isolate data-mutating tests from live services.
