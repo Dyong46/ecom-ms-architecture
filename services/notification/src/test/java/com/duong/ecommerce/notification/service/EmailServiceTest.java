@@ -28,12 +28,12 @@ class EmailServiceTest {
 
     @Test
     void rendersPaymentTemplateBeforeCallingTransport() throws Exception {
-        var message = service.buildPaymentSuccessEmail("ada@example.test", "Ada <Test>", new BigDecimal("20.00"), "ORDER-7");
+        var message = service.buildPaymentSuccessEmail("ada@example.test", "Ada <Test>", new BigDecimal("20.00"), "ORDER-7", "VND");
         assertThat(message.senderAddress()).isEqualTo("shop@example.test");
         assertThat(message.receivers()).containsExactly("ada@example.test");
         assertThat(message.subject()).isEqualTo(EmailTemplatesEnum.PAYMENT_CONFIRMATION.getSubject());
         assertThat(message.html()).isTrue();
-        assertThat(message.content()).contains("Ada &lt;Test&gt;", "20.00", "ORDER-7")
+        assertThat(message.content()).contains("Ada &lt;Test&gt;", "20.00", "ORDER-7", "VND")
                 .doesNotContain("${customerName}");
     }
 

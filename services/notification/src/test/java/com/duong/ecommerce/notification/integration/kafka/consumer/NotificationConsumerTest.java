@@ -30,7 +30,7 @@ class NotificationConsumerTest {
                 PaymentMethodEnum.PAYPAL,"Ada","Lovelace","ada@example.test",id));
     }
     void prepare() {
-        when(renderer.buildPaymentSuccessEmail(any(),any(),any(),any())).thenReturn(
+        when(renderer.buildPaymentSuccessEmail(any(),any(),any(),any(),any())).thenReturn(
                 new MailMessage("shop@example.test",List.of("ada@example.test"),"Subject","Snapshot",true));
     }
     @Test void persistenceMustPrecedeAck() {
@@ -57,7 +57,7 @@ class NotificationConsumerTest {
                 .containsExactly("legacy:payment-topic:2:17","legacy:payment-topic:2:17");
     }
     @Test void renderingFailureIsPersistedBeforeAck() {
-        when(renderer.buildPaymentSuccessEmail(any(),any(),any(),any())).thenThrow(new IllegalArgumentException("Bad data"));
+        when(renderer.buildPaymentSuccessEmail(any(),any(),any(),any(),any())).thenThrow(new IllegalArgumentException("Bad data"));
         consumer.consumePaymentSuccessNotification(event("event-1"),ack);
         var job=ArgumentCaptor.forClass(Notification.class); verify(store).enqueue(job.capture());
         assertThat(job.getValue().getStatus()).isEqualTo(DeliveryStatusEnum.FAILED);

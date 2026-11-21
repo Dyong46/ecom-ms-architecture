@@ -52,6 +52,9 @@ paths:
         Retry cùng Idempotency-Key để tiếp tục cùng orderId; khi hoàn tất trả lại ID cũ.
         Nếu Payment chưa hoàn tất, tồn kho đã trừ vẫn được giữ; chưa có reservation/hoàn kho.
         Không đổi key để retry cùng reference.
+        HTTP 200 trả orderId, chưa xác nhận thanh toán. Gọi GET /api/v1/orders/{orderId}/payment
+        để lấy URL Stripe khi worker tạo session xong. Đơn 0 VND được thanh toán miễn phí.
+        Chỉ nhận CREDIT_CARD, VISA hoặc MASTER_CARD; PayPal, Bitcoin và USD chưa hỗ trợ.
         Bắt buộc nhập người nhận và địa chỉ riêng; không sửa hồ sơ Customer.
         Order lưu snapshot tên/email người mua từ Customer và thông tin SKU từ Product.
         Currency hiện là VND, shippingFee luôn bằng 0; amount = itemsSubtotal + shippingFee.
@@ -180,6 +183,59 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/v1/orders/{orderId}/payment:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    get:
+      operationId: getOrderPayment
+      summary: Xem trạng thái thanh toán và URL Hosted Checkout
+      description: Poll khi attemptStatus là CREATING hoặc UNKNOWN. Chỉ mở checkoutUrl khi có URL. SUCCEEDED mới xác nhận thanh toán; redirect success không phải bằng chứng thu tiền.
+      responses:
+        '200':
+          description: Trạng thái hiện tại; Order projection có thể cập nhật trễ qua Kafka.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/orders/{orderId}/payment-attempts:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    post:
+      operationId: retryOrderPayment
+      summary: Bắt đầu lần thanh toán mới sau FAILED hoặc EXPIRED
+      description: Giữ cùng Payment và orderId. Chỉ tạo attempt mới khi attempt cũ đã kết thúc chắc chắn; UNKNOWN và REVIEW_REQUIRED trả 409. Retry thao tác này giữ nguyên Idempotency-Key.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: UUID của attempt mới; gọi GET payment để lấy URL khi worker tạo xong session.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data: {type: string, format: uuid}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '503':
+          description: Stripe sandbox chưa được bật hoặc chưa cấu hình.
 components:
   securitySchemes:
     bearerAuth:
@@ -298,6 +354,22 @@ components:
     PaymentMethod:
       type: string
       enum: [PAYPAL, CREDIT_CARD, VISA, MASTER_CARD, BITCOIN]
+    CheckoutMethod:
+      type: string
+      enum: [CREDIT_CARD, VISA, MASTER_CARD]
+    PaymentCheckout:
+      type: object
+      properties:
+        paymentId: {type: integer, format: int32}
+        orderId: {type: integer, format: int32}
+        amount: {type: number, minimum: 0}
+        currencyCode: {type: string, nullable: true, example: VND}
+        status: {type: string, enum: [UNKNOWN, PENDING, SUCCEEDED, FAILED, EXPIRED]}
+        attemptId: {type: string, nullable: true}
+        attemptStatus: {type: string, nullable: true, enum: [CREATING, REQUIRES_ACTION, PROCESSING, UNKNOWN, SUCCEEDED, FAILED, EXPIRED, REVIEW_REQUIRED]}
+        checkoutUrl: {type: string, format: uri, nullable: true, description: URL Stripe khi session sẵn sàng; null khi chưa có hoặc đã thanh toán/hết hạn.}
+        expiresAt: {type: string, format: date-time, nullable: true}
+        failureCode: {type: string, nullable: true, description: Mã lỗi đã loại bỏ dữ liệu nhạy cảm.}
     OrderInput:
       type: object
       required: [ reference, paymentMethod, customerId, products, recipientFullName, recipientPhone, shippingAddress ]
@@ -305,7 +377,7 @@ components:
         id: {type: integer, format: int32, nullable: true, description: Bỏ qua khi tạo đơn mới.}
         reference: {type: string, minLength: 1, maxLength: 255, pattern: '\S'}
         paymentMethod:
-          $ref: '#/components/schemas/PaymentMethod'
+          $ref: '#/components/schemas/CheckoutMethod'
         customerId: {type: string, minLength: 1, pattern: '\S'}
         recipientFullName: { type: string, minLength: 1, maxLength: 255, pattern: '\S' }
         recipientPhone: { type: string, maxLength: 32, pattern: '^\+?[0-9][0-9 ()-]{5,30}$' }
@@ -344,6 +416,7 @@ components:
         paymentMethod:
           $ref: '#/components/schemas/PaymentMethod'
         creationStatus: { type: string, enum: [ PROCESSING, COMPLETED ], description: Tiến trình tạo đơn; không phải trạng thái thu tiền hay giao hàng. }
+        paymentStatus: {type: string, enum: [UNKNOWN, PENDING, SUCCEEDED], description: Projection qua Kafka; đơn cũ UNKNOWN, xem GET payment để biết trạng thái hiện tại.}
         customerId: {type: string}
         customerFullName: { type: string, nullable: true }
         customerEmail: { type: string, nullable: true }

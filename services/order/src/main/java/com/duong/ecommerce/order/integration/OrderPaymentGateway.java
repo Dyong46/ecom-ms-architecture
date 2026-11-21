@@ -21,4 +21,14 @@ public class OrderPaymentGateway {
         var response = payments.requestOrderPayment("Bearer " + token, key, request);
         return response == null ? null : response.data();
     }
+    public com.duong.module.proxy.payment.response.PaymentCheckoutResponse checkoutByOrder(int orderId) {
+        var response=payments.checkoutByOrder("Bearer " + tokens.getAccessToken(),orderId);
+        if(response==null || response.data()==null) throw new IllegalStateException("Payment returned no checkout state");
+        return response.data();
+    }
+    public String retry(String key,int paymentId) {
+        var response=payments.retry("Bearer " + tokens.getAccessToken(),key,paymentId);
+        if(response==null || response.data()==null) throw new IllegalStateException("Payment returned no attempt");
+        return response.data();
+    }
 }

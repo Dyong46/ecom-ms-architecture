@@ -13,6 +13,12 @@ import java.util.Objects;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface PaymentMapper {
+    @Mapping(target = "currencyCode", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "customerFirstname", source = "customer.firstname")
+    @Mapping(target = "customerLastname", source = "customer.lastname")
+    @Mapping(target = "customerEmail", source = "customer.email")
+    @Mapping(target = "paidAt", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createDate", ignore = true)
     @Mapping(target = "lastModifiedDate", ignore = true)

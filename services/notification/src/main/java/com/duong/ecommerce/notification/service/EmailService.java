@@ -29,7 +29,13 @@ public class EmailService {
 
     public MailMessage buildPaymentSuccessEmail(String destinationEmail, String customerName,
                                         BigDecimal amount, String orderReference) {
+        return buildPaymentSuccessEmail(destinationEmail,customerName,amount,orderReference,null);
+    }
+
+    public MailMessage buildPaymentSuccessEmail(String destinationEmail,String customerName,
+            BigDecimal amount,String orderReference,String currencyCode) {
         Map<String, Object> variables = new HashMap<>();
+        variables.put("currencyCode", currencyCode);
         variables.put("customerName", customerName);
         variables.put("amount", amount);
         variables.put("orderReference", orderReference);

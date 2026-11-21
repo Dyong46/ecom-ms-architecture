@@ -11,7 +11,10 @@ public record PaymentNotificationRequest(
         String customerFirstname,
         String customerLastname,
         String customerEmail,
-        String eventId
+        String eventId,
+        Integer paymentId,
+        Integer orderId,
+        String currencyCode
 ) {
     public PaymentNotificationRequest(
         String orderReference,
@@ -21,6 +24,6 @@ public record PaymentNotificationRequest(
         String customerLastname,
         String customerEmail
     ) {
-        this(orderReference, amount, paymentMethod, customerFirstname, customerLastname, customerEmail, java.util.UUID.randomUUID().toString());
+        this(orderReference, amount, paymentMethod, customerFirstname, customerLastname, customerEmail, java.util.UUID.randomUUID().toString(), null, null, null);
     }
 }

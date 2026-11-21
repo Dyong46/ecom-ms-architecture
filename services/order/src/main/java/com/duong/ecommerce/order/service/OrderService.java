@@ -30,6 +30,7 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository repository;
+    private final com.duong.ecommerce.order.integration.OrderPaymentGateway payments;
     private final CustomerClient customerClient;
     private final ProductClient productClient;
     private final OrderMapper mapper;
@@ -120,6 +121,15 @@ public class OrderService {
                     return product.price().multiply(BigDecimal.valueOf(product.quantity()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public com.duong.module.proxy.payment.response.PaymentCheckoutResponse payment(int orderId) {
+        if(!repository.existsById(orderId)) throw new EntityNotFoundException("Order not found");
+        return payments.checkoutByOrder(orderId);
+    }
+    public String retryPayment(int orderId,String key) {
+        var checkout=payment(orderId);
+        return payments.retry(key,checkout.paymentId());
     }
 
     public Page<OrderResponse> findAll(Pageable pageable) {

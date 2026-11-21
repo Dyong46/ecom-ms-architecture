@@ -66,3 +66,12 @@ compatibility mode; they do not mutate live service databases.
 [Checkout idempotency](checkout-idempotency-design.md) adds PROCESSING/COMPLETED
 creation progress and commits these snapshots before Payment so retry resumes the
 same order. It does not introduce an edit endpoint.
+
+## Stripe sandbox extension (2026-11-21)
+
+See [Stripe sandbox checkout](stripe-sandbox-design.md) for the current payment
+lifecycle. Creation success does not prove settlement: positive VND payments use
+Hosted Checkout and settle only after verified webhook/reconciliation. Zero VND
+settles locally. Success events are now written transactionally to an outbox.
+Private checkout lookup/retry APIs and the Gateway-routed signed webhook are
+described in the updated Payment and Order OpenAPI contracts.

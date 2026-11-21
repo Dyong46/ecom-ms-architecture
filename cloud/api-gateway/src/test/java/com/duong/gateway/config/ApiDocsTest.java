@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {
         "spring.config.location=classpath:/application-local.yml",
+        // This isolated config location skips application.yml, including the logging identity.
+        "spring.application.name=api-gateway",
         "spring.cloud.config.enabled=false",
         "eureka.client.enabled=false",
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:1/jwks"
@@ -83,6 +85,7 @@ class ApiDocsTest {
 
         @Test
         void leavesDocsUnavailableWithoutLocalProfile() {
+            assertThat(context.getEnvironment().getProperty("spring.application.name")).isEqualTo("api-gateway");
             assertThat(context.containsBean("apiDocs")).isFalse();
             client.get().uri("/docs/customer/openapi.yaml").exchange().expectStatus().isUnauthorized();
         }

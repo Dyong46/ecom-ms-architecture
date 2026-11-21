@@ -22,7 +22,7 @@ class OrderInputValidationTest {
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
         var json = new ObjectMapper();
         String body = """
-                {"reference":"ORDER-1","paymentMethod":"PAYPAL","customerId":"c1",
+                {"reference":"ORDER-1","paymentMethod":"CREDIT_CARD","customerId":"c1",
                  "products":[{"skuId":"00000000-0000-4000-8000-000000000001","quantity":1}],
                  "recipientFullName":"Other Recipient","recipientPhone":"+84901234567",
                  "shippingAddress":{"addressLine1":"12 Main","ward":"Ward","city":"City","countryCode":"VN"}}

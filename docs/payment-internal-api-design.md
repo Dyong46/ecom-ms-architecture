@@ -14,19 +14,21 @@ JWT whose azp matches payment.security.allowed-client-id (default ecom-services)
 The remaining security chain permits only explicit health/info/Prometheus/error
 paths and denies other paths, so the removed URLs cannot bypass the internal rule.
 Pagination, validation, response envelopes and idempotency behavior are preserved.
-No storage migration or new module dependency is needed.
+The internal-only route change itself needed no storage migration or new module
+dependency; the later Stripe extension below adds lifecycle tables and its SDK.
 
 ## Gateway and documentation
 
-Gateway has no explicit Payment or placeholder payment-callback route. Payment is
-also excluded from discovery routing, alongside Notification. The internal-path
-boundary continues rejecting direct/discovery-prefixed internal URLs at the edge.
-This does not replace keeping business-service ports on the private network.
+The owner revised the webhook topology: Gateway now routes exact POST
+`/webhooks/stripe` to Payment without requiring a Keycloak client JWT. Payment
+verifies Stripe's signature and durably stores the inbox before ACK. Payment and
+Notification are no longer excluded from discovery routing. The internal-path
+boundary still rejects direct/discovery-prefixed internal URLs at the edge.
+Keep business-service ports private.
 
-Payment is removed from the Gateway's client Swagger pages/navigation and packaged
-client contracts. `docs/openapi/payment.yaml` remains the internal contract and
-targets the Payment service directly, not Gateway. No payment-provider callback
-handler is introduced; a future external callback needs a separate explicit design.
+Payment business operations remain absent from client Swagger. The internal
+contract targets Payment directly; its webhook operation specifies Gateway as its
+server. No public alias for internal create/list/checkout/retry is introduced.
 
 ## Consumer impact and verification
 
@@ -36,14 +38,14 @@ must stop using the old URLs. Restart Config Server, Gateway and Payment after
 building to apply route/resource changes; Order's existing internal client stays valid.
 
 Tests cover POST/GET machine authentication, wrong-client denial, rejection of old
-public paths, internal pagination/validation, Gateway discovery exclusion and removal
-of Swagger Payment. The isolated checkout HTTP script uses authenticated internal
+public paths, internal pagination/validation, Gateway webhook forwarding and
+internal-path rejection, and removal of client Swagger Payment. The isolated checkout HTTP script uses authenticated internal
 GET for readiness and continues exercising real Order -> Product -> Payment calls.
 
 ## Development verification workflow
 
-The owner confirmed that Payment is not a client-facing API and must not be routed
-through Gateway. Developer verification is not a reason to publish it, add a public
+Payment business APIs remain internal. The signed Stripe webhook is now routed
+through Gateway, following the owner's revised ingress decision. Developer verification is not a reason to publish it, add a public
 alias or bypass its authentication.
 
 After developing or changing Payment, developers must verify the affected behavior
@@ -64,3 +66,12 @@ HTTP calls check the internal contract/authentication, and consumer-driven check
 verify integration. Choose the paths needed to cover the change; all three are not
 mandatory for every small change. Keep dev/test credentials and data separate from
 production, without adding a public route for manual testing.
+
+## Stripe sandbox extension (2026-11-21)
+
+See [Stripe sandbox checkout](stripe-sandbox-design.md) for the current payment
+lifecycle. Creation success does not prove settlement: positive VND payments use
+Hosted Checkout and settle only after verified webhook/reconciliation. Zero VND
+settles locally. Success events are now written transactionally to an outbox.
+Private checkout lookup/retry APIs and the Gateway-routed signed webhook are
+described in the updated Payment and Order OpenAPI contracts.

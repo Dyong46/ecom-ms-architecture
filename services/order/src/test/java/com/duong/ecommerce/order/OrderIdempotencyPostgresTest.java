@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "eureka.client.enabled=false",
+@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "order.payment-events.enabled=false", "eureka.client.enabled=false",
         "spring.jpa.hibernate.ddl-auto=validate", "spring.kafka.admin.auto-create=false",
         "integration-config.ecom.oauth-base-url=http://127.0.0.1:1", "integration-config.ecom.oauth-realm=test",
         "integration-config.ecom.oauth-username=test", "integration-config.ecom.oauth-password=test-only",
@@ -79,7 +79,7 @@ class OrderIdempotencyPostgresTest {
     }
 
     private OrderRequest request(String reference, String recipient) {
-        return new OrderRequest(null, reference, PaymentMethodEnum.PAYPAL, "c1", List.of(new PurchaseRequest(SKU, 2)),
+        return new OrderRequest(null, reference, PaymentMethodEnum.CREDIT_CARD, "c1", List.of(new PurchaseRequest(SKU, 2)),
                 recipient, "+84901234567", new ShippingAddressRequest("12 Main", null, "Ward", "City", null, "VN"), null);
     }
 

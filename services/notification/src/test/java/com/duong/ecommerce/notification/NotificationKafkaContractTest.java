@@ -59,12 +59,13 @@ class NotificationKafkaContractTest {
                         assertThat(((OrderConfirmation) order).orderReference()).isEqualTo("ORDER-1");
                         assertThat(orderHeaders.lastHeader(SerializationUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER)).isNull();
                         var payment = deserializer.deserialize("payment-topic", headers("paymentConfirmation"), """
-                                {"eventId":"payment-event-1","orderReference":"ORDER-1","amount":100,"paymentMethod":"PAYPAL",
+                                {"eventId":"payment-event-1","paymentId":42,"orderId":7,"currencyCode":"VND","orderReference":"ORDER-1","amount":100,"paymentMethod":"CREDIT_CARD",
                                  "customerFirstname":"Ada","customerLastname":"Lovelace","customerEmail":"ada@example.test"}
                                 """.getBytes(StandardCharsets.UTF_8));
                         assertThat(payment).isInstanceOf(PaymentConfirmation.class);
                         assertThat(((PaymentConfirmation) payment).eventId()).isEqualTo("payment-event-1");
                         assertThat(((PaymentConfirmation) payment).orderReference()).isEqualTo("ORDER-1");
+                        assertThat(((PaymentConfirmation) payment).currencyCode()).isEqualTo("VND");
                     } finally {
                         deserializer.close();
                     }

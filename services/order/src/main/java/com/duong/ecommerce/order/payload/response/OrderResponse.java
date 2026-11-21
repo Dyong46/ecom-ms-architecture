@@ -19,6 +19,7 @@ public record OrderResponse(
         BigDecimal itemsSubtotal,
         BigDecimal shippingFee,
         String currencyCode,
-        com.duong.ecommerce.order.entity.enumeration.OrderCreationStatusEnum creationStatus
+        com.duong.ecommerce.order.entity.enumeration.OrderCreationStatusEnum creationStatus,
+        com.duong.ecommerce.order.entity.enumeration.PaymentStatusEnum paymentStatus
 ) {
 }

@@ -16,13 +16,27 @@ public class PaymentCreationService {
     private final PaymentService payments;
     private final PostgresIdempotencyStore idempotency;
 
+    private final com.duong.ecommerce.payment.config.StripeSettings stripe;
+    private final PaymentAttemptService attempts;
+
     public Integer create(String key, @NotNull @Valid PaymentRequest request) {
         try {
             return idempotency.execute(key, request, new TypeReference<Integer>() {
                     },
-                    operationId -> payments.createPayment(request));
+                    operationId -> {
+                        if(request.amount().signum()>0 && !stripe.enabled())
+                            throw new com.duong.ecommerce.payment.exception.PaymentUnavailableException("Stripe sandbox is not configured");
+                        return payments.createPayment(request);
+                    });
         } catch (org.springframework.dao.DataIntegrityViolationException exception) {
             throw new com.duong.module.common.exception.ConflictException("Payment conflicts with an existing record");
         }
+    }
+    public String retry(String key, int paymentId) {
+        return idempotency.execute(key,java.util.Map.of("action","retry","paymentId",paymentId),new TypeReference<String>(){},
+                operationId -> {
+                    if(!stripe.enabled()) throw new com.duong.ecommerce.payment.exception.PaymentUnavailableException("Stripe sandbox is not configured");
+                    return attempts.retry(paymentId);
+                });
     }
 }

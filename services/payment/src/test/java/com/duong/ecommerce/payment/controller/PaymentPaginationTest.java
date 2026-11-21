@@ -42,7 +42,7 @@ class PaymentPaginationTest {
     @BeforeEach
     void setUp() {
         service = mock(PaymentService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(mock(com.duong.ecommerce.payment.service.PaymentCreationService.class), service))
+        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(mock(com.duong.ecommerce.payment.service.PaymentCreationService.class), service, mock(com.duong.ecommerce.payment.service.PaymentAttemptService.class)))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 

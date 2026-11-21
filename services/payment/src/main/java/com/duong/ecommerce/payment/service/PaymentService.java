@@ -1,8 +1,6 @@
 package com.duong.ecommerce.payment.service;
 
-import com.duong.ecommerce.payment.integration.kafka.producer.NotificationProducer;
 import com.duong.ecommerce.payment.mapper.PaymentMapper;
-import com.duong.ecommerce.payment.payload.event.PaymentNotificationRequest;
 import com.duong.ecommerce.payment.payload.request.PaymentRequest;
 import com.duong.ecommerce.payment.payload.response.PaymentResponse;
 import com.duong.ecommerce.payment.repository.PaymentRepository;
@@ -21,30 +19,25 @@ public class PaymentService {
 
     private final PaymentRepository repository;
     private final PaymentMapper mapper;
-    private final NotificationProducer notificationProducer;
+    private final PaymentAttemptService attempts;
+    private final PaymentSettlementService settlement;
 
+    @org.springframework.transaction.annotation.Transactional
     public Integer createPayment(@NotNull @Valid PaymentRequest request) {
-        var payment = repository.save(mapper.toPayment(request));
-
-        var notification = new PaymentNotificationRequest(
-                        request.orderReference(),
-                        request.amount(),
-                        request.paymentMethod(),
-                        request.customer().firstname(),
-                        request.customer().lastname(),
-                        request.customer().email()
-        );
-        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
-            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
-                    new org.springframework.transaction.support.TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            notificationProducer.sendNotification(notification);
-                        }
-                    });
-        } else {
-            notificationProducer.sendNotification(notification);
+        long amount;
+        try { amount=request.amount().longValueExact(); }
+        catch (ArithmeticException exception) { throw new com.duong.module.common.exception.BadRequestException("VND amount must be a whole number within provider limits"); }
+        if (amount<0) throw new com.duong.module.common.exception.BadRequestException("Amount cannot be negative");
+        if (!java.util.Set.of(com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum.CREDIT_CARD,
+                com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum.VISA,
+                com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum.MASTER_CARD).contains(request.paymentMethod())) {
+            throw new com.duong.module.common.exception.BadRequestException("Only Stripe card payments are enabled");
         }
+        var entity=mapper.toPayment(request);
+        entity.initializeCheckout();
+        var payment=repository.save(entity);
+        attempts.create(payment.getId(),request.orderId(),amount);
+        if(amount==0) settlement.succeed(payment.getId());
         return payment.getId();
     }
 

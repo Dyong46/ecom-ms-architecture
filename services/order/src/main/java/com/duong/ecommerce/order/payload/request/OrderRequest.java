@@ -30,4 +30,10 @@ public record OrderRequest(
         @NotNull @Valid ShippingAddressRequest shippingAddress,
         @Size(max = 1000) String deliveryNote
 ) {
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @AssertTrue(message="Only Stripe card payments are currently supported")
+    public boolean isSupportedPaymentMethod() {
+        return paymentMethod==null || java.util.Set.of(PaymentMethodEnum.CREDIT_CARD,PaymentMethodEnum.VISA,
+                PaymentMethodEnum.MASTER_CARD).contains(paymentMethod);
+    }
 }

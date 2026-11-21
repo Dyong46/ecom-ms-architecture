@@ -18,10 +18,22 @@ public class InternalPaymentController {
     private final PaymentCreationService service;
     private final PaymentService payments;
 
+    private final com.duong.ecommerce.payment.service.PaymentAttemptService attempts;
+
     @PostMapping
     public BaseResponse<Integer> createPayment(@RequestHeader("Idempotency-Key") String key,
                                                @RequestBody @Valid PaymentRequest request) {
         return BaseResponse.of(service.create(key, request));
+    }
+
+    @GetMapping("/order/{orderId}")
+    public BaseResponse<com.duong.ecommerce.payment.payload.response.PaymentCheckoutResponse> checkoutByOrder(@PathVariable int orderId) {
+        return BaseResponse.of(attempts.checkoutByOrder(orderId));
+    }
+
+    @PostMapping("/{paymentId}/attempts")
+    public BaseResponse<String> retry(@RequestHeader("Idempotency-Key") String key, @PathVariable int paymentId) {
+        return BaseResponse.of(service.retry(key,paymentId));
     }
 
     @GetMapping

@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(properties = {
-		"spring.cloud.config.enabled=false",
+		"spring.cloud.config.enabled=false", "order.payment-events.enabled=false",
         "integration-config.ecom.oauth-base-url=http://localhost:9098",
         "integration-config.ecom.oauth-realm=micro-services",
         "integration-config.ecom.oauth-username=ecom-services",
@@ -90,7 +90,7 @@ class OrderApplicationTests {
         org.mockito.Mockito.when(payments.requestOrderPayment(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any())).thenReturn(42);
         var result = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/orders").header("Idempotency-Key", "test-key")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content("""
-                                {"id":99999,"reference":"FULL-SNAPSHOT","paymentMethod":"PAYPAL","customerId":"customer-1",
+                                {"id":99999,"reference":"FULL-SNAPSHOT","paymentMethod":"CREDIT_CARD","customerId":"customer-1",
                                  "recipientFullName":"Different Person","recipientPhone":"+84901234567",
                                  "shippingAddress":{"addressLine1":"12 Main","ward":"Ward","city":"City","countryCode":"VN"},
                                  "deliveryNote":"Call on arrival","customerFullName":"Forged Buyer","shippingFee":999,
@@ -130,7 +130,7 @@ class OrderApplicationTests {
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/orders").header("Idempotency-Key", "test-key")
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                 .content("""
-                    {"reference":"FRACTIONAL","paymentMethod":"PAYPAL","customerId":"customer-1",
+                    {"reference":"FRACTIONAL","paymentMethod":"CREDIT_CARD","customerId":"customer-1",
                          "recipientFullName":"Recipient","recipientPhone":"+84901234567",
                          "shippingAddress":{"addressLine1":"12 Main","ward":"Ward","city":"City","countryCode":"VN"},
                      "products":[{"skuId":"00000000-0000-4000-8000-000000000001","quantity":1.5}]}

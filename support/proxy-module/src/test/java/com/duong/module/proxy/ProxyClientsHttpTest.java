@@ -86,6 +86,8 @@ class ProxyClientsHttpTest {
                     if (status == 503) { exchange.getResponseHeaders().set("Retry-After", "0"); }
                     if (status == 302) { exchange.getResponseHeaders().set("Location", "/unexpected-redirect"); }
                 }
+                case "/internal/payments/order/7" -> { status=200; body="{\"paymentId\":42,\"orderId\":7,\"amount\":50000,\"currencyCode\":\"VND\",\"status\":\"PENDING\",\"attemptStatus\":\"CREATING\"}"; }
+                case "/internal/payments/42/attempts" -> { status=200; body="\"attempt-id\""; }
                 case "/internal/payments" -> { status = paymentStatus; body = status == 200 ? "42" : "{}"; }
                 default -> { status = 501; body = "Unexpected dependency request"; }
             }
@@ -114,6 +116,23 @@ class ProxyClientsHttpTest {
                             new PaymentRequest(BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "ORDER-7", null));
                     assertThat(calls).hasSize(1);
                     assertThat(calls.get(0).authorization()).isEqualTo("Bearer caller-token");
+                });
+    }
+
+    @Test
+    void checkoutLookupAndRetryTransportExplicitMachineTokenAndKey() {
+        context().withUserConfiguration(PaymentOnly.class)
+                .withPropertyValues("application.config.payment-url="+base+"/internal/payments")
+                .run(ctx -> {
+                    var payment=ctx.getBean(PaymentClient.class);
+                    var checkout=payment.checkoutByOrder("Bearer machine-token",7).data();
+                    assertThat(checkout.currencyCode()).isEqualTo("VND");
+                    assertThat(checkout.attemptStatus()).isEqualTo("CREATING");
+                    assertThat(payment.retry("Bearer machine-token","retry-key",42).data()).isEqualTo("attempt-id");
+                    assertThat(calls).hasSize(2).allSatisfy(call -> assertThat(call.authorization()).isEqualTo("Bearer machine-token"));
+                    assertThat(calls.get(0).method()).isEqualTo("GET");
+                    assertThat(calls.get(1).method()).isEqualTo("POST");
+                    assertThat(calls.get(1).idempotencyKey()).isEqualTo("retry-key");
                 });
     }
 

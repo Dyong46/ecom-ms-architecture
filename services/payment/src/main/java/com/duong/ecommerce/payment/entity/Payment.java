@@ -36,6 +36,24 @@ public class Payment {
 
     private Integer orderId;
 
+    @Column(length = 3)
+    private String currencyCode;
+
+    @Enumerated(STRING)
+    @Column(length = 16)
+    private com.duong.ecommerce.payment.entity.enumeration.PaymentStatusEnum status;
+
+    private String orderReference;
+    private String customerFirstname;
+    private String customerLastname;
+    private String customerEmail;
+    private java.time.Instant paidAt;
+
+    public void initializeCheckout() {
+        currencyCode="VND";
+        status=com.duong.ecommerce.payment.entity.enumeration.PaymentStatusEnum.PENDING;
+    }
+
     @CreatedDate
     @Column(updatable = false, nullable = false)
     private LocalDateTime createDate;

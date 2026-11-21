@@ -7,9 +7,13 @@ spring:
       discovery:
         locator:
           enabled: true
-          # Payment and Notification do not expose client APIs through Gateway.
-          include-expression: "serviceId.toLowerCase() != 'notification-service' && serviceId.toLowerCase() != 'payment-service'"
       routes:
+        - id: stripe-webhook
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/webhooks/stripe
+            - Method=POST
+
         - id: public-product-service
           uri: lb://PRODUCT-SERVICE
           predicates:

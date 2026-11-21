@@ -27,6 +27,15 @@ public class OrderController {
         return ResponseEntity.ok(BaseResponse.of(checkout.create(key, request)));
     }
 
+    @GetMapping("/{orderId}/payment")
+    public BaseResponse<com.duong.module.proxy.payment.response.PaymentCheckoutResponse> payment(@PathVariable int orderId) {
+        return BaseResponse.of(service.payment(orderId));
+    }
+    @PostMapping("/{orderId}/payment-attempts")
+    public BaseResponse<String> retryPayment(@PathVariable int orderId,@RequestHeader("Idempotency-Key") String key) {
+        return BaseResponse.of(service.retryPayment(orderId,key));
+    }
+
     @GetMapping
     public ResponseEntity<BaseResponse<PageResponse<OrderResponse>>> findAll(
             @Valid @ModelAttribute PaginationRequest pagination

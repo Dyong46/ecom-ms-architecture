@@ -15,6 +15,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration(proxyBeanMethods = false)
 public class PaymentSecurityConfig {
     @Bean
+    @Order(0)
+    SecurityFilterChain stripeWebhook(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/webhooks/stripe").csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST,"/webhooks/stripe").permitAll()
+                        .anyRequest().denyAll()).build();
+    }
+
+    @Bean
     @Order(1)
     SecurityFilterChain internalPayments(HttpSecurity http,
             @Value("${payment.security.allowed-client-id:ecom-services}") String clientId) throws Exception {

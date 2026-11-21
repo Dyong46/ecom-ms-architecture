@@ -18,6 +18,7 @@ public interface OrderMapper {
     @Mapping(target = "totalAmount", source = "totalAmount")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "creationStatus", ignore = true)
+    @Mapping(target = "paymentStatus", ignore = true)
     @Mapping(target = "itemsSubtotal", ignore = true)
     @Mapping(target = "shippingFee", ignore = true)
     @Mapping(target = "currencyCode", ignore = true)

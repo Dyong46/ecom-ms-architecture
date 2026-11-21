@@ -3,7 +3,6 @@ package com.duong.ecommerce.payment.service;
 import com.duong.ecommerce.payment.controller.InternalPaymentController;
 import com.duong.ecommerce.payment.entity.Payment;
 import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
-import com.duong.ecommerce.payment.integration.kafka.producer.NotificationProducer;
 import com.duong.ecommerce.payment.mapper.PaymentMapper;
 import com.duong.ecommerce.payment.payload.request.PaymentRequest;
 import com.duong.ecommerce.payment.repository.PaymentRepository;
@@ -39,10 +38,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.springframework.test.context.TestPropertySource(properties={"payment.stripe.enabled=true","payment.stripe.secret-key=sk_test_fixture","payment.stripe.webhook-secret=whsec_fixture"})
 @SpringJUnitConfig(PaymentInputValidationTest.Config.class)
 class PaymentInputValidationTest {
     private static final String BODY = """
-            {"amount":20.00,"paymentMethod":"PAYPAL","orderId":7,"orderReference":"ORDER-7",
+            {"amount":20.00,"paymentMethod":"CREDIT_CARD","orderId":7,"orderReference":"ORDER-7",
              "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"}}
             """;
     private final ObjectMapper json = new ObjectMapper();
@@ -53,13 +53,14 @@ class PaymentInputValidationTest {
     @Autowired
     PaymentRepository repository;
     @Autowired
-    NotificationProducer producer;
+    PaymentAttemptService attempts;
+    @Autowired PaymentSettlementService settlement;
     private MockMvc mvc;
 
     @BeforeEach
     void setup() {
-        reset(repository, producer);
-        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(creation, service))
+        reset(repository, attempts, settlement);
+        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(creation, service, attempts))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
@@ -75,6 +76,8 @@ class PaymentInputValidationTest {
         }
         invalid.add(body().put("amount", -1));
         invalid.add(body().put("amount", new BigDecimal("1.001")));
+        invalid.add(body().put("amount", new BigDecimal("1.50")));
+        invalid.add(body().put("paymentMethod", "PAYPAL"));
         invalid.add(body().put("amount", new BigDecimal("1" + "0".repeat(36))));
         invalid.add(body().put("orderId", 0));
         invalid.add(body().put("orderId", -1));
@@ -95,7 +98,7 @@ class PaymentInputValidationTest {
             mvc.perform(post(path).header("Idempotency-Key", "test-key").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(payload)))
                     .andExpect(status().isBadRequest());
         }
-        verifyNoInteractions(repository, producer);
+        verifyNoInteractions(repository, attempts, settlement);
     }
 
     @ParameterizedTest
@@ -106,7 +109,7 @@ class PaymentInputValidationTest {
             return Payment.builder().id(42).amount(payment.getAmount())
                     .paymentMethod(payment.getPaymentMethod()).orderId(payment.getOrderId()).build();
         });
-        when(producer.sendNotification(any())).thenReturn(CompletableFuture.completedFuture(null));
+
         var payload = body().put("id", 999).put("amount", BigDecimal.ZERO);
         mvc.perform(post(path).header("Idempotency-Key", "test-key").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(payload)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data").value(42));
@@ -114,22 +117,24 @@ class PaymentInputValidationTest {
         verify(repository).save(saved.capture());
         assertThat(saved.getValue().getId()).isNull();
         assertThat(saved.getValue().getAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-        verify(producer).sendNotification(any());
+        verify(attempts).create(42,7,0);
+        verify(settlement).succeed(42);
     }
 
     @Test
     void springServiceBoundaryRejectsMissingCustomerBeforeSaving() {
         assertThatThrownBy(() -> service.createPayment(new PaymentRequest(
-                BigDecimal.TEN, PaymentMethodEnum.PAYPAL, 7, "ORDER-7", null)))
+                BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, 7, "ORDER-7", null)))
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(() -> service.createPayment(null)).isInstanceOf(ConstraintViolationException.class);
-        verifyNoInteractions(repository, producer);
+        verifyNoInteractions(repository, attempts, settlement);
     }
 
     private ObjectNode body() throws Exception {
         return (ObjectNode) json.readTree(BODY);
     }
 
+    @org.springframework.boot.context.properties.EnableConfigurationProperties(com.duong.ecommerce.payment.config.StripeSettings.class)
     @Configuration(proxyBeanMethods = false)
     static class Config {
         @Bean
@@ -147,8 +152,9 @@ class PaymentInputValidationTest {
 
         @Bean
         PaymentCreationService creation(PaymentService service,
-                                        com.duong.ecommerce.payment.integration.idempotency.PostgresIdempotencyStore store) {
-            return new PaymentCreationService(service, store);
+                                        com.duong.ecommerce.payment.integration.idempotency.PostgresIdempotencyStore store,
+                                        com.duong.ecommerce.payment.config.StripeSettings settings, PaymentAttemptService attempts) {
+            return new PaymentCreationService(service, store,settings,attempts);
         }
 
         @Bean
@@ -157,13 +163,12 @@ class PaymentInputValidationTest {
         }
 
         @Bean
-        NotificationProducer producer() {
-            return mock(NotificationProducer.class);
-        }
+        PaymentAttemptService attempts() { return mock(PaymentAttemptService.class); }
+        @Bean PaymentSettlementService settlement() { return mock(PaymentSettlementService.class); }
 
         @Bean
-        PaymentService service(PaymentRepository repository, NotificationProducer producer) {
-            return new PaymentService(repository, Mappers.getMapper(PaymentMapper.class), producer);
+        PaymentService service(PaymentRepository repository, PaymentAttemptService attempts,PaymentSettlementService settlement) {
+            return new PaymentService(repository, Mappers.getMapper(PaymentMapper.class), attempts,settlement);
         }
     }
 }

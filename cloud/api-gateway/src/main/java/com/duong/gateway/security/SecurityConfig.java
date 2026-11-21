@@ -30,6 +30,8 @@ public class SecurityConfig {
             Environment environment) {
         serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> {
+                    // Provider signature verification belongs to Payment; Stripe has no Keycloak JWT.
+                    exchange.pathMatchers(HttpMethod.POST, "/webhooks/stripe").permitAll();
                     exchange.pathMatchers(properties.getPublicPaths().toArray(String[]::new)).permitAll();
                     exchange.pathMatchers(HttpMethod.GET,
                             properties.getPublicGetPaths().toArray(String[]::new)).permitAll();

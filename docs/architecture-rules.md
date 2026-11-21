@@ -104,11 +104,21 @@ operation keys; completion records COMPLETED. Proxy only transports the header.
 Reservation and stock return remain deferred. See
 [Checkout idempotency](checkout-idempotency-design.md) for transaction and replay limits.
 
+Payment now owns Stripe sandbox Hosted Checkout, durable PaymentAttempt recovery,
+a signature-verified webhook inbox and a transactional success-event outbox. Order
+projects settlement through a separate idempotent Kafka consumer. The owner
+updated the ingress decision: Gateway exposes POST `/webhooks/stripe` and forwards
+it to Payment, where signature verification remains. Internal Payment APIs remain
+private; Payment and Notification are no longer excluded from discovery routing. See [Stripe sandbox decision](stripe-sandbox-design.md) for the accepted
+VND/free-payment scope, dependency direction and recovery limits.
+
 The Gateway serves Swagger UI and handwritten OpenAPI contracts for
 [Product](../openapi.yaml), [Customer](openapi/customer.yaml),
 and [Order](openapi/order.yaml) under `/docs/{service}` in its `local` profile.
-Payment is internal-only (POST/GET `/internal/payments`) and is excluded from
-Gateway routes, discovery routing and client Swagger. Its
+Payment business APIs remain internal-only (POST/GET `/internal/payments`) and
+absent from client Swagger. Its signed Stripe webhook is explicitly routed through
+Gateway. Discovery routing includes Payment and Notification; the Gateway internal
+path boundary still blocks direct and discovery-prefixed `/internal/**` requests. Its
 [internal contract](openapi/payment.yaml) targets Payment directly; see
 [Payment internal API](payment-internal-api-design.md). The client contracts describe
 Gateway routes and their authentication at the edge. The Gateway uses a Swagger UI

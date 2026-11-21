@@ -36,7 +36,7 @@ class PaymentOAuthSecurityTest {
     private static final String ISSUER = "https://keycloak.example.test/realms/micro-services";
     private static final KeyPair KEY = generateKey();
     private static final String BODY = """
-            {"amount":20.00,"paymentMethod":"PAYPAL","orderId":7,"orderReference":"ORDER-7",
+            {"amount":20.00,"paymentMethod":"CREDIT_CARD","orderId":7,"orderReference":"ORDER-7",
             "customer":{"id":"c1","firstname":"Ada","lastname":"Lovelace","email":"ada@example.test"}}
             """;
     @Autowired MockMvc mvc;
@@ -44,6 +44,7 @@ class PaymentOAuthSecurityTest {
     com.duong.ecommerce.payment.service.PaymentCreationService service;
     @MockBean
     com.duong.ecommerce.payment.service.PaymentService payments;
+    @MockBean com.duong.ecommerce.payment.service.PaymentAttemptService attempts;
 
     @Test
     void internalListingRequiresTheAllowedMachineClient() throws Exception {

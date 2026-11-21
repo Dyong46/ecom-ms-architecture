@@ -32,7 +32,7 @@ public class NotificationConsumer {
         var job = newJob(event.eventId(), record, NotificationTypeEnum.PAYMENT_CONFIRMATION);
         job.setPaymentConfirmation(event);
         prepare(job, () -> renderer.buildPaymentSuccessEmail(event.customerEmail(),
-                event.customerFirstname() + " " + event.customerLastname(), event.amount(), event.orderReference()));
+                event.customerFirstname() + " " + event.customerLastname(), event.amount(), event.orderReference(), event.currencyCode()));
         jobs.enqueue(job);
         acknowledgment.acknowledge();
     }

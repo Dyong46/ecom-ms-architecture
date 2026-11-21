@@ -82,10 +82,11 @@ Bound outbound timeouts and size the pool for checkout concurrency. Ledger and
 draft JSON contain customer snapshots and consume storage; retention requires a
 separate decision. Bindings currently remain indefinitely.
 
-Notifications are sent after local commit and are not re-emitted on successful
-replay. There is no transactional outbox: a crash between commit and publish can
-still lose an event. This guarantees idempotent database mutations, not exactly-once
-Kafka/email delivery. Failed checkout can retain deducted stock and a PROCESSING
+Order creation notifications are sent after local commit and are not re-emitted
+on successful replay. Order creation still has no transactional outbox: a crash
+between commit and publish can lose that event. Payment settlement now uses its
+own transactional outbox (see the Stripe extension below). Neither path claims
+exactly-once Kafka/email delivery. Failed checkout can retain deducted stock and a PROCESSING
 Order indefinitely. No reservation, refund, cancellation or stock return is added.
 
 All orchestration/failure decisions/token acquisition remain service-owned. Proxy
@@ -117,3 +118,12 @@ real Product/Payment commits. It changes the catalog price, restarts the Order J
 retries the same key and verifies one order, one payment, one stock decrement and
 preserved price. Existing service databases, Kafka, Redis and Elasticsearch are
 not used. Kafka delivery itself is not tested.
+
+## Stripe sandbox extension (2026-11-21)
+
+See [Stripe sandbox checkout](stripe-sandbox-design.md) for the current payment
+lifecycle. Creation success does not prove settlement: positive VND payments use
+Hosted Checkout and settle only after verified webhook/reconciliation. Zero VND
+settles locally. Success events are now written transactionally to an outbox.
+Private checkout lookup/retry APIs and the Gateway-routed signed webhook are
+described in the updated Payment and Order OpenAPI contracts.

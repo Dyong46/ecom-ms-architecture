@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(properties = {
 		"spring.cloud.config.enabled=false",
+        "payment.workers.enabled=false",
         "spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:9098/realms/micro-services",
         "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:9098/realms/micro-services/protocol/openid-connect/certs",
 		"eureka.client.enabled=false",

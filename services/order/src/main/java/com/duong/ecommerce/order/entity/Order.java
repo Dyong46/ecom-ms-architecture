@@ -19,6 +19,7 @@ import static jakarta.persistence.EnumType.STRING;
 @Getter
 @Setter
 @Entity
+@org.hibernate.annotations.DynamicUpdate
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "customer_order")
@@ -27,6 +28,12 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Builder.Default
+    @Enumerated(STRING)
+    @Column(nullable=false,length=16)
+    private com.duong.ecommerce.order.entity.enumeration.PaymentStatusEnum paymentStatus=
+            com.duong.ecommerce.order.entity.enumeration.PaymentStatusEnum.PENDING;
 
     @Builder.Default
     @Enumerated(STRING)

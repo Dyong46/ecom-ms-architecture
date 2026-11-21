@@ -5,4 +5,10 @@ spring:
   application:
     name: order-service
   config:
-    import: optional:configserver:http://localhost:8888
+    import:
+      - optional:configserver:http://localhost:8888
+      - optional:file:./services/order/.env.properties
+
+order:
+  payment-events:
+    enabled: ${ORDER_PAYMENT_EVENTS_ENABLED:true}

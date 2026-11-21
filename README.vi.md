@@ -266,7 +266,7 @@ Mở trang tương ứng với API muốn thử.
 | Order và Order Line | [`/docs/order`](http://localhost:8222/docs/order) | [order.yaml](docs/openapi/order.yaml) |
 
 Payment chỉ có API nội bộ `/internal/payments`, yêu cầu machine token. Contract
-nội bộ nằm trong [payment.yaml](docs/openapi/payment.yaml); không có route hay Swagger Payment qua Gateway.
+nội bộ nằm trong [payment.yaml](docs/openapi/payment.yaml); webhook POST `/webhooks/stripe` đi qua Gateway, còn API internal không được public và không có Swagger Payment cho client.
 
 **Try it out** gửi request qua Gateway. Với API có biểu tượng khóa, bấm
 **Authorize** và dán access token Keycloak. Để thử search public của Product,
