@@ -42,7 +42,7 @@ class PaymentPaginationTest {
     @BeforeEach
     void setUp() {
         service = mock(PaymentService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new PaymentController(service, mock(com.duong.ecommerce.payment.service.PaymentCreationService.class)))
+        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(mock(com.duong.ecommerce.payment.service.PaymentCreationService.class), service))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
@@ -51,7 +51,7 @@ class PaymentPaginationTest {
         var pageable = PageRequest.of(0, 20, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(Page.empty(pageable));
 
-        mvc.perform(get("/api/v1/payments"))
+        mvc.perform(get("/internal/payments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isEmpty())
                 .andExpect(jsonPath("$.data.page_info.number").value(1))
@@ -70,7 +70,7 @@ class PaymentPaginationTest {
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(
                 List.of(new PaymentResponse(1, 1, java.math.BigDecimal.TEN, PaymentMethodEnum.CREDIT_CARD, null, null)), pageable, 45));
 
-        mvc.perform(get("/api/v1/payments").param("page", "2").param("size", "10"))
+        mvc.perform(get("/internal/payments").param("page", "2").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.page_info.number").value(2))
@@ -86,7 +86,7 @@ class PaymentPaginationTest {
         var pageable = PageRequest.of(10, 20, Sort.by("id").ascending());
         when(service.findAll(pageable)).thenReturn(new PageImpl<>(List.of(), pageable, 45));
 
-        mvc.perform(get("/api/v1/payments").param("page", "11"))
+        mvc.perform(get("/internal/payments").param("page", "11"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content").isEmpty())
                 .andExpect(jsonPath("$.data.page_info.total_elements").value(45))
@@ -97,7 +97,7 @@ class PaymentPaginationTest {
     @ValueSource(strings = {"page=0", "page=-1", "size=0", "size=101", "page=abc", "size=abc"})
     void invalidParametersReturnProblemBeforeService(String query) throws Exception {
         var param = query.split("=");
-        mvc.perform(get("/api/v1/payments").param(param[0], param[1]))
+        mvc.perform(get("/internal/payments").param(param[0], param[1]))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data.extra_data.errors." + param[0]).exists());

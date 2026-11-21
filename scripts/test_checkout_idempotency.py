@@ -173,12 +173,12 @@ def main():
                 process = subprocess.Popen(args, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
                 log.close()
                 processes[name] = process
-                endpoint = {'order': '/api/v1/orders', 'product': '/api/v1/products', 'payment': '/api/v1/payments'}[name]
+                endpoint = {'order': '/api/v1/orders', 'product': '/api/v1/products', 'payment': '/internal/payments'}[name]
                 for _ in range(300):
                     if process.poll() is not None:
                         raise RuntimeError(f'{name} exited; see {folder / (name + ".log")}')
                     try:
-                        if request(f'http://127.0.0.1:{ports[name]}' + endpoint)[0] == 200:
+                        if request(f'http://127.0.0.1:{ports[name]}' + endpoint, headers={'Authorization': 'Bearer ' + token} if name == 'payment' else None)[0] == 200:
                             return
                     except (OSError, URLError):
                         pass

@@ -23,7 +23,8 @@ including their internal counterparts. Keys contain 1-128 ASCII letters, digits,
 dot, underscore, colon or hyphen. Generate a UUID per operation and retain it across
 retries/restarts. Missing/malformed keys return 400 before mutation.
 
-Within each service, public/internal entry points share one operation ledger.
+Product public/internal entry points share one operation ledger; Payment only
+exposes `/internal/payments`, protected by its machine-token rule.
 Keys are globally scoped to that operation in that service. Identity/tenant-scoped
 keys require the deferred authorization design. Idempotency does not authorize
 access. Use unguessable keys; do not log keys or snapshot contents.

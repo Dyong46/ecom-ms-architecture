@@ -33,8 +33,7 @@ class ApiDocsTest {
         @CsvSource({
                 "product, /api/public/v1/products/search:",
                 "customer, /api/v1/customers:",
-                "order, /api/v1/order-lines/order/{orderId}:",
-                "payment, /api/v1/payments:"
+                "order, /api/v1/order-lines/order/{orderId}:"
         })
         void servesSwaggerAndItsClientContractWithoutAuthentication(String service, String endpoint) {
             String path = "/docs/" + service;
@@ -61,6 +60,10 @@ class ApiDocsTest {
                     .expectBody(String.class).value(body -> assertThat(body)
                             .contains("SwaggerUIBundle", "window.location.pathname", "/openapi.yaml"));
             client.get().uri("/docs/notification/openapi.yaml").exchange().expectStatus().isNotFound();
+            client.get().uri("/docs/payment").exchange().expectStatus().isNotFound();
+            client.get().uri("/docs/payment/openapi.yaml").exchange().expectStatus().isNotFound();
+            client.get().uri("/docs/order").exchange().expectBody(String.class)
+                    .value(body -> assertThat(body).doesNotContain("/docs/payment"));
         }
 
         @ParameterizedTest

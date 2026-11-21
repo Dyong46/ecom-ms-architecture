@@ -19,7 +19,8 @@ class InternalApiBoundaryWebFilterTest {
     @ParameterizedTest
     @ValueSource(strings = {"/internal/products/purchase", "/PRODUCT-SERVICE/internal/products/purchase",
             "/product-service/%69nternal/products/purchase", "/product-service/internal;v=1/products/purchase",
-            "/product-service/INTERNAL/products/purchase", "/product-service/internal%2Fproducts/purchase"})
+            "/product-service/INTERNAL/products/purchase", "/product-service/internal%2Fproducts/purchase",
+            "/internal/payments", "/PAYMENT-SERVICE/internal/payments", "/payment-service/%69nternal/payments"})
     void deniesInternalPathsIncludingDiscoveryAndEncodedVariants(String path) {
         client.post().uri(URI.create(path)).header("Authorization", "Bearer dummy")
                 .exchange().expectStatus().isNotFound();

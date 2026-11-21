@@ -106,9 +106,12 @@ Reservation and stock return remain deferred. See
 
 The Gateway serves Swagger UI and handwritten OpenAPI contracts for
 [Product](../openapi.yaml), [Customer](openapi/customer.yaml),
-[Order](openapi/order.yaml) and [Payment](openapi/payment.yaml) under
-`/docs/{service}` in its `local` profile. Each contract describes client
-routes and their authentication at the edge. The Gateway uses a Swagger UI
+and [Order](openapi/order.yaml) under `/docs/{service}` in its `local` profile.
+Payment is internal-only (POST/GET `/internal/payments`) and is excluded from
+Gateway routes, discovery routing and client Swagger. Its
+[internal contract](openapi/payment.yaml) targets Payment directly; see
+[Payment internal API](payment-internal-api-design.md). The client contracts describe
+Gateway routes and their authentication at the edge. The Gateway uses a Swagger UI
 WebJar for local browser assets. Update the handwritten contract when a client
 route or payload changes.
 

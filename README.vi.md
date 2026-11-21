@@ -264,7 +264,9 @@ Mở trang tương ứng với API muốn thử.
 | Product | [`/docs/product`](http://localhost:8222/docs/product) | [openapi.yaml](openapi.yaml) |
 | Customer | [`/docs/customer`](http://localhost:8222/docs/customer) | [customer.yaml](docs/openapi/customer.yaml) |
 | Order và Order Line | [`/docs/order`](http://localhost:8222/docs/order) | [order.yaml](docs/openapi/order.yaml) |
-| Payment | [`/docs/payment`](http://localhost:8222/docs/payment) | [payment.yaml](docs/openapi/payment.yaml) |
+
+Payment chỉ có API nội bộ `/internal/payments`, yêu cầu machine token. Contract
+nội bộ nằm trong [payment.yaml](docs/openapi/payment.yaml); không có route hay Swagger Payment qua Gateway.
 
 **Try it out** gửi request qua Gateway. Với API có biểu tượng khóa, bấm
 **Authorize** và dán access token Keycloak. Để thử search public của Product,

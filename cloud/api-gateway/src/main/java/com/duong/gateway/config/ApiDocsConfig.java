@@ -21,8 +21,7 @@ public class ApiDocsConfig {
     private static final Map<String, String> SPECS = Map.of(
             "product", "openapi.yaml",
             "customer", "customer.yaml",
-            "order", "order.yaml",
-            "payment", "payment.yaml"
+            "order", "order.yaml"
     );
 
     @Bean

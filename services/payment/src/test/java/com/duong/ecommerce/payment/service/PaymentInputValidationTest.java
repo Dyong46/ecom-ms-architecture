@@ -1,7 +1,6 @@
 package com.duong.ecommerce.payment.service;
 
 import com.duong.ecommerce.payment.controller.InternalPaymentController;
-import com.duong.ecommerce.payment.controller.PaymentController;
 import com.duong.ecommerce.payment.entity.Payment;
 import com.duong.ecommerce.payment.entity.enumeration.PaymentMethodEnum;
 import com.duong.ecommerce.payment.integration.kafka.producer.NotificationProducer;
@@ -60,12 +59,12 @@ class PaymentInputValidationTest {
     @BeforeEach
     void setup() {
         reset(repository, producer);
-        mvc = MockMvcBuilders.standaloneSetup(new PaymentController(service, creation), new InternalPaymentController(creation))
+        mvc = MockMvcBuilders.standaloneSetup(new InternalPaymentController(creation, service))
                 .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/api/v1/payments", "/internal/payments"})
+    @ValueSource(strings = {"/internal/payments"})
     void invalidInputsAreRejectedBeforePersistenceOrPublication(String path) throws Exception {
         List<ObjectNode> invalid = new ArrayList<>();
         for (String field : List.of("amount", "paymentMethod", "orderId", "customer")) {
@@ -100,7 +99,7 @@ class PaymentInputValidationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/api/v1/payments", "/internal/payments"})
+    @ValueSource(strings = {"/internal/payments"})
     void zeroPaymentIgnoresClientIdAndUsesGeneratedId(String path) throws Exception {
         when(repository.save(any())).thenAnswer(call -> {
             Payment payment = call.getArgument(0);

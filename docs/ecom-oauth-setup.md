@@ -148,8 +148,9 @@ Payment → kiểm tra chữ ký JWT, issuer, thời hạn và azp=ecom-services
 - Token bị thiếu/không hợp lệ: Payment trả `401`; token hợp lệ thuộc client khác:
   `403`. Token endpoint lỗi: Order dừng lời gọi Payment, không fallback anonymous
   và không tự retry thanh toán. Token được cache đến gần lúc hết hạn.
-- Các API `/api/v1/payments` giữ hành vi cũ; rule mới áp dụng cho `/internal/payments`
-  và các đường dẫn con. Gateway vẫn chặn internal; service ports phải ở mạng riêng.
+- Payment chỉ có POST/GET `/internal/payments`, đều yêu cầu machine token của client được phép. API `/api/v1/payments`
+  đã bỏ; Gateway không publish Payment.
+  Gateway vẫn chặn internal; service ports phải ở mạng riêng.
 
 Khởi động Redis local bằng `docker compose --profile caching up -d redis`.
 Order đọc `REDIS_HOST`/`REDIS_PORT` (mặc định localhost/6379), `CACHE_NAMESPACE`

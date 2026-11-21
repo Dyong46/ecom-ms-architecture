@@ -7,8 +7,8 @@ spring:
       discovery:
         locator:
           enabled: true
-          # Notification only serves internal monitoring endpoints.
-          include-expression: "serviceId.toLowerCase() != 'notification-service'"
+          # Payment and Notification do not expose client APIs through Gateway.
+          include-expression: "serviceId.toLowerCase() != 'notification-service' && serviceId.toLowerCase() != 'payment-service'"
       routes:
         - id: public-product-service
           uri: lb://PRODUCT-SERVICE
@@ -17,14 +17,6 @@ spring:
             - Method=GET
           filters:
             - RewritePath=/api/public/v1/products(?<segment>/?.*), /api/v1/products$\{segment}
-
-        - id: payment-callback-service
-          uri: lb://PAYMENT-SERVICE
-          predicates:
-            - Path=/api/callbacks/payments/**
-            - Method=POST
-          filters:
-            - RewritePath=/api/callbacks/payments(?<segment>/?.*), /api/v1/payments/callbacks$\{segment}
 
         - id: customer-service
           uri: lb://CUSTOMER-SERVICE
@@ -45,11 +37,6 @@ spring:
           uri: lb://PRODUCT-SERVICE
           predicates:
             - Path=/api/v1/products/**,/api/v1/product-options/**
-
-        - id: payment-service
-          uri: lb://PAYMENT-SERVICE
-          predicates:
-            - Path=/api/v1/payments/**
 
 gateway:
   security:

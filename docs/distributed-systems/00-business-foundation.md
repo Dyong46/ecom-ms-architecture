@@ -83,7 +83,7 @@ POST /api/v1/inventory-reservations
 POST /api/v1/inventory-reservations/{reservationId}/confirm
 POST /api/v1/inventory-reservations/{reservationId}/release
 
-POST /api/v1/payments
+POST /internal/payments
 ```
 
 Error response dùng `application/problem+json`. Business error cần có machine-readable

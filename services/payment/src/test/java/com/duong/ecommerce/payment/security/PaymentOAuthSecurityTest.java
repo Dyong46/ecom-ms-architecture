@@ -42,6 +42,31 @@ class PaymentOAuthSecurityTest {
     @Autowired MockMvc mvc;
     @MockBean
     com.duong.ecommerce.payment.service.PaymentCreationService service;
+    @MockBean
+    com.duong.ecommerce.payment.service.PaymentService payments;
+
+    @Test
+    void internalListingRequiresTheAllowedMachineClient() throws Exception {
+        mvc.perform(get("/internal/payments")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/internal/payments").header("Authorization", "Bearer " + token(KEY, ISSUER, "other-client", 300)))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(payments);
+        when(payments.findAll(any())).thenReturn(org.springframework.data.domain.Page.empty());
+        mvc.perform(get("/internal/payments").header("Authorization", "Bearer " + token(KEY, ISSUER, "ecom-services", 300)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.content").isEmpty());
+        verify(payments).findAll(any());
+    }
+
+    @Test
+    void formerPublicPaymentPathsCannotBeUsedWithOrWithoutMachineToken() throws Exception {
+        for (String path : new String[]{"/api/v1/payments", "/api/v1/payments/callbacks/test"}) {
+            mvc.perform(get(path)).andExpect(status().isForbidden());
+            mvc.perform(post(path).header("Authorization", "Bearer " + token(KEY, ISSUER, "ecom-services", 300))
+                            .header("Idempotency-Key", "test-key").contentType(MediaType.APPLICATION_JSON).content(BODY))
+                    .andExpect(status().isForbidden());
+        }
+        verifyNoInteractions(service, payments);
+    }
 
     @Test
     void requiresBearerTokenBeforeExecutingPayment() throws Exception {

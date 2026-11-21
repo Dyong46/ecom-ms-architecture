@@ -1,17 +1,15 @@
 openapi: 3.0.3
 info:
-  title: Payment API qua Gateway
+  title: Payment Internal API
   version: '1.0.0'
-  description: Tạo và xem bản ghi thanh toán. Dùng access token Keycloak qua Authorize.
+  description: API nội bộ tạo và xem Payment. Chỉ chấp nhận machine token Keycloak có azp khớp payment.security.allowed-client-id (mặc định ecom-services). Gateway không publish API này.
 servers:
-  - url: /
-    description: Gateway đang phục vụ Swagger UI
-  - url: http://localhost:8222
-    description: Gateway local khi mở spec bằng công cụ riêng
+  - url: http://localhost:8060
+    description: Payment service trong mạng nội bộ; không gọi qua Gateway
 security:
   - bearerAuth: []
 paths:
-  /api/v1/payments:
+  /internal/payments:
     get:
       operationId: listPayments
       summary: Liệt kê bản ghi thanh toán
@@ -59,6 +57,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
       operationId: createPayment
       summary: Tạo bản ghi thanh toán
@@ -109,6 +109,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalError'
 components:
@@ -142,21 +144,13 @@ components:
           schema:
             $ref: '#/components/schemas/ApiError'
     Unauthorized:
-      description: Gateway yêu cầu access token hợp lệ.
+      description: Thiếu Bearer token hoặc token không hợp lệ.
       headers:
         WWW-Authenticate:
           schema: {type: string}
           example: Bearer
-      content:
-        application/problem+json:
-          schema:
-            type: object
-            properties:
-              type: {type: string}
-              title: {type: string}
-              status: {type: integer}
-              detail: {type: string}
-              instance: {type: string}
+    Forbidden:
+      description: Token hợp lệ nhưng azp không phải client nội bộ được cấu hình.
     BadRequest:
       description: Tham số hoặc nội dung yêu cầu không hợp lệ.
       content:

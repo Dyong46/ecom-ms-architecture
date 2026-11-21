@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,13 +31,17 @@ public class PaymentSecurityConfig {
                 .build();
     }
 
-    // Preserve the existing public APIs and Actuator behavior; Gateway handles public auth.
+    // Business APIs are internal only. Keep explicit monitoring/error paths available.
     @Bean
     @Order(2)
-    SecurityFilterChain existingPaymentEndpoints(HttpSecurity http) throws Exception {
+    SecurityFilterChain remainingEndpoints(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**",
+                                "/actuator/info", "/actuator/prometheus").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .anyRequest().denyAll())
                 .build();
     }
 }

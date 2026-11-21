@@ -57,7 +57,7 @@ hoặc sau khi client nhận response; không bảo đảm thứ tự giữa hai
    khi thành công và trả `orderId` cho client.
 
 **Order đang tự tạo payment trong quá trình tạo đơn.** Với flow này, client không
-cần gọi thêm `POST /api/v1/payments` cho cùng đơn hàng. Payment có ràng buộc unique
+cần gọi thêm `POST /internal/payments` cho cùng đơn hàng. Payment có ràng buộc unique
 trên `order_id`; gửi thêm một yêu cầu tạo payment cho đơn đã có payment sẽ vi phạm
 ràng buộc này.
 

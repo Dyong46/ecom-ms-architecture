@@ -118,6 +118,9 @@
 				<includes>
 					<include>*.yaml</include>
 				</includes>
+                <excludes>
+                    <exclude>payment.yaml</exclude>
+                </excludes>
 				<targetPath>api-docs</targetPath>
 			</resource>
 		</resources>
