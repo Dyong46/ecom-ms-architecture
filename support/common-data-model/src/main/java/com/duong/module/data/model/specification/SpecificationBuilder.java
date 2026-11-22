@@ -1,5 +1,7 @@
 package com.duong.module.data.model.specification;
 
+import com.duong.module.data.model.entity.enumeration.PredicateTypeEnum;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

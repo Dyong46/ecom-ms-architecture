@@ -8,11 +8,13 @@
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.duong</groupId>
 	<artifactId>customer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>customer</name>
 	<description>customer</description>
+    <properties>
+        <mongock.version>5.5.1</mongock.version>
+    </properties>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,6 +29,29 @@
 		<url/>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>io.mongock</groupId>
+            <artifactId>mongock-springboot-v3</artifactId>
+            <version>${mongock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mongock</groupId>
+            <artifactId>mongodb-springdata-v4-driver</artifactId>
+            <version>${mongock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.duong</groupId>
+            <artifactId>mongo-data-model</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>com.duong</groupId>
+			<artifactId>logging-module</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.duong</groupId>
 			<artifactId>web-module</artifactId>
@@ -69,6 +94,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>

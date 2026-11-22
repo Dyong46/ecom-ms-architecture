@@ -1,0 +1,86 @@
+# Local monitoring for Java applications running on the host.
+# See docs/monitoring.md for setup and verification.
+name: ecom-monitoring
+
+services:
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    # Kafka advertises localhost:9092 in the local infrastructure stack.
+    # Join its network namespace so the advertised address remains reachable.
+    network_mode: "container:ms_kafka"
+    command:
+      - --kafka.server=localhost:9092
+      - --web.listen-address=0.0.0.0:9308
+      - --offset.show-all
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.7.10
+    command: ["-config.file=/etc/loki/config.yml"]
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./docker/loki/config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:v1.22.0
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./logs:/var/log/ecommerce:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  prometheus:
+    networks:
+      - default
+      - kafka-metrics
+    image: prom/prometheus:v3.16.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=2GB
+    ports:
+      - "127.0.0.1:9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.3.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env.monitoring}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    restart: unless-stopped
+
+volumes:
+  loki-data:
+  alloy-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  kafka-metrics:
+    external: true
+    name: ${KAFKA_DOCKER_NETWORK:-ecom-ms-architecture_microservices-net}

@@ -1,0 +1,52 @@
+// Tail only active files. Reading rotated .gz archives too would replay entries.
+loki.source.file "ecommerce" {
+  targets = [{
+    __path__ = "/var/log/ecommerce/*/application.log",
+    job      = "ecommerce",
+  }]
+  forward_to = [loki.process.ecommerce.receiver]
+
+  file_match {
+    enabled     = true
+    sync_period = "5s"
+  }
+}
+
+loki.process "ecommerce" {
+  forward_to = [loki.write.local.receiver]
+
+  stage.json {
+    expressions = {
+      timestamp    = "timestamp",
+      service_name = "service_name",
+      environment  = "environment",
+      level        = "level",
+    }
+    drop_malformed = true
+  }
+
+  stage.timestamp {
+    source            = "timestamp"
+    format            = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+
+  // IDs stay inside JSON, never in Loki's indexed stream labels.
+  stage.labels {
+    values = {
+      service_name = "",
+      environment  = "",
+      level        = "",
+    }
+  }
+
+  stage.label_drop {
+    values = ["filename"]
+  }
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

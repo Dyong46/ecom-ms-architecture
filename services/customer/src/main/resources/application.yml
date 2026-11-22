@@ -4,3 +4,10 @@ spring:
     import: optional:configserver:http://localhost:8888
   application:
     name: customer-service
+
+mongock:
+  migration-scan-package:
+    - com.duong.ecommerce.customer.migration
+  runner-type: initializingbean
+  # Local MongoDB is standalone; this baseline only creates an index.
+  transactional: false

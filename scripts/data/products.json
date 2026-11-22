@@ -1,0 +1,3636 @@
+{
+  "description": "Dữ liệu demo mô phỏng cho SPU/SKU. Tên, cấu hình và giá không phải thông tin thương mại thực tế.",
+  "priceUnit": "VND (minh họa; API hiện chưa có trường currency)",
+  "products": [
+    {
+      "group": "Áo nam",
+      "name": "Áo thun nam cổ tròn",
+      "slug": "demo-ao-thun-nam-co-tron",
+      "description": "Áo thun nam cổ tròn thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-01-01",
+          "price": 229000,
+          "stockQuantity": 1,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-01-02",
+          "price": 199000,
+          "stockQuantity": 18,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-01-03",
+          "price": 229000,
+          "stockQuantity": 35,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo polo nam dáng regular",
+      "slug": "demo-ao-polo-nam-dang-regular",
+      "description": "Áo polo nam dáng regular thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-02-01",
+          "price": 239000,
+          "stockQuantity": 52,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-02",
+          "price": 239000,
+          "stockQuantity": 69,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-03",
+          "price": 269000,
+          "stockQuantity": 86,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-04",
+          "price": 269000,
+          "stockQuantity": 3,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-05",
+          "price": 269000,
+          "stockQuantity": 20,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-06",
+          "price": 239000,
+          "stockQuantity": 37,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-07",
+          "price": 239000,
+          "stockQuantity": 54,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-02-08",
+          "price": 269000,
+          "stockQuantity": 71,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo sơ mi nam tay dài",
+      "slug": "demo-ao-so-mi-nam-tay-dai",
+      "description": "Áo sơ mi nam tay dài thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-03-01",
+          "price": 309000,
+          "stockQuantity": 88,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-03-02",
+          "price": 279000,
+          "stockQuantity": 5,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-03-03",
+          "price": 309000,
+          "stockQuantity": 22,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-03-04",
+          "price": 279000,
+          "stockQuantity": 39,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-03-05",
+          "price": 279000,
+          "stockQuantity": 56,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo sơ mi nam tay ngắn",
+      "slug": "demo-ao-so-mi-nam-tay-ngan",
+      "description": "Áo sơ mi nam tay ngắn thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-04-01",
+          "price": 319000,
+          "stockQuantity": 73,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-02",
+          "price": 319000,
+          "stockQuantity": 90,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-03",
+          "price": 349000,
+          "stockQuantity": 7,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-04",
+          "price": 319000,
+          "stockQuantity": 24,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-05",
+          "price": 349000,
+          "stockQuantity": 41,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-06",
+          "price": 319000,
+          "stockQuantity": 58,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-07",
+          "price": 349000,
+          "stockQuantity": 75,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-08",
+          "price": 349000,
+          "stockQuantity": 92,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-09",
+          "price": 319000,
+          "stockQuantity": 9,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-04-10",
+          "price": 349000,
+          "stockQuantity": 26,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo hoodie nam có mũ",
+      "slug": "demo-ao-hoodie-nam-co-mu",
+      "description": "Áo hoodie nam có mũ thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-05-01",
+          "price": 359000,
+          "stockQuantity": 43,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-02",
+          "price": 389000,
+          "stockQuantity": 60,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-03",
+          "price": 389000,
+          "stockQuantity": 77,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-04",
+          "price": 359000,
+          "stockQuantity": 94,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-05",
+          "price": 359000,
+          "stockQuantity": 11,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-06",
+          "price": 389000,
+          "stockQuantity": 28,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-05-07",
+          "price": 359000,
+          "stockQuantity": 45,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo sweater nam cổ tròn",
+      "slug": "demo-ao-sweater-nam-co-tron",
+      "description": "Áo sweater nam cổ tròn thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-06-01",
+          "price": 399000,
+          "stockQuantity": 62,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-06-02",
+          "price": 399000,
+          "stockQuantity": 79,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-06-03",
+          "price": 399000,
+          "stockQuantity": 96,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-06-04",
+          "price": 429000,
+          "stockQuantity": 13,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo khoác nam bomber",
+      "slug": "demo-ao-khoac-nam-bomber",
+      "description": "Áo khoác nam bomber thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-07-01",
+          "price": 439000,
+          "stockQuantity": 30,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-02",
+          "price": 469000,
+          "stockQuantity": 47,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-03",
+          "price": 469000,
+          "stockQuantity": 64,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-04",
+          "price": 439000,
+          "stockQuantity": 81,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-05",
+          "price": 469000,
+          "stockQuantity": 98,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-06",
+          "price": 439000,
+          "stockQuantity": 15,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-07",
+          "price": 469000,
+          "stockQuantity": 32,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-08",
+          "price": 439000,
+          "stockQuantity": 49,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-07-09",
+          "price": 469000,
+          "stockQuantity": 66,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo khoác gió nam",
+      "slug": "demo-ao-khoac-gio-nam",
+      "description": "Áo khoác gió nam thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-08-01",
+          "price": 509000,
+          "stockQuantity": 83,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-08-02",
+          "price": 479000,
+          "stockQuantity": 100,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-08-03",
+          "price": 509000,
+          "stockQuantity": 17,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-08-04",
+          "price": 509000,
+          "stockQuantity": 34,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-08-05",
+          "price": 479000,
+          "stockQuantity": 51,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-08-06",
+          "price": 479000,
+          "stockQuantity": 68,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "XL"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo henley nam tay dài",
+      "slug": "demo-ao-henley-nam-tay-dai",
+      "description": "Áo henley nam tay dài thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-09-01",
+          "price": 519000,
+          "stockQuantity": 85,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-09-02",
+          "price": 549000,
+          "stockQuantity": 2,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-09-03",
+          "price": 549000,
+          "stockQuantity": 19,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nam",
+      "name": "Áo tank top nam thể thao",
+      "slug": "demo-ao-tank-top-nam-the-thao",
+      "description": "Áo tank top nam thể thao thuộc bộ dữ liệu minh họa nhóm áo nam; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MEN-10-01",
+          "price": 589000,
+          "stockQuantity": 36,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-02",
+          "price": 589000,
+          "stockQuantity": 53,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-03",
+          "price": 559000,
+          "stockQuantity": 70,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-04",
+          "price": 559000,
+          "stockQuantity": 87,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-05",
+          "price": 589000,
+          "stockQuantity": 4,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-06",
+          "price": 589000,
+          "stockQuantity": 21,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "XL"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-07",
+          "price": 589000,
+          "stockQuantity": 38,
+          "options": {
+            "Màu sắc": "Xanh navy",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-MEN-10-08",
+          "price": 559000,
+          "stockQuantity": 55,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo thun nữ cổ tròn",
+      "slug": "demo-ao-thun-nu-co-tron",
+      "description": "Áo thun nữ cổ tròn thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-01-01",
+          "price": 219000,
+          "stockQuantity": 72,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-01-02",
+          "price": 189000,
+          "stockQuantity": 89,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-01-03",
+          "price": 189000,
+          "stockQuantity": 6,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-01-04",
+          "price": 219000,
+          "stockQuantity": 23,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-01-05",
+          "price": 189000,
+          "stockQuantity": 40,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo polo nữ dáng suông",
+      "slug": "demo-ao-polo-nu-dang-suong",
+      "description": "Áo polo nữ dáng suông thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-02-01",
+          "price": 254000,
+          "stockQuantity": 57,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-02",
+          "price": 254000,
+          "stockQuantity": 74,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-03",
+          "price": 224000,
+          "stockQuantity": 91,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-04",
+          "price": 254000,
+          "stockQuantity": 8,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-05",
+          "price": 224000,
+          "stockQuantity": 25,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-06",
+          "price": 224000,
+          "stockQuantity": 42,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-07",
+          "price": 254000,
+          "stockQuantity": 59,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-08",
+          "price": 224000,
+          "stockQuantity": 76,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-09",
+          "price": 254000,
+          "stockQuantity": 93,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-02-10",
+          "price": 224000,
+          "stockQuantity": 10,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo sơ mi nữ tay dài",
+      "slug": "demo-ao-so-mi-nu-tay-dai",
+      "description": "Áo sơ mi nữ tay dài thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-03-01",
+          "price": 259000,
+          "stockQuantity": 27,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-02",
+          "price": 289000,
+          "stockQuantity": 44,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-03",
+          "price": 259000,
+          "stockQuantity": 61,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-04",
+          "price": 289000,
+          "stockQuantity": 78,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-05",
+          "price": 259000,
+          "stockQuantity": 95,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-06",
+          "price": 259000,
+          "stockQuantity": 12,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-03-07",
+          "price": 259000,
+          "stockQuantity": 29,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo blouse nữ cổ nơ",
+      "slug": "demo-ao-blouse-nu-co-no",
+      "description": "Áo blouse nữ cổ nơ thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-04-01",
+          "price": 324000,
+          "stockQuantity": 46,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-04-02",
+          "price": 294000,
+          "stockQuantity": 63,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-04-03",
+          "price": 324000,
+          "stockQuantity": 80,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-04-04",
+          "price": 324000,
+          "stockQuantity": 97,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo cardigan nữ",
+      "slug": "demo-ao-cardigan-nu",
+      "description": "Áo cardigan nữ thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-05-01",
+          "price": 329000,
+          "stockQuantity": 14,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-02",
+          "price": 359000,
+          "stockQuantity": 31,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-03",
+          "price": 359000,
+          "stockQuantity": 48,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-04",
+          "price": 329000,
+          "stockQuantity": 65,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-05",
+          "price": 329000,
+          "stockQuantity": 82,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-06",
+          "price": 359000,
+          "stockQuantity": 99,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-07",
+          "price": 329000,
+          "stockQuantity": 16,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-08",
+          "price": 359000,
+          "stockQuantity": 33,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-05-09",
+          "price": 359000,
+          "stockQuantity": 50,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo hoodie nữ dáng rộng",
+      "slug": "demo-ao-hoodie-nu-dang-rong",
+      "description": "Áo hoodie nữ dáng rộng thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-06-01",
+          "price": 364000,
+          "stockQuantity": 67,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-06-02",
+          "price": 394000,
+          "stockQuantity": 84,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-06-03",
+          "price": 364000,
+          "stockQuantity": 1,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-06-04",
+          "price": 394000,
+          "stockQuantity": 18,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-06-05",
+          "price": 394000,
+          "stockQuantity": 35,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-06-06",
+          "price": 364000,
+          "stockQuantity": 52,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo sweater nữ cổ tròn",
+      "slug": "demo-ao-sweater-nu-co-tron",
+      "description": "Áo sweater nữ cổ tròn thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-07-01",
+          "price": 399000,
+          "stockQuantity": 69,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-07-02",
+          "price": 429000,
+          "stockQuantity": 86,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-07-03",
+          "price": 429000,
+          "stockQuantity": 3,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo khoác nữ bomber",
+      "slug": "demo-ao-khoac-nu-bomber",
+      "description": "Áo khoác nữ bomber thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-08-01",
+          "price": 464000,
+          "stockQuantity": 20,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-02",
+          "price": 464000,
+          "stockQuantity": 37,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-03",
+          "price": 464000,
+          "stockQuantity": 54,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-04",
+          "price": 434000,
+          "stockQuantity": 71,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-05",
+          "price": 464000,
+          "stockQuantity": 88,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-06",
+          "price": 434000,
+          "stockQuantity": 5,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-07",
+          "price": 434000,
+          "stockQuantity": 22,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-08-08",
+          "price": 434000,
+          "stockQuantity": 39,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo croptop nữ",
+      "slug": "demo-ao-croptop-nu",
+      "description": "Áo croptop nữ thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-09-01",
+          "price": 469000,
+          "stockQuantity": 56,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-09-02",
+          "price": 499000,
+          "stockQuantity": 73,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-09-03",
+          "price": 499000,
+          "stockQuantity": 90,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-09-04",
+          "price": 499000,
+          "stockQuantity": 7,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-09-05",
+          "price": 469000,
+          "stockQuantity": 24,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Áo nữ",
+      "name": "Áo tank top nữ thể thao",
+      "slug": "demo-ao-tank-top-nu-the-thao",
+      "description": "Áo tank top nữ thể thao thuộc bộ dữ liệu minh họa nhóm áo nữ; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-WOMEN-10-01",
+          "price": 504000,
+          "stockQuantity": 41,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-02",
+          "price": 534000,
+          "stockQuantity": 58,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-03",
+          "price": 534000,
+          "stockQuantity": 75,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-04",
+          "price": 534000,
+          "stockQuantity": 92,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-05",
+          "price": 504000,
+          "stockQuantity": 9,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-06",
+          "price": 534000,
+          "stockQuantity": 26,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton",
+            "Size": "S"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-07",
+          "price": 534000,
+          "stockQuantity": 43,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-08",
+          "price": 504000,
+          "stockQuantity": 60,
+          "options": {
+            "Màu sắc": "Hồng pastel",
+            "Chất liệu": "Cotton pha",
+            "Size": "L"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-09",
+          "price": 504000,
+          "stockQuantity": 77,
+          "options": {
+            "Màu sắc": "Đen",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        },
+        {
+          "sku": "DEMO-WOMEN-10-10",
+          "price": 504000,
+          "stockQuantity": 94,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Chất liệu": "Cotton pha",
+            "Size": "M"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Nova N1",
+      "slug": "demo-dien-thoai-nova-n1",
+      "description": "Điện thoại Nova N1 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-01-01",
+          "price": 7990000,
+          "stockQuantity": 11,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-02",
+          "price": 7990000,
+          "stockQuantity": 28,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-03",
+          "price": 7990000,
+          "stockQuantity": 45,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-04",
+          "price": 4990000,
+          "stockQuantity": 62,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-05",
+          "price": 6990000,
+          "stockQuantity": 79,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-06",
+          "price": 5990000,
+          "stockQuantity": 96,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-01-07",
+          "price": 3990000,
+          "stockQuantity": 13,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Nova N2",
+      "slug": "demo-dien-thoai-nova-n2",
+      "description": "Điện thoại Nova N2 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-02-01",
+          "price": 6490000,
+          "stockQuantity": 30,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-02-02",
+          "price": 5490000,
+          "stockQuantity": 47,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-02-03",
+          "price": 5490000,
+          "stockQuantity": 64,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-02-04",
+          "price": 9490000,
+          "stockQuantity": 81,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Aurora A1",
+      "slug": "demo-dien-thoai-aurora-a1",
+      "description": "Điện thoại Aurora A1 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-03-01",
+          "price": 10990000,
+          "stockQuantity": 98,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-02",
+          "price": 6990000,
+          "stockQuantity": 15,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-03",
+          "price": 7990000,
+          "stockQuantity": 32,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-04",
+          "price": 7990000,
+          "stockQuantity": 49,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-05",
+          "price": 6990000,
+          "stockQuantity": 66,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-06",
+          "price": 9990000,
+          "stockQuantity": 83,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-07",
+          "price": 10990000,
+          "stockQuantity": 100,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-08",
+          "price": 6990000,
+          "stockQuantity": 17,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-03-09",
+          "price": 10990000,
+          "stockQuantity": 34,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Aurora A2",
+      "slug": "demo-dien-thoai-aurora-a2",
+      "description": "Điện thoại Aurora A2 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-04-01",
+          "price": 9490000,
+          "stockQuantity": 51,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-04-02",
+          "price": 12490000,
+          "stockQuantity": 68,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-04-03",
+          "price": 9490000,
+          "stockQuantity": 85,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-04-04",
+          "price": 10490000,
+          "stockQuantity": 2,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-04-05",
+          "price": 9490000,
+          "stockQuantity": 19,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-04-06",
+          "price": 11490000,
+          "stockQuantity": 36,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Orion O1",
+      "slug": "demo-dien-thoai-orion-o1",
+      "description": "Điện thoại Orion O1 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-05-01",
+          "price": 13990000,
+          "stockQuantity": 53,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-05-02",
+          "price": 12990000,
+          "stockQuantity": 70,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-05-03",
+          "price": 10990000,
+          "stockQuantity": 87,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Orion O2",
+      "slug": "demo-dien-thoai-orion-o2",
+      "description": "Điện thoại Orion O2 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-06-01",
+          "price": 13490000,
+          "stockQuantity": 4,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-02",
+          "price": 13490000,
+          "stockQuantity": 21,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-03",
+          "price": 11490000,
+          "stockQuantity": 38,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-04",
+          "price": 12490000,
+          "stockQuantity": 55,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-05",
+          "price": 11490000,
+          "stockQuantity": 72,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-06",
+          "price": 14490000,
+          "stockQuantity": 89,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-07",
+          "price": 11490000,
+          "stockQuantity": 6,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-06-08",
+          "price": 15490000,
+          "stockQuantity": 23,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Zenith Z1",
+      "slug": "demo-dien-thoai-zenith-z1",
+      "description": "Điện thoại Zenith Z1 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-07-01",
+          "price": 14990000,
+          "stockQuantity": 40,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-07-02",
+          "price": 13990000,
+          "stockQuantity": 57,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-07-03",
+          "price": 16990000,
+          "stockQuantity": 74,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-07-04",
+          "price": 15990000,
+          "stockQuantity": 91,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-07-05",
+          "price": 16990000,
+          "stockQuantity": 8,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Điện thoại",
+      "name": "Điện thoại Zenith Z2",
+      "slug": "demo-dien-thoai-zenith-z2",
+      "description": "Điện thoại Zenith Z2 thuộc bộ dữ liệu minh họa nhóm điện thoại; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-PHONE-08-01",
+          "price": 17490000,
+          "stockQuantity": 25,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-02",
+          "price": 17490000,
+          "stockQuantity": 42,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-03",
+          "price": 15490000,
+          "stockQuantity": 59,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-04",
+          "price": 16490000,
+          "stockQuantity": 76,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-05",
+          "price": 14490000,
+          "stockQuantity": 93,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-06",
+          "price": 15490000,
+          "stockQuantity": 10,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "8GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-07",
+          "price": 15490000,
+          "stockQuantity": 27,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "128GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-08",
+          "price": 16490000,
+          "stockQuantity": 44,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Dung lượng": "256GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-09",
+          "price": 18490000,
+          "stockQuantity": 61,
+          "options": {
+            "Màu sắc": "Đen",
+            "Dung lượng": "512GB",
+            "RAM": "12GB"
+          }
+        },
+        {
+          "sku": "DEMO-PHONE-08-10",
+          "price": 14490000,
+          "stockQuantity": 78,
+          "options": {
+            "Màu sắc": "Xanh dương",
+            "Dung lượng": "128GB",
+            "RAM": "8GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Office 14",
+      "slug": "demo-laptop-atlas-office-14",
+      "description": "Laptop Atlas Office 14 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-01-01",
+          "price": 15990000,
+          "stockQuantity": 95,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-02",
+          "price": 13490000,
+          "stockQuantity": 12,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-03",
+          "price": 15990000,
+          "stockQuantity": 29,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-04",
+          "price": 10990000,
+          "stockQuantity": 46,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-05",
+          "price": 14990000,
+          "stockQuantity": 63,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-06",
+          "price": 11990000,
+          "stockQuantity": 80,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "8GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-01-07",
+          "price": 13490000,
+          "stockQuantity": 97,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "512GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Office 15",
+      "slug": "demo-laptop-atlas-office-15",
+      "description": "Laptop Atlas Office 15 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-02-01",
+          "price": 12990000,
+          "stockQuantity": 14,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-02-02",
+          "price": 14490000,
+          "stockQuantity": 31,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-02-03",
+          "price": 15490000,
+          "stockQuantity": 48,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-02-04",
+          "price": 16990000,
+          "stockQuantity": 65,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Creator 14",
+      "slug": "demo-laptop-atlas-creator-14",
+      "description": "Laptop Atlas Creator 14 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-03-01",
+          "price": 16490000,
+          "stockQuantity": 82,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-02",
+          "price": 21490000,
+          "stockQuantity": 99,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-03",
+          "price": 15990000,
+          "stockQuantity": 16,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "8GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-04",
+          "price": 21490000,
+          "stockQuantity": 33,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-05",
+          "price": 14990000,
+          "stockQuantity": 50,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-06",
+          "price": 19990000,
+          "stockQuantity": 67,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-07",
+          "price": 18990000,
+          "stockQuantity": 84,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-08",
+          "price": 17490000,
+          "stockQuantity": 1,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-03-09",
+          "price": 18990000,
+          "stockQuantity": 18,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "1TB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Creator 16",
+      "slug": "demo-laptop-atlas-creator-16",
+      "description": "Laptop Atlas Creator 16 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-04-01",
+          "price": 21990000,
+          "stockQuantity": 35,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-04-02",
+          "price": 18490000,
+          "stockQuantity": 52,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-04-03",
+          "price": 20990000,
+          "stockQuantity": 69,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-04-04",
+          "price": 16990000,
+          "stockQuantity": 86,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-04-05",
+          "price": 23490000,
+          "stockQuantity": 3,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-04-06",
+          "price": 23490000,
+          "stockQuantity": 20,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Gaming 15",
+      "slug": "demo-laptop-atlas-gaming-15",
+      "description": "Laptop Atlas Gaming 15 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-05-01",
+          "price": 20490000,
+          "stockQuantity": 37,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-05-02",
+          "price": 21490000,
+          "stockQuantity": 54,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "8GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-05-03",
+          "price": 21490000,
+          "stockQuantity": 71,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "512GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Gaming 16",
+      "slug": "demo-laptop-atlas-gaming-16",
+      "description": "Laptop Atlas Gaming 16 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-06-01",
+          "price": 20990000,
+          "stockQuantity": 88,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-02",
+          "price": 25990000,
+          "stockQuantity": 5,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-03",
+          "price": 20990000,
+          "stockQuantity": 22,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-04",
+          "price": 23490000,
+          "stockQuantity": 39,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-05",
+          "price": 24990000,
+          "stockQuantity": 56,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-06",
+          "price": 25990000,
+          "stockQuantity": 73,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-07",
+          "price": 24990000,
+          "stockQuantity": 90,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-06-08",
+          "price": 24990000,
+          "stockQuantity": 7,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Travel 13",
+      "slug": "demo-laptop-atlas-travel-13",
+      "description": "Laptop Atlas Travel 13 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-07-01",
+          "price": 29490000,
+          "stockQuantity": 24,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-07-02",
+          "price": 26990000,
+          "stockQuantity": 41,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-07-03",
+          "price": 27990000,
+          "stockQuantity": 58,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-07-04",
+          "price": 25490000,
+          "stockQuantity": 75,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-07-05",
+          "price": 24490000,
+          "stockQuantity": 92,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Laptop",
+      "name": "Laptop Atlas Pro 16",
+      "slug": "demo-laptop-atlas-pro-16",
+      "description": "Laptop Atlas Pro 16 thuộc bộ dữ liệu minh họa nhóm laptop; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-LAPTOP-08-01",
+          "price": 26490000,
+          "stockQuantity": 9,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-02",
+          "price": 27490000,
+          "stockQuantity": 26,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "512GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-03",
+          "price": 24990000,
+          "stockQuantity": 43,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-04",
+          "price": 28990000,
+          "stockQuantity": 60,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-05",
+          "price": 26490000,
+          "stockQuantity": 77,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "16GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-06",
+          "price": 31490000,
+          "stockQuantity": 94,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-07",
+          "price": 28990000,
+          "stockQuantity": 11,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "256GB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-08",
+          "price": 28990000,
+          "stockQuantity": 28,
+          "options": {
+            "Màu sắc": "Xám",
+            "RAM": "16GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-09",
+          "price": 31490000,
+          "stockQuantity": 45,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "32GB",
+            "SSD": "1TB"
+          }
+        },
+        {
+          "sku": "DEMO-LAPTOP-08-10",
+          "price": 27490000,
+          "stockQuantity": 62,
+          "options": {
+            "Màu sắc": "Bạc",
+            "RAM": "8GB",
+            "SSD": "1TB"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K68",
+      "slug": "demo-ban-phim-co-k68",
+      "description": "Bàn phím cơ K68 thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-01-01",
+          "price": 740000,
+          "stockQuantity": 79,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-02",
+          "price": 690000,
+          "stockQuantity": 96,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-03",
+          "price": 690000,
+          "stockQuantity": 13,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-04",
+          "price": 490000,
+          "stockQuantity": 30,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-05",
+          "price": 740000,
+          "stockQuantity": 47,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-06",
+          "price": 490000,
+          "stockQuantity": 64,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-01-07",
+          "price": 490000,
+          "stockQuantity": 81,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Blue",
+            "Kết nối": "Có dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K75",
+      "slug": "demo-ban-phim-co-k75",
+      "description": "Bàn phím cơ K75 thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-02-01",
+          "price": 940000,
+          "stockQuantity": 98,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-02-02",
+          "price": 890000,
+          "stockQuantity": 15,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-02-03",
+          "price": 690000,
+          "stockQuantity": 32,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-02-04",
+          "price": 740000,
+          "stockQuantity": 49,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K87",
+      "slug": "demo-ban-phim-co-k87",
+      "description": "Bàn phím cơ K87 thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-03-01",
+          "price": 1140000,
+          "stockQuantity": 66,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-02",
+          "price": 1090000,
+          "stockQuantity": 83,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-03",
+          "price": 1090000,
+          "stockQuantity": 100,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-04",
+          "price": 940000,
+          "stockQuantity": 17,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-05",
+          "price": 890000,
+          "stockQuantity": 34,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-06",
+          "price": 1090000,
+          "stockQuantity": 51,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-07",
+          "price": 890000,
+          "stockQuantity": 68,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-08",
+          "price": 940000,
+          "stockQuantity": 85,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-03-09",
+          "price": 1140000,
+          "stockQuantity": 2,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K98",
+      "slug": "demo-ban-phim-co-k98",
+      "description": "Bàn phím cơ K98 thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-04-01",
+          "price": 1140000,
+          "stockQuantity": 19,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-04-02",
+          "price": 1340000,
+          "stockQuantity": 36,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-04-03",
+          "price": 1290000,
+          "stockQuantity": 53,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-04-04",
+          "price": 1290000,
+          "stockQuantity": 70,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-04-05",
+          "price": 1090000,
+          "stockQuantity": 87,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-04-06",
+          "price": 1090000,
+          "stockQuantity": 4,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Có dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K104",
+      "slug": "demo-ban-phim-co-k104",
+      "description": "Bàn phím cơ K104 thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-05-01",
+          "price": 1490000,
+          "stockQuantity": 21,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-05-02",
+          "price": 1290000,
+          "stockQuantity": 38,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-05-03",
+          "price": 1290000,
+          "stockQuantity": 55,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K65 Wireless",
+      "slug": "demo-ban-phim-co-k65-wireless",
+      "description": "Bàn phím cơ K65 Wireless thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-06-01",
+          "price": 1490000,
+          "stockQuantity": 72,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-02",
+          "price": 1690000,
+          "stockQuantity": 89,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-03",
+          "price": 1540000,
+          "stockQuantity": 6,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-04",
+          "price": 1690000,
+          "stockQuantity": 23,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-05",
+          "price": 1690000,
+          "stockQuantity": 40,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Red",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-06",
+          "price": 1490000,
+          "stockQuantity": 57,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-07",
+          "price": 1540000,
+          "stockQuantity": 74,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Brown",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-06-08",
+          "price": 1740000,
+          "stockQuantity": 91,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Bàn phím",
+      "name": "Bàn phím cơ K80 Compact",
+      "slug": "demo-ban-phim-co-k80-compact",
+      "description": "Bàn phím cơ K80 Compact thuộc bộ dữ liệu minh họa nhóm bàn phím; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-KEYBOARD-07-01",
+          "price": 1690000,
+          "stockQuantity": 8,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-07-02",
+          "price": 1890000,
+          "stockQuantity": 25,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-07-03",
+          "price": 1690000,
+          "stockQuantity": 42,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Red",
+            "Kết nối": "Có dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-07-04",
+          "price": 1940000,
+          "stockQuantity": 59,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Brown",
+            "Kết nối": "Không dây"
+          }
+        },
+        {
+          "sku": "DEMO-KEYBOARD-07-05",
+          "price": 1890000,
+          "stockQuantity": 76,
+          "options": {
+            "Màu sắc": "Đen",
+            "Switch": "Blue",
+            "Kết nối": "Không dây"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Office View",
+      "slug": "demo-man-hinh-office-view",
+      "description": "Màn hình Office View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-01-01",
+          "price": 4490000,
+          "stockQuantity": 93,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-02",
+          "price": 4490000,
+          "stockQuantity": 10,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-03",
+          "price": 3490000,
+          "stockQuantity": 27,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-04",
+          "price": 3490000,
+          "stockQuantity": 44,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-05",
+          "price": 3490000,
+          "stockQuantity": 61,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-06",
+          "price": 2490000,
+          "stockQuantity": 78,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-07",
+          "price": 5990000,
+          "stockQuantity": 95,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-08",
+          "price": 4990000,
+          "stockQuantity": 12,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-09",
+          "price": 4990000,
+          "stockQuantity": 29,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-01-10",
+          "price": 3490000,
+          "stockQuantity": 46,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Gaming View",
+      "slug": "demo-man-hinh-gaming-view",
+      "description": "Màn hình Gaming View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-02-01",
+          "price": 4490000,
+          "stockQuantity": 63,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-02",
+          "price": 6990000,
+          "stockQuantity": 80,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-03",
+          "price": 5990000,
+          "stockQuantity": 97,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-04",
+          "price": 4990000,
+          "stockQuantity": 14,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-05",
+          "price": 4990000,
+          "stockQuantity": 31,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-06",
+          "price": 3490000,
+          "stockQuantity": 48,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-02-07",
+          "price": 4490000,
+          "stockQuantity": 65,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Creator View",
+      "slug": "demo-man-hinh-creator-view",
+      "description": "Màn hình Creator View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-03-01",
+          "price": 7490000,
+          "stockQuantity": 82,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-03-02",
+          "price": 5490000,
+          "stockQuantity": 99,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-03-03",
+          "price": 5490000,
+          "stockQuantity": 16,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-03-04",
+          "price": 4990000,
+          "stockQuantity": 33,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "144Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Studio View",
+      "slug": "demo-man-hinh-studio-view",
+      "description": "Màn hình Studio View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-04-01",
+          "price": 7990000,
+          "stockQuantity": 50,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-02",
+          "price": 5990000,
+          "stockQuantity": 67,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-03",
+          "price": 6490000,
+          "stockQuantity": 84,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-04",
+          "price": 7490000,
+          "stockQuantity": 1,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-05",
+          "price": 5490000,
+          "stockQuantity": 18,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-06",
+          "price": 6990000,
+          "stockQuantity": 35,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-07",
+          "price": 8990000,
+          "stockQuantity": 52,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-08",
+          "price": 6490000,
+          "stockQuantity": 69,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-04-09",
+          "price": 6490000,
+          "stockQuantity": 86,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Everyday View",
+      "slug": "demo-man-hinh-everyday-view",
+      "description": "Màn hình Everyday View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-05-01",
+          "price": 7490000,
+          "stockQuantity": 3,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-05-02",
+          "price": 8490000,
+          "stockQuantity": 20,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-05-03",
+          "price": 9990000,
+          "stockQuantity": 37,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-05-04",
+          "price": 8990000,
+          "stockQuantity": 54,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-05-05",
+          "price": 8490000,
+          "stockQuantity": 71,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-05-06",
+          "price": 9990000,
+          "stockQuantity": 88,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Esports View",
+      "slug": "demo-man-hinh-esports-view",
+      "description": "Màn hình Esports View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-06-01",
+          "price": 7490000,
+          "stockQuantity": 5,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-06-02",
+          "price": 8490000,
+          "stockQuantity": 22,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-06-03",
+          "price": 9990000,
+          "stockQuantity": 39,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "100Hz"
+          }
+        }
+      ]
+    },
+    {
+      "group": "Màn hình",
+      "name": "Màn hình Workspace View",
+      "slug": "demo-man-hinh-workspace-view",
+      "description": "Màn hình Workspace View thuộc bộ dữ liệu minh họa nhóm màn hình; lựa chọn biến thể được liệt kê theo từng SKU.",
+      "variants": [
+        {
+          "sku": "DEMO-MONITOR-07-01",
+          "price": 10490000,
+          "stockQuantity": 56,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "27 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-02",
+          "price": 8490000,
+          "stockQuantity": 73,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "24 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-03",
+          "price": 9490000,
+          "stockQuantity": 90,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "24 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-04",
+          "price": 11990000,
+          "stockQuantity": 7,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-05",
+          "price": 11990000,
+          "stockQuantity": 24,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "180Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-06",
+          "price": 11490000,
+          "stockQuantity": 41,
+          "options": {
+            "Màu sắc": "Đen",
+            "Kích thước": "32 inch",
+            "Tần số quét": "144Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-07",
+          "price": 9490000,
+          "stockQuantity": 58,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "27 inch",
+            "Tần số quét": "100Hz"
+          }
+        },
+        {
+          "sku": "DEMO-MONITOR-07-08",
+          "price": 11490000,
+          "stockQuantity": 75,
+          "options": {
+            "Màu sắc": "Trắng",
+            "Kích thước": "32 inch",
+            "Tần số quét": "144Hz"
+          }
+        }
+      ]
+    }
+  ]
+}

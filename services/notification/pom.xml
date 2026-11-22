@@ -8,7 +8,6 @@
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.duong</groupId>
 	<artifactId>notification</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>notification</name>
@@ -27,13 +26,32 @@
 		<url/>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+		<dependency>
+			<groupId>com.duong</groupId>
+			<artifactId>logging-module</artifactId>
+		</dependency>
+		<!-- HTTP is used for Actuator health and metrics; business events use Kafka. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
+			<groupId>com.duong</groupId>
+			<artifactId>mail-module</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -48,8 +66,8 @@
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.kafka</groupId>
-			<artifactId>spring-kafka</artifactId>
+			<groupId>com.duong</groupId>
+			<artifactId>kafka-module</artifactId>
 		</dependency>
 
 		<dependency>
@@ -74,6 +92,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>

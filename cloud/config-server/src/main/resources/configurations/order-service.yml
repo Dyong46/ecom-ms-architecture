@@ -1,0 +1,30 @@
+server:
+  port: 8070
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/order
+    username: order_user
+    password: order_password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+  kafka:
+    consumer:
+      properties:
+        spring.json.trusted.packages: com.duong.ecommerce.order.payload.event
+        spring.json.type.mapping: paymentConfirmation:com.duong.ecommerce.order.payload.event.PaymentSucceeded
+    producer:
+      properties:
+        spring.json.type.mapping: orderConfirmation:com.duong.ecommerce.order.payload.event.OrderConfirmation
+
+kafka-module:
+  topics:
+    - name: ${application.events.order-topic}
+      partitions: 1
+      replicas: 1

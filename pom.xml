@@ -28,7 +28,8 @@
         <java.version>17</java.version>
         <support.version>1.0.0</support.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
-        <modelmapper.version>3.2.0</modelmapper.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <guava.version>33.4.8-jre</guava.version>
         <jjwt.version>0.12.5</jjwt.version>
         <bouncycastle.version>1.85</bouncycastle.version>
@@ -36,13 +37,50 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <commons-validator.version>1.8.0</commons-validator.version>
         <zxing.version>3.4.1</zxing.version>
+        <!-- 8.x uses Jackson 2, matching Spring Boot 3.3. -->
+        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.duong</groupId>
+                <artifactId>mail-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>kafka-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>caching-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>proxy-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>logging-module</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
                 <artifactId>common-data-model</artifactId>
+                <version>${support.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.duong</groupId>
+                <artifactId>mongo-data-model</artifactId>
                 <version>${support.version}</version>
             </dependency>
             <dependency>
@@ -54,11 +92,6 @@
                 <groupId>com.duong</groupId>
                 <artifactId>web-module</artifactId>
                 <version>${support.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.modelmapper</groupId>
-                <artifactId>modelmapper</artifactId>
-                <version>${modelmapper.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>

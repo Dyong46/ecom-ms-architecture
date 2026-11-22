@@ -1,0 +1,31 @@
+server:
+  port: 8050
+
+spring:
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+    connection-timeout: 2s
+    socket-timeout: 5s
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/product
+    username: product_user
+    password: product_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+    baseline-description: "init"
+    baseline-version: 0
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}

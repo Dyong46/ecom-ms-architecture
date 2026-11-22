@@ -3,6 +3,8 @@
 
 # Log file
 *.log
+*.log.gz
+logs/
 
 # BlueJ files
 *.ctxt
@@ -23,6 +25,7 @@
 .idea/
 
 .env
+.env.monitoring
 
 # macOS hidden/system files
 .DS_Store

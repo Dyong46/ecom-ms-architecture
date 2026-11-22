@@ -1,0 +1,844 @@
+{
+  "apiVersion": 1,
+  "groups": [
+    {
+      "orgId": 1,
+      "name": "Kafka monitoring",
+      "folder": "Ecommerce",
+      "interval": "30s",
+      "rules": [
+        {
+          "uid": "kafka-exporter-down",
+          "title": "Kafka exporter scrape unavailable",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "(max(up{job=\"kafka-exporter\"}) == bool 0) or absent(up{job=\"kafka-exporter\"})",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "1m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Kafka exporter cannot be scraped",
+            "description": "Check ms_kafka, the exporter container and the shared Docker network.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "1"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-broker-metrics-missing",
+          "title": "Kafka broker discovery unavailable",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "(absent(kafka_brokers{job=\"kafka-exporter\"}) or (max(kafka_brokers{job=\"kafka-exporter\"}) < bool 1)) and on() (up{job=\"kafka-exporter\"} == 1)",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "1m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Exporter responds but broker metrics are unavailable",
+            "description": "Exporter HTTP availability alone does not establish Kafka broker availability. Check its logs and advertised listeners.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "2"
+          },
+          "labels": {
+            "severity": "critical",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-notification-down",
+          "title": "Notification metrics endpoint unavailable",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "up{job=\"ecommerce\",application=\"notification-service\"} == bool 0",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "1m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Notification service cannot be scraped",
+            "description": "Check Notification process, port 8040 and Actuator. This alert measures HTTP availability.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "4"
+          },
+          "labels": {
+            "severity": "critical",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-expected-group-missing",
+          "title": "Notification Kafka consumer group inactive",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "((max(kafka_consumergroup_members{job=\"kafka-exporter\",consumergroup=\"paymentGroup,orderGroup\"}) < bool 1) or absent(kafka_consumergroup_members{job=\"kafka-exporter\",consumergroup=\"paymentGroup,orderGroup\"})) and on() (up{job=\"kafka-exporter\"} == 1) and on() (max(kafka_brokers{job=\"kafka-exporter\"}) > 0)",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "5m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Expected Notification group has no active members",
+            "description": "Expected group is paymentGroup,orderGroup. Check Notification listeners, group configuration and bootstrap servers. Fresh groups may not be discovered until started.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "3"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-lag-high",
+          "title": "Notification Kafka lag high",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag{job=\"kafka-exporter\",consumergroup=\"paymentGroup,orderGroup\",topic=~\"order-topic|payment-topic\"} >= 0)",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        100
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "5m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Kafka lag exceeds 100 messages",
+            "description": "Threshold is a local starting point. Inspect processing errors, consumer throughput and email latency.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "5"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-consumer-stalled",
+          "title": "Notification backlog without offset progress",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "(sum by (consumergroup, topic) (kafka_consumergroup_lag{job=\"kafka-exporter\",consumergroup=\"paymentGroup,orderGroup\",topic=~\"order-topic|payment-topic\"} >= 0) > 0) and on(consumergroup,topic) (sum by (consumergroup, topic) (changes(kafka_consumergroup_current_offset{job=\"kafka-exporter\",consumergroup=\"paymentGroup,orderGroup\",topic=~\"order-topic|payment-topic\"}[1m])) == 0)",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "5m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Consumer has backlog without committed offset progress",
+            "description": "Positive lag and no observed offset changes persisted for five minutes. Check the consumer and downstream email/database dependencies.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "8"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-publish-errors",
+          "title": "Kafka publisher error logs detected",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "loki",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "editorMode": "code",
+                "expr": "sum(count_over_time({job=\"ecommerce\",service_name=~\"order-service|payment-service\"} | json | __error__=\"\" | logger=~\"com[.]duong[.]module[.]kafka[.](service[.]KafkaPublisher|config[.]SafeProducerListener)\" | level=\"ERROR\" [5m]))",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "queryType": "instant"
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "0s",
+          "isPaused": false,
+          "annotations": {
+            "summary": "Order or Payment logged a Kafka publish failure",
+            "description": "Review matching KafkaPublisher/SafeProducerListener logs. Delivery failures can leave database and event state inconsistent.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "11"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        },
+        {
+          "uid": "kafka-expected-topics-missing",
+          "title": "Expected Kafka topic metadata missing",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "datasourceUid": "prometheus",
+              "relativeTimeRange": {
+                "from": 300,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "(absent(kafka_topic_partitions{job=\"kafka-exporter\",topic=\"order-topic\"}) or absent(kafka_topic_partitions{job=\"kafka-exporter\",topic=\"payment-topic\"})) and on() (up{job=\"kafka-exporter\"} == 1) and on() (max(kafka_brokers{job=\"kafka-exporter\"}) > 0)",
+                "refId": "A",
+                "intervalMs": 15000,
+                "maxDataPoints": 43200,
+                "instant": true,
+                "range": false
+              }
+            },
+            {
+              "refId": "B",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "reduce",
+                "expression": "A",
+                "reducer": "last",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "refId": "B"
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "model": {
+                "datasource": {
+                  "type": "__expr__",
+                  "uid": "__expr__"
+                },
+                "type": "threshold",
+                "expression": "B",
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    },
+                    "operator": {
+                      "type": "and"
+                    },
+                    "query": {
+                      "params": [
+                        "C"
+                      ]
+                    },
+                    "reducer": {
+                      "params": [],
+                      "type": "last"
+                    },
+                    "type": "query"
+                  }
+                ],
+                "refId": "C"
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "Alerting",
+          "for": "5m",
+          "isPaused": false,
+          "annotations": {
+            "summary": "An expected Ecom topic is missing from exporter metadata",
+            "description": "Expected topics are order-topic and payment-topic. Provision topics or update alert selectors if topic names were changed.",
+            "__dashboardUid__": "kafka-overview",
+            "__panelId__": "12"
+          },
+          "labels": {
+            "severity": "warning",
+            "component": "kafka",
+            "environment": "local"
+          }
+        }
+      ]
+    }
+  ]
+}

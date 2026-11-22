@@ -1,0 +1,447 @@
+openapi: 3.0.3
+info:
+  title: Order API qua Gateway
+  version: '1.0.0'
+  description: Tạo đơn hàng, xem đơn và các dòng hàng. Dùng access token Keycloak qua Authorize.
+servers:
+  - url: /
+    description: Gateway đang phục vụ Swagger UI
+  - url: http://localhost:8222
+    description: Gateway local khi mở spec bằng công cụ riêng
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/orders:
+    get:
+      operationId: listOrders
+      summary: Liệt kê đơn hàng
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Trang đơn hàng.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              content:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createOrder
+      summary: Tạo đơn theo các SKU đã chọn
+      description: |
+        Dùng ID khách hàng có sẵn và UUID của từng SKU. Order gọi Product để kiểm
+        tra và trừ tồn kho, tính tổng tiền theo giá ở Product, lưu đơn và gọi Payment
+        để tạo bản ghi thanh toán. Không cần gọi thêm Payment cho cùng đơn.
+        Order và snapshot được lưu ở trạng thái PROCESSING trước khi gọi Payment.
+        Retry cùng Idempotency-Key để tiếp tục cùng orderId; khi hoàn tất trả lại ID cũ.
+        Nếu Payment chưa hoàn tất, tồn kho đã trừ vẫn được giữ; chưa có reservation/hoàn kho.
+        Không đổi key để retry cùng reference.
+        HTTP 200 trả orderId, chưa xác nhận thanh toán. Gọi GET /api/v1/orders/{orderId}/payment
+        để lấy URL Stripe khi worker tạo session xong. Đơn 0 VND được thanh toán miễn phí.
+        Chỉ nhận CREDIT_CARD, VISA hoặc MASTER_CARD; PayPal, Bitcoin và USD chưa hỗ trợ.
+        Bắt buộc nhập người nhận và địa chỉ riêng; không sửa hồ sơ Customer.
+        Order lưu snapshot tên/email người mua từ Customer và thông tin SKU từ Product.
+        Currency hiện là VND, shippingFee luôn bằng 0; amount = itemsSubtotal + shippingFee.
+        ID tạo đơn do server cấp; id và các trường snapshot/giá trị tiền gửi thêm bị bỏ qua.
+        Fingerprint bỏ qua id và thứ tự SKU; tên người nhận, địa chỉ, số lượng và phương thức thanh toán phải giữ nguyên.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+            example:
+              reference: DEMO-ORDER-001
+              paymentMethod: VISA
+              customerId: '673e1eb210c3c0aaec9afe01'
+              recipientFullName: Trần Bình
+              recipientPhone: '+84901234567'
+              shippingAddress:
+                addressLine1: 25 Nguyễn Huệ
+                ward: Phường Sài Gòn
+                city: Thành phố Hồ Chí Minh
+                countryCode: VN
+              deliveryNote: Gọi trước khi giao
+              products:
+                - skuId: 00000000-0000-4000-8000-000000000002
+                  quantity: 1
+      responses:
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '200':
+          description: Data chứa ID số nguyên của đơn vừa tạo.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int32
+              example: {data: 42, request_id: null}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/orders/{orderId}:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    get:
+      operationId: getOrder
+      summary: Xem chi tiết đơn hàng
+      responses:
+        '200':
+          description: Chi tiết đơn. Dùng API dòng hàng để lấy các SKU đã mua.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+              example:
+                data:
+                  id: 42
+                  reference: DEMO-ORDER-001
+                  amount: 7990000
+                  paymentMethod: VISA
+                  customerId: '673e1eb210c3c0aaec9afe01'
+                  customerFullName: An Nguyễn
+                  customerEmail: an.nguyen@example.test
+                  recipientFullName: Trần Bình
+                  recipientPhone: '+84901234567'
+                  shippingAddress: { addressLine1: 25 Nguyễn Huệ, addressLine2: null, ward: Phường Sài Gòn, city: Thành phố Hồ Chí Minh, postalCode: null, countryCode: VN }
+                  deliveryNote: Gọi trước khi giao
+                  itemsSubtotal: 7990000
+                  shippingFee: 0
+                  currencyCode: VND
+                  creationStatus: COMPLETED
+                request_id: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/order-lines/order/{orderId}:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    get:
+      operationId: listOrderLines
+      summary: Xem các dòng hàng theo ID đơn
+      responses:
+        '200':
+          description: Danh sách SKU với giá và thuộc tính tại thời điểm mua. Trả mảng rỗng khi không có dòng hàng.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderLine'
+              example:
+                data:
+                  - id: 9
+                    productId: 00000000-0000-4000-8000-000000000001
+                    skuId: 00000000-0000-4000-8000-000000000002
+                    sku: DEMO-PHONE-01-03
+                    name: Điện thoại Nova N1
+                    options: {Màu sắc: Đen, Dung lượng: 512GB, RAM: 12GB}
+                    unitPrice: 7990000
+                    quantity: 1
+                    variantName: 'Dung lượng: 512GB / Màu sắc: Đen / RAM: 12GB'
+                request_id: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/orders/{orderId}/payment:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    get:
+      operationId: getOrderPayment
+      summary: Xem trạng thái thanh toán và URL Hosted Checkout
+      description: Poll khi attemptStatus là CREATING hoặc UNKNOWN. Chỉ mở checkoutUrl khi có URL. SUCCEEDED mới xác nhận thanh toán; redirect success không phải bằng chứng thu tiền.
+      responses:
+        '200':
+          description: Trạng thái hiện tại; Order projection có thể cập nhật trễ qua Kafka.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/orders/{orderId}/payment-attempts:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    post:
+      operationId: retryOrderPayment
+      summary: Bắt đầu lần thanh toán mới sau FAILED hoặc EXPIRED
+      description: Giữ cùng Payment và orderId. Chỉ tạo attempt mới khi attempt cũ đã kết thúc chắc chắn; UNKNOWN và REVIEW_REQUIRED trả 409. Retry thao tác này giữ nguyên Idempotency-Key.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: UUID của attempt mới; gọi GET payment để lấy URL khi worker tạo xong session.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data: {type: string, format: uuid}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '503':
+          description: Stripe sandbox chưa được bật hoặc chưa cấu hình.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Giữ nguyên key khi retry cùng thao tác. Key mới cho một thao tác mới; không tái sử dụng key với nội dung khác.
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._:-]{1,128}$' }
+    Page:
+      name: page
+      in: query
+      description: Trang bắt đầu từ 1.
+      schema: {type: integer, format: int32, minimum: 1, default: 1}
+    Size:
+      name: size
+      in: query
+      description: Số phần tử trên một trang.
+      schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 20}
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema: {type: integer, format: int32}
+  responses:
+    IdempotencyConflict:
+      description: Key đã dùng với nội dung khác hoặc request cùng key đang xử lý. Với request đang xử lý, retry cùng key sau đó. Order cũng từ chối reference đã gắn với key khác.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Gateway yêu cầu access token hợp lệ.
+      headers:
+        WWW-Authenticate:
+          schema: {type: string}
+          example: Bearer
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type: {type: string}
+              title: {type: string}
+              status: {type: integer}
+              detail: {type: string}
+              instance: {type: string}
+    BadRequest:
+      description: Tham số hoặc nội dung yêu cầu không hợp lệ.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Không tìm thấy tài nguyên theo ID.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: Xử lý thất bại. Kiểm tra trạng thái tài nguyên trước khi gửi lại yêu cầu ghi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    Envelope:
+      type: object
+      required: [data, request_id]
+      properties:
+        data: {}
+        request_id: {type: string, nullable: true}
+    Page:
+      type: object
+      required: [content, page_info]
+      properties:
+        content:
+          type: array
+          items: {}
+        page_info:
+          $ref: '#/components/schemas/PageInfo'
+    PageInfo:
+      type: object
+      required: [number, size, number_of_elements, total_elements, total_pages, is_first, is_last]
+      properties:
+        number: {type: integer, minimum: 1}
+        size: {type: integer, minimum: 1, maximum: 100}
+        number_of_elements: {type: integer, minimum: 0}
+        total_elements: {type: integer, format: int64, minimum: 0}
+        total_pages: {type: integer, minimum: 0}
+        is_first: {type: boolean}
+        is_last: {type: boolean}
+    ApiError:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [error_code, extra_data]
+              properties:
+                error_code: {type: string}
+                extra_data:
+                  type: object
+                  required: [message]
+                  properties:
+                    message: {type: string}
+                    errors:
+                      type: object
+                      additionalProperties: {type: string}
+                    details: {}
+    PaymentMethod:
+      type: string
+      enum: [PAYPAL, CREDIT_CARD, VISA, MASTER_CARD, BITCOIN]
+    CheckoutMethod:
+      type: string
+      enum: [CREDIT_CARD, VISA, MASTER_CARD]
+    PaymentCheckout:
+      type: object
+      properties:
+        paymentId: {type: integer, format: int32}
+        orderId: {type: integer, format: int32}
+        amount: {type: number, minimum: 0}
+        currencyCode: {type: string, nullable: true, example: VND}
+        status: {type: string, enum: [UNKNOWN, PENDING, SUCCEEDED, FAILED, EXPIRED]}
+        attemptId: {type: string, nullable: true}
+        attemptStatus: {type: string, nullable: true, enum: [CREATING, REQUIRES_ACTION, PROCESSING, UNKNOWN, SUCCEEDED, FAILED, EXPIRED, REVIEW_REQUIRED]}
+        checkoutUrl: {type: string, format: uri, nullable: true, description: URL Stripe khi session sẵn sàng; null khi chưa có hoặc đã thanh toán/hết hạn.}
+        expiresAt: {type: string, format: date-time, nullable: true}
+        failureCode: {type: string, nullable: true, description: Mã lỗi đã loại bỏ dữ liệu nhạy cảm.}
+    OrderInput:
+      type: object
+      required: [ reference, paymentMethod, customerId, products, recipientFullName, recipientPhone, shippingAddress ]
+      properties:
+        id: {type: integer, format: int32, nullable: true, description: Bỏ qua khi tạo đơn mới.}
+        reference: {type: string, minLength: 1, maxLength: 255, pattern: '\S'}
+        paymentMethod:
+          $ref: '#/components/schemas/CheckoutMethod'
+        customerId: {type: string, minLength: 1, pattern: '\S'}
+        recipientFullName: { type: string, minLength: 1, maxLength: 255, pattern: '\S' }
+        recipientPhone: { type: string, maxLength: 32, pattern: '^\+?[0-9][0-9 ()-]{5,30}$' }
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+        deliveryNote: { type: string, maxLength: 1000, nullable: true }
+        products:
+          type: array
+          minItems: 1
+          description: Mỗi SKU chỉ xuất hiện một lần.
+          items:
+            $ref: '#/components/schemas/PurchaseItem'
+    ShippingAddress:
+      type: object
+      required: [ addressLine1, ward, city, countryCode ]
+      properties:
+        addressLine1: { type: string, minLength: 1, maxLength: 255, pattern: '\S' }
+        addressLine2: { type: string, maxLength: 255, nullable: true }
+        ward: { type: string, minLength: 1, maxLength: 100, pattern: '\S' }
+        city: { type: string, minLength: 1, maxLength: 100, pattern: '\S' }
+        postalCode: { type: string, maxLength: 32, nullable: true }
+        countryCode: { type: string, pattern: '^[A-Z]{2}$' }
+    PurchaseItem:
+      type: object
+      required: [skuId, quantity]
+      properties:
+        skuId: {type: string, format: uuid}
+        quantity: {type: integer, format: int32, minimum: 1}
+    Order:
+      type: object
+      required: [ id, reference, amount, paymentMethod, customerId, creationStatus ]
+      properties:
+        id: {type: integer, format: int32}
+        reference: {type: string}
+        amount: {type: number, description: Tổng giá trị đơn do server tính.}
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        creationStatus: { type: string, enum: [ PROCESSING, COMPLETED ], description: Tiến trình tạo đơn; không phải trạng thái thu tiền hay giao hàng. }
+        paymentStatus: {type: string, enum: [UNKNOWN, PENDING, SUCCEEDED], description: Projection qua Kafka; đơn cũ UNKNOWN, xem GET payment để biết trạng thái hiện tại.}
+        customerId: {type: string}
+        customerFullName: { type: string, nullable: true }
+        customerEmail: { type: string, nullable: true }
+        recipientFullName: { type: string, nullable: true }
+        recipientPhone: { type: string, nullable: true }
+        shippingAddress:
+          allOf:
+            - $ref: '#/components/schemas/ShippingAddress'
+          nullable: true
+        deliveryNote: { type: string, nullable: true }
+        itemsSubtotal: { type: number, nullable: true, description: Tổng đơn giá nhân số lượng các dòng hàng. }
+        shippingFee: { type: number, nullable: true, description: 'Phí ship, hiện luôn 0 với đơn mới.' }
+        currencyCode: { type: string, nullable: true, description: 'Hiện là VND với đơn mới. Trường snapshot mới có thể null ở đơn cũ.' }
+    OrderLine:
+      type: object
+      required: [id, productId, skuId, sku, name, options, unitPrice, quantity]
+      properties:
+        id: {type: integer, format: int32}
+        productId: {type: string, format: uuid}
+        skuId: {type: string, format: uuid}
+        sku: {type: string}
+        name: {type: string}
+        options:
+          type: object
+          additionalProperties: {type: string}
+        unitPrice: {type: number, description: Giá một đơn vị tại thời điểm mua.}
+        quantity: {type: integer, format: int32, minimum: 1}
+        variantName: { type: string, nullable: true, description: Nhãn variant tại thời điểm mua; SKU không có options dùng mã SKU. }

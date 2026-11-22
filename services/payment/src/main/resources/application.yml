@@ -1,5 +1,27 @@
 spring:
+  task:
+    scheduling:
+      pool:
+        size: 3
+  kafka:
+    producer:
+      properties:
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10000
   application:
     name: payment-service
   config:
-    import: optional:configserver:http://localhost:8888
+    import:
+      - optional:configserver:http://localhost:8888
+      - optional:file:./services/payment/.env.properties
+
+payment:
+  stripe:
+    enabled: ${STRIPE_ENABLED:false}
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    success-url: ${STRIPE_SUCCESS_URL:http://localhost:3000/payment/success}
+    cancel-url: ${STRIPE_CANCEL_URL:http://localhost:3000/payment/cancel}
+  workers:
+    enabled: ${PAYMENT_WORKERS_ENABLED:true}

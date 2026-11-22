@@ -1,0 +1,4 @@
+com/duong/module/mongo/model/entity/BaseMongoDocument.class
+com/duong/module/mongo/model/entity/BaseMongoDocument$BaseMongoDocumentBuilder.class
+com/duong/module/mongo/model/entity/BaseSoftDeletableMongoDocument$BaseSoftDeletableMongoDocumentBuilder.class
+com/duong/module/mongo/model/entity/BaseSoftDeletableMongoDocument.class

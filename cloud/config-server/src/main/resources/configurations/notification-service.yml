@@ -1,0 +1,49 @@
+server:
+  port: 8040
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: notification
+      authentication-database: admin
+      username: root
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
+  kafka:
+    listener:
+      # Override shared RECORD mode: acknowledge only after the Mongo job is durable.
+      ack-mode: manual_immediate
+    consumer:
+      enable-auto-commit: false
+      # Historical value is ONE group ID; keep it to preserve committed offsets.
+      group-id: ${NOTIFICATION_KAFKA_GROUP_ID:paymentGroup,orderGroup}
+      properties:
+        spring.json.trusted.packages: com.duong.ecommerce.notification.payload.event.order,com.duong.ecommerce.notification.payload.event.payment
+        spring.json.type.mapping:
+          orderConfirmation:com.duong.ecommerce.notification.payload.event.order.OrderConfirmation,
+          paymentConfirmation:com.duong.ecommerce.notification.payload.event.payment.PaymentConfirmation
+  mail:
+    host: localhost
+    port: 1025
+    username: root
+    password: 12345
+    properties:
+      mail:
+        smtp:
+          trust: "*"
+        auth: true
+        starttls:
+          enabled: true
+        connectiontimeout: 5000
+        timeout: 3000
+        writetimeout: 5000

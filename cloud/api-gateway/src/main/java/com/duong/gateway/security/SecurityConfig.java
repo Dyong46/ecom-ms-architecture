@@ -1,6 +1,7 @@
 package com.duong.gateway.security;
 
 import com.duong.gateway.config.GatewaySecurityProperties;
+import com.duong.gateway.config.ApiDocsConfig;
 import com.duong.gateway.handler.ProblemDetailsHandler;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +10,8 @@ import org.springframework.http.HttpStatus;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -23,12 +26,18 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity serverHttpSecurity,
             ProblemDetailsHandler problems,
-            GatewaySecurityProperties properties) {
+            GatewaySecurityProperties properties,
+            Environment environment) {
         serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> {
+                    // Provider signature verification belongs to Payment; Stripe has no Keycloak JWT.
+                    exchange.pathMatchers(HttpMethod.POST, "/webhooks/stripe").permitAll();
                     exchange.pathMatchers(properties.getPublicPaths().toArray(String[]::new)).permitAll();
                     exchange.pathMatchers(HttpMethod.GET,
                             properties.getPublicGetPaths().toArray(String[]::new)).permitAll();
+                    if (environment.acceptsProfiles(Profiles.of("local"))) {
+                        exchange.pathMatchers(HttpMethod.GET, ApiDocsConfig.PATH + "/**").permitAll();
+                    }
                     if (properties.getCallback().isEnabled()) {
                         exchange.pathMatchers(properties.getCallback().getPathPattern()).permitAll();
                     }

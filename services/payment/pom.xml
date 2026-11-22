@@ -8,7 +8,6 @@
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<groupId>com.duong</groupId>
 	<artifactId>payment</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>payment</name>
@@ -27,6 +26,29 @@
 		<url/>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>34.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>com.duong</groupId>
+			<artifactId>logging-module</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.duong</groupId>
 			<artifactId>web-module</artifactId>
@@ -52,8 +74,8 @@
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.kafka</groupId>
-			<artifactId>spring-kafka</artifactId>
+			<groupId>com.duong</groupId>
+			<artifactId>kafka-module</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -96,6 +118,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>

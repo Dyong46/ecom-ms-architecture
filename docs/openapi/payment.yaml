@@ -1,0 +1,356 @@
+openapi: 3.0.3
+info:
+  title: Payment Internal API
+  version: '1.0.0'
+  description: API nội bộ tạo và xem Payment. Chỉ chấp nhận machine token Keycloak có azp khớp payment.security.allowed-client-id (mặc định ecom-services). Gateway chỉ publish POST /webhooks/stripe; các API /internal/payments không đi qua Gateway.
+servers:
+  - url: http://localhost:8060
+    description: Payment service trong mạng nội bộ; không gọi qua Gateway
+security:
+  - bearerAuth: []
+paths:
+  /internal/payments:
+    get:
+      operationId: listPayments
+      summary: Liệt kê bản ghi thanh toán
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Trang bản ghi thanh toán.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Page'
+                          - type: object
+                            properties:
+                              content:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Payment'
+              example:
+                data:
+                  content:
+                    - Id: 7
+                      orderId: 42
+                      amount: 7990000
+                      paymentMethod: VISA
+                      createDate: '2026-11-18T10:30:00'
+                      lastModifiedDate: null
+                  page_info:
+                    number: 1
+                    size: 20
+                    number_of_elements: 1
+                    total_elements: 1
+                    total_pages: 1
+                    is_first: true
+                    is_last: true
+                request_id: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: createPayment
+      summary: Tạo bản ghi thanh toán
+      description: |
+        Lưu Payment PENDING và PaymentAttempt trong PostgreSQL. Worker tạo Stripe Hosted Checkout
+        bất đồng bộ. HTTP 200 xác nhận việc tạo bản ghi, chưa xác nhận thu tiền.
+        Chỉ phát PAYMENT_SUCCEEDED qua outbox sau webhook/reconciliation xác nhận paid.
+        Đơn 0 VND thành công ngay, không gọi Stripe; vẫn tạo outbox.
+        Một orderId chỉ có một Payment. Khi tạo đơn qua Order, Order đã gọi tạo
+        Payment cho đơn đó. Chỉ dùng thao tác này cho đơn chưa có bản ghi.
+        ID do DB cấp, không nhận từ request. Các trường không thuộc contract (kể cả id)
+        bị bỏ qua. Amount là số nguyên VND không âm, tối đa int64; 50000.00 hợp lệ nhưng 50000.50 bị từ chối.
+        Chỉ CREDIT_CARD, VISA và MASTER_CARD được hỗ trợ; provider minimum được Stripe kiểm tra.
+        Cùng Idempotency-Key và cùng nội dung trả lại Payment ID đã lưu, không tạo bản ghi hay phát event lần nữa.
+        Các giá trị amount tương đương như 25 và 25.00 có cùng fingerprint.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInput'
+            example:
+              amount: 7990000
+              paymentMethod: VISA
+              orderId: 42
+              orderReference: DEMO-ORDER-001
+              customer:
+                id: '673e1eb210c3c0aaec9afe01'
+                firstname: An
+                lastname: Nguyễn
+                email: an.nguyen@example.test
+      responses:
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '200':
+          description: Data chứa ID số nguyên của bản ghi vừa tạo.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int32
+              example: {data: 7, request_id: null}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '503':
+          description: Stripe sandbox chưa được bật/cấu hình (đơn miễn phí vẫn xử lý).
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /internal/payments/order/{orderId}:
+    parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema: {type: integer, format: int32, minimum: 1}
+    get:
+      operationId: getPaymentCheckout
+      summary: Xem trạng thái thanh toán và URL Hosted Checkout
+      description: Poll khi attemptStatus là CREATING hoặc UNKNOWN. Chỉ mở checkoutUrl khi có URL. SUCCEEDED mới xác nhận thanh toán; redirect success không phải bằng chứng thu tiền.
+      responses:
+        '200':
+          description: Trạng thái hiện tại; Order projection có thể cập nhật trễ qua Kafka.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaymentCheckout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/payments/{paymentId}/attempts:
+    parameters:
+      - $ref: '#/components/parameters/PaymentId'
+    post:
+      operationId: retryPaymentAttempt
+      summary: Bắt đầu lần thanh toán mới sau FAILED hoặc EXPIRED
+      description: Giữ cùng Payment và orderId. Chỉ tạo attempt mới khi attempt cũ đã kết thúc chắc chắn; UNKNOWN và REVIEW_REQUIRED trả 409. Retry thao tác này giữ nguyên Idempotency-Key.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: UUID của attempt mới; gọi GET payment để lấy URL khi worker tạo xong session.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data: {type: string, format: uuid}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '503':
+          description: Stripe sandbox chưa được bật hoặc chưa cấu hình.
+  /webhooks/stripe:
+    post:
+      operationId: receiveStripeWebhook
+      summary: Webhook Stripe sandbox qua Gateway
+      servers:
+        - url: http://localhost:8222
+          description: Gateway local; khi deploy dùng URL HTTPS của Gateway
+      security: []
+      description: Gateway forward nguyên body và Stripe-Signature tới Payment, không yêu cầu JWT. Payment xác thực chữ ký trên raw body (300 giây). Lưu inbox theo event ID trước khi ACK. Webhook trùng trả 200. Chỉ nhận sandbox; thay đổi body sẽ làm chữ ký sai.
+      parameters:
+        - name: Stripe-Signature
+          in: header
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        '200': {description: Đã lưu inbox hoặc event trùng; body rỗng.}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema: {type: integer, format: int32, minimum: 1}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Giữ nguyên key khi retry cùng thao tác. Key mới cho một thao tác mới; không tái sử dụng key với nội dung khác.
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._:-]{1,128}$' }
+    Page:
+      name: page
+      in: query
+      description: Trang bắt đầu từ 1.
+      schema: {type: integer, format: int32, minimum: 1, default: 1}
+    Size:
+      name: size
+      in: query
+      description: Số phần tử trên một trang.
+      schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 20}
+  responses:
+    NotFound:
+      description: Không tìm thấy Payment hoặc Order.
+    IdempotencyConflict:
+      description: Key đã dùng với nội dung khác hoặc request cùng key đang xử lý. Với request đang xử lý, retry cùng key sau đó. Order cũng từ chối reference đã gắn với key khác.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Thiếu Bearer token hoặc token không hợp lệ.
+      headers:
+        WWW-Authenticate:
+          schema: {type: string}
+          example: Bearer
+    Forbidden:
+      description: Token hợp lệ nhưng azp không phải client nội bộ được cấu hình.
+    BadRequest:
+      description: Tham số hoặc nội dung yêu cầu không hợp lệ.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: Xử lý thất bại. Kiểm tra trạng thái tài nguyên trước khi gửi lại yêu cầu ghi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    Envelope:
+      type: object
+      required: [data, request_id]
+      properties:
+        data: {}
+        request_id: {type: string, nullable: true}
+    Page:
+      type: object
+      required: [content, page_info]
+      properties:
+        content:
+          type: array
+          items: {}
+        page_info:
+          $ref: '#/components/schemas/PageInfo'
+    PageInfo:
+      type: object
+      required: [number, size, number_of_elements, total_elements, total_pages, is_first, is_last]
+      properties:
+        number: {type: integer, minimum: 1}
+        size: {type: integer, minimum: 1, maximum: 100}
+        number_of_elements: {type: integer, minimum: 0}
+        total_elements: {type: integer, format: int64, minimum: 0}
+        total_pages: {type: integer, minimum: 0}
+        is_first: {type: boolean}
+        is_last: {type: boolean}
+    ApiError:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [error_code, extra_data]
+              properties:
+                error_code: {type: string}
+                extra_data:
+                  type: object
+                  required: [message]
+                  properties:
+                    message: {type: string}
+                    errors:
+                      type: object
+                      additionalProperties: {type: string}
+                    details: {}
+    PaymentMethod:
+      type: string
+      enum: [PAYPAL, CREDIT_CARD, VISA, MASTER_CARD, BITCOIN]
+    CheckoutMethod:
+      type: string
+      enum: [CREDIT_CARD, VISA, MASTER_CARD]
+    PaymentCheckout:
+      type: object
+      properties:
+        paymentId: {type: integer, format: int32}
+        orderId: {type: integer, format: int32}
+        amount: {type: number, minimum: 0}
+        currencyCode: {type: string, nullable: true, example: VND}
+        status: {type: string, enum: [UNKNOWN, PENDING, SUCCEEDED, FAILED, EXPIRED]}
+        attemptId: {type: string, nullable: true}
+        attemptStatus: {type: string, nullable: true, enum: [CREATING, REQUIRES_ACTION, PROCESSING, UNKNOWN, SUCCEEDED, FAILED, EXPIRED, REVIEW_REQUIRED]}
+        checkoutUrl: {type: string, format: uri, nullable: true, description: URL Stripe khi session sẵn sàng; null khi chưa có hoặc đã thanh toán/hết hạn.}
+        expiresAt: {type: string, format: date-time, nullable: true}
+        failureCode: {type: string, nullable: true, description: Mã lỗi đã loại bỏ dữ liệu nhạy cảm.}
+    PaymentInput:
+      type: object
+      required: [amount, paymentMethod, orderId, customer]
+      properties:
+        amount: { type: integer, format: int64, minimum: 0, description: 'Số nguyên VND, không nhân 100 khi gửi Stripe.' }
+        paymentMethod:
+          $ref: '#/components/schemas/CheckoutMethod'
+        orderId: { type: integer, format: int32, minimum: 1 }
+        orderReference:
+          type: string
+          nullable: true
+          maxLength: 255
+          description: Mã tham chiếu đơn gửi trong sự kiện xác nhận.
+        customer:
+          $ref: '#/components/schemas/PaymentCustomer'
+    PaymentCustomer:
+      type: object
+      description: Hồ sơ khách hàng dùng cho sự kiện xác nhận.
+      required: [ firstname, lastname, email ]
+      properties:
+        id: {type: string, nullable: true}
+        firstname: { type: string, maxLength: 255, minLength: 1, pattern: '\S' }
+        lastname: { type: string, maxLength: 255, minLength: 1, pattern: '\S' }
+        email: { type: string, maxLength: 255, format: email, minLength: 1, pattern: '\S' }
+    Payment:
+      type: object
+      required: [Id, orderId, amount, paymentMethod, createDate, lastModifiedDate]
+      properties:
+        Id: {type: integer, format: int32, description: ID bản ghi. Tên trường JSON viết hoa chữ I.}
+        orderId: {type: integer, format: int32}
+        amount: {type: number}
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        createDate: {type: string, description: Ngày giờ địa phương ISO 8601.}
+        lastModifiedDate: {type: string, nullable: true, description: Ngày giờ địa phương ISO 8601.}

@@ -15,12 +15,18 @@ jobs:
       fail-fast: false
       matrix:
         module:
+          - support/common-module
+          - support/web-module
           - support/common-data-model
+          - support/mail-module
+          - cloud/config-server
+          - cloud/discovery
           - services/customer
           - services/product
           - services/order
           - services/payment
           - services/notification
+          - cloud/api-gateway
 
     defaults:
       run:
@@ -44,7 +50,8 @@ jobs:
             support/common-module/pom.xml
             support/web-module/pom.xml
             support/common-data-model/pom.xml
+            support/mail-module/pom.xml
             ${{ matrix.module }}/pom.xml
 
       - name: Run tests
-        run: $GITHUB_WORKSPACE/services/product/mvnw -f ../../pom.xml -pl ${{ matrix.module }} -am --batch-mode verify
+        run: mvn -f ../../pom.xml -pl ${{ matrix.module }} -am --batch-mode verify

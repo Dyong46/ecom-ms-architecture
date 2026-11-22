@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.domain.Page;
-import com.duong.module.common.util.LogUtils;
 
 @Data
 @SuperBuilder(toBuilder = true)
@@ -25,16 +24,12 @@ public class PageResponse<T> {
   @JsonProperty("page_info")
   private PageInfo pageInfo;
 
-  @JsonProperty("request_id")
-  private String requestId;
-
   public <U> PageResponse<U> map(Function<? super T, ? extends U> converter) {
     return PageResponse.<U>builder()
         .content(getContent().stream()
             .map(converter)
             .collect(Collectors.toList()))
         .pageInfo(getPageInfo())
-        .requestId(LogUtils.getTraceId())
         .build();
   }
 
@@ -42,7 +37,6 @@ public class PageResponse<T> {
     return PageResponse.<T>builder()
         .content(page.getContent())
         .pageInfo(PageInfo.build(page))
-        .requestId(LogUtils.getTraceId())
         .build();
   }
 

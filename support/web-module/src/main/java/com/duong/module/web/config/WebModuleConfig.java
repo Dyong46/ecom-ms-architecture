@@ -1,10 +1,10 @@
 package com.duong.module.web.config;
 
-import org.springframework.context.annotation.ComponentScan;
+import com.duong.module.web.exception.advice.ExceptionControllerAdvice;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-@Configuration
-@ComponentScan("com.duong.module.web")
+@Configuration(proxyBeanMethods = false)
+@Import(ExceptionControllerAdvice.class)
 public class WebModuleConfig {
-
 }

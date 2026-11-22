@@ -1,0 +1,60 @@
+server:
+  port: 8222
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: stripe-webhook
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/webhooks/stripe
+            - Method=POST
+
+        - id: public-product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/public/v1/products/**
+            - Method=GET
+          filters:
+            - RewritePath=/api/public/v1/products(?<segment>/?.*), /api/v1/products$\{segment}
+
+        - id: customer-service
+          uri: lb://CUSTOMER-SERVICE
+          predicates:
+            - Path=/api/v1/customers/**
+
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/orders/**
+
+        - id: order-lines-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/api/v1/order-lines/**
+
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/v1/products/**,/api/v1/product-options/**
+
+gateway:
+  security:
+    public-paths:
+      - /actuator/health
+      - /actuator/health/**
+      - /actuator/info
+    public-get-paths:
+      - /api/public/**
+      - /actuator/prometheus
+    callback:
+      enabled: true
+      path-pattern: /api/callbacks/**
+      allowed-cidrs:
+        - 127.0.0.1/32
+        - "::1/128"
+      trusted-proxies: 0

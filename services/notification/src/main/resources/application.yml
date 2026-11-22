@@ -1,5 +1,23 @@
 spring:
   application:
     name: notification-service
+  kafka:
+    consumer:
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual_immediate
+  mail:
+    properties:
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   config:
     import: optional:configserver:http://localhost:8888
+
+notification:
+  email:
+    sender-address: ${MAIL_SENDER_ADDRESS:duongminh462003@gmail.com}
+  delivery:
+    enabled: ${NOTIFICATION_DELIVERY_ENABLED:true}
+    lease: ${NOTIFICATION_DELIVERY_LEASE:PT2M}
+    poll-delay-ms: ${NOTIFICATION_DELIVERY_POLL_DELAY_MS:5000}

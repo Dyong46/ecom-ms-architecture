@@ -1,0 +1,4 @@
+<configuration>
+    <!-- Integration tests attach their own in-memory access log appender. -->
+    <root level="INFO"/>
+</configuration>

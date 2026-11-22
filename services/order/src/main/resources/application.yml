@@ -1,17 +1,14 @@
 spring:
+  jackson:
+    deserialization:
+      accept-float-as-int: false
   application:
     name: order-service
-  security:
-    oauth2:
-      client:
-        registration:
-          product-service:
-            provider: product-service
-            authorization-grant-type: client_credentials
-            client-id: ${PRODUCT_OAUTH2_CLIENT_ID:order-service}
-            client-secret: ${PRODUCT_OAUTH2_CLIENT_SECRET}
-        provider:
-          product-service:
-            token-uri: ${PRODUCT_OAUTH2_TOKEN_URI:http://localhost:9098/realms/micro-services/protocol/openid-connect/token}
   config:
-    import: optional:configserver:http://localhost:8888
+    import:
+      - optional:configserver:http://localhost:8888
+      - optional:file:./services/order/.env.properties
+
+order:
+  payment-events:
+    enabled: ${ORDER_PAYMENT_EVENTS_ENABLED:true}
