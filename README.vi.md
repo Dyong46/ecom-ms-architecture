@@ -28,6 +28,10 @@ Product hiện trừ tồn khi mua SKU. Reservation có thời hạn và Saga ho
 
 Cần JDK 17 và Docker Compose. Chạy các lệnh từ thư mục gốc repo. Để thử catalog trước, bật profile Elasticsearch:
 
+Lần đầu cài đặt, sao chép `.env.example` thành `.env` rồi điền ba mật khẩu quản trị local. Với database đã có dữ liệu, dùng mật khẩu hiện tại. Đặt cùng giá trị `MONGO_INITDB_ROOT_PASSWORD` trong cấu hình chạy IDE của Customer và Notification. Nếu đã có container Keycloak, [sao lưu realm trước lần cập nhật Compose đầu tiên](docs/ecom-oauth-setup.md#keycloak-volume).
+
+Nếu broker đang dùng ZooKeeper, hãy chuyển topic và consumer offsets cần giữ trước khi chạy Kafka KRaft với volume mới. [Cấu hình Kafka local](support/kafka-module/README.md)
+
 ```sh
 docker compose --profile search up -d
 ```

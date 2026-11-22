@@ -36,7 +36,7 @@ Start Kafka infrastructure first. Kafka Exporter uses the local `ms_kafka`
 container and the infrastructure Docker network.
 
 ```bash
-docker compose up -d zookeeper kafka
+docker compose up -d kafka
 ```
 
 Run these commands from the repository root. The initial setup creates an ignored

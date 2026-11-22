@@ -4,4 +4,9 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://root:12345@localhost:27017/customer?authSource=admin
+      host: localhost
+      port: 27017
+      database: customer
+      authentication-database: admin
+      username: root
+      password: ${MONGO_INITDB_ROOT_PASSWORD}

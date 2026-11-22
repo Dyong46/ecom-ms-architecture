@@ -13,7 +13,12 @@ management:
 spring:
   data:
     mongodb:
-      uri: mongodb://root:12345@localhost:27017/notification?authSource=admin
+      host: localhost
+      port: 27017
+      database: notification
+      authentication-database: admin
+      username: root
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
   kafka:
     listener:
       # Override shared RECORD mode: acknowledge only after the Mongo job is durable.

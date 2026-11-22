@@ -2,7 +2,7 @@
 
 Chạy từ thư mục gốc repository, MongoDB trong Docker Compose phải đang chạy.
 Dừng Customer trước khi clear/seed. Các lệnh dưới đây dùng tài khoản local
-được khai báo trong docker-compose.yml.
+mà Compose nạp từ file `.env` ở thư mục gốc.
 
 ## 1. Clear dữ liệu cũ
 
@@ -12,13 +12,13 @@ Không chạy nếu cần giữ các customer hiện tại. Không xóa database
 collection lịch sử hoặc lock của Mongock.
 
 ```sh
-docker compose exec mongodb mongosh --quiet --username root --password 12345 --authenticationDatabase admin customer --eval 'db.customer.deleteMany({})'
+docker compose exec mongodb sh -c 'exec mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin customer "$@"' sh --eval 'db.customer.deleteMany({})'
 ```
 
 ## 2. Nạp 100 customer mẫu
 
 ```sh
-docker compose exec -T mongodb mongosh --quiet --username root --password 12345 --authenticationDatabase admin customer < scripts/seed_customers.js
+docker compose exec -T mongodb sh -c 'exec mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin customer "$@"' sh < scripts/seed_customers.js
 ```
 
 Script tạo unique index email giống migration, rồi upsert 100 email từ
@@ -34,7 +34,7 @@ thiếu. Không chạy đồng thời với tiến trình ghi Customer.
 ## 3. Kiểm tra và khởi động lại
 
 ```sh
-docker compose exec mongodb mongosh --quiet --username root --password 12345 --authenticationDatabase admin customer --eval 'printjson({count: db.customer.countDocuments({}), indexes: db.customer.getIndexes()})'
+docker compose exec mongodb sh -c 'exec mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin customer "$@"' sh --eval 'printjson({count: db.customer.countDocuments({}), indexes: db.customer.getIndexes()})'
 ```
 
 Sau clear + seed thành công, count phải là 100 và có unique index

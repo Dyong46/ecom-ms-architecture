@@ -18,6 +18,34 @@ token trong Redis; các consumer cùng namespace/môi trường và OAuth identi
 thể dùng chung token. Các API internal phải được giữ trong mạng riêng.
 Xem [mô hình giao tiếp và ranh giới internal](../support/proxy-module/README.md).
 
+<a id="keycloak-volume"></a>
+## Giữ realm khi cập nhật Compose local
+
+Compose lưu dữ liệu Keycloak ở volume `keycloak_data`. Với container cũ dùng
+database dev trong filesystem của container, sao lưu **trước** khi chạy
+`docker compose up` hoặc `down`. Thực hiện từ thư mục gốc repo, với Keycloak
+24.0.2 và file `.env` đã cấu hình. Dừng nếu một bước báo lỗi.
+
+```sh
+backup_dir=$(mktemp -d) &&
+docker compose stop keycloak &&
+docker cp -a ms_kaycloak:/opt/keycloak/data/. - > "$backup_dir/keycloak-data.tar" &&
+tar -tf "$backup_dir/keycloak-data.tar" | grep 'keycloakdb.mv.db'
+```
+
+Giữ bản sao ở nơi riêng tư vì database chứa thông tin xác thực. Với volume mới
+trống, tạo container, khôi phục dữ liệu rồi mới khởi động:
+
+```sh
+docker compose create --force-recreate keycloak &&
+docker cp -a - ms_kaycloak:/opt/keycloak/data < "$backup_dir/keycloak-data.tar" &&
+docker compose start keycloak
+```
+
+Mở Admin Console, kiểm tra realm `micro-services` và client `ecom-services`.
+Giữ bản sao đến khi Order lấy được token. Các lần tạo lại container sau đó
+dùng lại volume. Lệnh `docker compose down -v` sẽ xóa các named volume.
+
 ## Tạo client và lấy secret trên Keycloak
 
 Điều kiện: có quyền quản trị client trong realm. Với môi trường local, Keycloak

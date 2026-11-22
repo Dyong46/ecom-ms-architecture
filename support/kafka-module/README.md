@@ -183,7 +183,13 @@ kafka-module:
 
 Provisioning mặc định tắt. Với môi trường local mới, thực hiện các bước sau.
 
-1. Khởi động hạ tầng bằng `docker compose up -d zookeeper kafka`.
+Kafka local chạy một node KRaft kiêm broker và controller. IDE dùng
+`localhost:9092`, container cùng mạng Compose dùng `kafka:29092`. Volume
+`kafka_kraft_data` lưu metadata, message và consumer offsets. Khi chuyển từ
+stack ZooKeeper cũ, volume mới bắt đầu trống. Nếu cần giữ lịch sử hoặc vị trí
+đọc của consumer, hoàn tất migration trước khi thay broker đang chạy.
+
+1. Khởi động hạ tầng bằng `docker compose up -d kafka`.
 2. Reload Maven và rebuild các service.
 3. Restart Config Server để phục vụ cấu hình dùng chung mới.
 4. Đặt `KAFKA_PROVISION_TOPICS=true` vào Run Configuration của Order và Payment

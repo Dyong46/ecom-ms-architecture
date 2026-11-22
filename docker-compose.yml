@@ -40,12 +40,12 @@ services:
     image: postgres:16.4
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: 12345
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     networks:
       - microservices-net
     restart: unless-stopped
@@ -63,7 +63,7 @@ services:
     environment:
       PGHOST: postgres
       PGUSER: root
-      PGPASSWORD: 12345
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       PGDATABASE: postgres
     volumes:
       - ./docker/postgres/init-databases.sql:/scripts/init-databases.sql:ro
@@ -76,12 +76,12 @@ services:
     container_name: ms_mongo_db
     image: mongo:8.0.9
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=12345
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:?Set MONGO_INITDB_ROOT_PASSWORD in .env}
     networks:
       - microservices-net
 
@@ -89,20 +89,8 @@ services:
     container_name: ms_mail_dev
     image: maildev/maildev
     ports:
-      - "1080:1080"
-      - "1025:1025"
-    networks:
-      - microservices-net
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: ms_zookeeper
-    environment:
-      ZOOKEEPER_SERVER_ID: 1
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "22181:2181"
+      - "127.0.0.1:1080:1080"
+      - "127.0.0.1:1025:1025"
     networks:
       - microservices-net
 
@@ -110,16 +98,23 @@ services:
     container_name: ms_kafka
     image: confluentinc/cp-kafka:7.5.0
     ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
+      - "127.0.0.1:9092:9092"
     environment:
+      CLUSTER_ID: "8oPDnU_yTFqi28Xl0AKkAw"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENERS: HOST://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: HOST:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+    volumes:
+      - kafka_kraft_data:/var/lib/kafka/data
     networks:
       - microservices-net
 
@@ -127,7 +122,16 @@ services:
     container_name: ms_zipkin
     image: openzipkin/zipkin
     ports:
-      - "9411:9411"
+      - "127.0.0.1:9411:9411"
+    environment:
+      STORAGE_TYPE: mem
+      MEM_MAX_SPANS: "10000"
+      JAVA_OPTS: >-
+        -Xms128m
+        -Xmx512m
+        -XX:+ExitOnOutOfMemoryError
+    mem_limit: 768m
+    restart: unless-stopped
     networks:
       - microservices-net
 
@@ -135,12 +139,14 @@ services:
     container_name: ms_kaycloak
     image: quay.io/keycloak/keycloak:24.0.2
     ports:
-      - "9098:8080"
+      - "127.0.0.1:9098:8080"
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: 12345
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Set KEYCLOAK_ADMIN_PASSWORD in .env}
     networks:
       - microservices-net
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     command:
       - "start-dev"
 
@@ -153,3 +159,5 @@ volumes:
   postgres:
   pgadmin:
   mongo:
+  keycloak_data:
+  kafka_kraft_data:

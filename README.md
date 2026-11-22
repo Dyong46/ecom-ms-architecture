@@ -28,6 +28,10 @@ Product deducts stock at purchase time. Expiring reservations and Saga compensat
 
 Install JDK 17 and Docker Compose. Run commands from the repository root. To try the catalog first, start infrastructure with Elasticsearch enabled:
 
+For a fresh setup, copy `.env.example` to `.env` and fill in the three local admin passwords. For existing databases, use their current credentials. Set the same `MONGO_INITDB_ROOT_PASSWORD` in the Customer and Notification IDE run configurations. If you already have a Keycloak container, [preserve its realm before the first Compose update](docs/ecom-oauth-setup.md#keycloak-volume).
+
+If your current Kafka broker uses ZooKeeper, preserve its topics and consumer offsets before starting the new KRaft broker. [Local Kafka setup](support/kafka-module/README.md)
+
 ```sh
 docker compose --profile search up -d
 ```
